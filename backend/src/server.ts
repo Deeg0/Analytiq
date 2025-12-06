@@ -60,8 +60,11 @@ app.use('/api/health', healthRoutes);
 app.use('/api/analyze', analysisRoutes);
 
 // Error handling middleware
-app.use((err: Error, req: express.Request, res: express.Response, next: express.NextFunction) => {
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Error:', err);
+  console.error('Error stack:', err.stack);
+  console.error('Request URL:', req.url);
+  console.error('Request method:', req.method);
   
   // Handle specific error types
   if (err.message?.includes('timeout')) {
@@ -86,11 +89,14 @@ app.use((err: Error, req: express.Request, res: express.Response, next: express.
     statusCode = 404;
   } else if (err.message?.includes('authentication') || err.message?.includes('API key')) {
     statusCode = 401;
+  } else if (err.message?.includes('CORS') || err.message?.includes('Not allowed by CORS')) {
+    statusCode = 403;
   }
   
   res.status(statusCode).json({
     error: statusCode === 500 ? 'Internal server error' : 'Request error',
-    message: err.message || 'An unexpected error occurred'
+    message: err.message || 'An unexpected error occurred',
+    ...(process.env.NODE_ENV !== 'production' && { stack: err.stack })
   });
 });
 
