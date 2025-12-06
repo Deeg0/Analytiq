@@ -75,7 +75,14 @@ export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisRe
           errorMessage += 'The PDF may be empty, corrupted, password-protected, or image-based (scanned). Please try a different PDF file.';
         }
       } else {
-        errorMessage = `Only ${textLength} characters were extracted from ${inputType}, but at least 100 characters are needed. Please provide more content or try a different input method.`;
+        errorMessage = `Only ${textLength} characters were extracted from ${inputType}, but at least 100 characters are needed. `;
+        if (inputType === 'url') {
+          errorMessage += 'The URL may be inaccessible, blocked by anti-scraping measures, or not contain readable content. Try: (1) Using a different URL, (2) Uploading a PDF instead, or (3) Pasting the text directly.';
+        } else if (inputType === 'doi') {
+          errorMessage += 'The DOI may be invalid, or the full text may not be publicly available. Try: (1) A different DOI, (2) Uploading a PDF, or (3) Pasting the text directly.';
+        } else {
+          errorMessage += 'Please provide more content or try a different input method.';
+        }
       }
       
       throw new Error(errorMessage);

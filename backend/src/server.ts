@@ -11,6 +11,9 @@ import healthRoutes from './routes/health';
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Trust proxy - required for Railway and rate limiting
+app.set('trust proxy', true);
+
 // Middleware
 // CORS configuration - allow Netlify and localhost
 const allowedOrigins = [
