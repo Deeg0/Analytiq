@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AnalytIQ - AI-Powered Scientific Study Analysis</title>
+    <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="apple-touch-icon" href="assets/AnalytIQlogo.png">
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="header-content">
+                <div class="header-logo">
+                    <img src="assets/AnalytIQlogo.png" alt="AnalytIQ Logo" class="logo-image">
+                </div>
+            <h1>Analyt<span class="brand-iq">IQ</span></h1>
+            <p class="subtitle">AI-powered analysis of scientific research credibility, bias, and reliability</p>
+            </div>
+        </header>
+
+        <main>
+            <!-- Input Section -->
+            <section id="input-section" class="input-section">
+                <div class="tabs">
+                    <button class="tab-button active" data-tab="url">URL</button>
+                    <button class="tab-button" data-tab="text">Text/Abstract</button>
+                </div>
+
+                <!-- URL Tab -->
+                <div class="tab-content active" id="url-tab">
+                    <div class="input-group">
+                        <label for="url-input">Enter Study URL:</label>
+                        <input type="url" id="url-input" placeholder="https://example.com/research-study">
+                    </div>
+                    <button class="submit-button" onclick="analyzeUrl()">Analyze Study</button>
+                </div>
+
+                <!-- Text Tab -->
+                <div class="tab-content" id="text-tab">
+                    <div class="input-group">
+                        <label for="text-input">Paste Study Text or Abstract:</label>
+                        <textarea id="text-input" rows="10" placeholder="Paste the study text, abstract, or full content here..."></textarea>
+                    </div>
+                    <button class="submit-button" onclick="analyzeText()">Analyze Study</button>
+                </div>
+            </section>
+
+            <!-- Loading Section -->
+            <section id="loading-section" class="loading-section hidden">
+                <div class="loading-spinner"></div>
+                <p>Analyzing study... This may take a minute.</p>
+            </section>
+
+            <!-- Results Section -->
+            <section id="results-section" class="results-section hidden">
+                <!-- SECTION 1: Overview & Score -->
+                <div class="results-section-group">
+                    <div class="section-header">
+                        <h2>📊 Overview</h2>
+                    </div>
+                    
+                <!-- Overall Score Card -->
+                <div class="score-card" id="score-card">
+                    <div class="score-circle" id="score-circle">
+                        <span class="score-number" id="score-number">0</span>
+                        <span class="score-label">Trust Score</span>
+                    </div>
+                    <div class="score-details">
+                        <h2 id="score-rating">Moderately Reliable</h2>
+                        <p id="score-description">Analysis complete</p>
+                    </div>
+                </div>
+
+                <!-- Evidence Hierarchy -->
+                <div class="evidence-hierarchy" id="evidence-hierarchy" style="display: none;">
+                    <h3>Evidence Hierarchy</h3>
+                    <div class="hierarchy-info" id="hierarchy-info"></div>
+                </div>
+
+                <!-- Category Breakdown -->
+                <div class="categories">
+                    <h3>Category Breakdown</h3>
+                    <div class="category-grid" id="category-grid"></div>
+                </div>
+                </div>
+
+                <!-- SECTION 2: Critical Issues -->
+                <div class="results-section-group" id="flaws-section-group" style="display: none;">
+                    <div class="section-header">
+                        <h2>⚠️ Critical Issues</h2>
+                    </div>
+                    
+                    <div class="flaws-summary" id="flaws-summary">
+                        <div class="flaws-header">
+                            <h3>Issues Found</h3>
+                            <div class="flaws-count" id="flaws-count"></div>
+                        </div>
+                        <div class="flaws-grid" id="flaws-grid"></div>
+                    </div>
+                </div>
+
+                <!-- SECTION 3: Detailed Analysis -->
+                <div class="results-section-group">
+                    <div class="section-header">
+                        <h2>📝 Detailed Analysis</h2>
+                </div>
+
+                <!-- View Toggle -->
+                <div class="view-toggle">
+                    <button class="view-button active" data-view="simple">Simple Summary</button>
+                    <button class="view-button" data-view="technical">Technical Critique</button>
+                    <button class="view-button" data-view="bias">Bias Report</button>
+                </div>
+
+                <!-- Simple Summary View -->
+                <div class="view-content active" id="simple-view">
+                    <h3>Summary</h3>
+                    <div class="content-box" id="simple-summary"></div>
+                </div>
+
+                <!-- Technical Critique View -->
+                <div class="view-content" id="technical-view">
+                    <h3>Technical Critique</h3>
+                    <div class="content-box" id="technical-critique"></div>
+                    
+                        <div class="technical-details-grid">
+                            <div class="technical-detail-section">
+                    <h3>Category Details</h3>
+                    <div class="category-details" id="category-details"></div>
+                            </div>
+
+                            <div class="technical-detail-section">
+                                <h3>All Issues & Fallacies</h3>
+                    <div class="issues-list" id="issues-list"></div>
+                    
+                    <h3>Confounders & Validity Threats</h3>
+                    <div class="validity-threats" id="validity-threats"></div>
+                            </div>
+                        </div>
+                </div>
+
+                <!-- Bias Report View -->
+                <div class="view-content" id="bias-view">
+                    <h3>Bias Analysis</h3>
+                    <div class="content-box" id="bias-report"></div>
+                    
+                    <h3>Expert Context</h3>
+                    <div class="content-box" id="expert-context"></div>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: Recommendations -->
+                <div class="results-section-group">
+                    <div class="section-header">
+                        <h2>💡 Recommendations</h2>
+                    </div>
+                <div class="recommendations">
+                    <ul id="recommendations-list"></ul>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: Study Information -->
+                <div class="results-section-group">
+                    <div class="section-header">
+                        <h2>📄 Study Information</h2>
+                    </div>
+                <div class="metadata">
+                    <div class="metadata-grid" id="metadata-grid"></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Error Section -->
+            <section id="error-section" class="error-section hidden">
+                <div class="error-box">
+                    <h3>Error</h3>
+                    <p id="error-message"></p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
+
