@@ -2,7 +2,7 @@
   publish = "frontend/public"
   command = "echo 'No build needed - static site'"
 
-# Proxy API requests to backend (Railway)
+# Proxy API requests to backend (Railway) - MUST come before catch-all
 [[redirects]]
   from = "/api/*"
   to = "https://analytiq-production-06b2.up.railway.app/api/:splat"
@@ -10,7 +10,7 @@
   force = true
   headers = {X-From = "Netlify"}
 
-# Handle client-side routing (if needed in future)
+# Handle client-side routing (if needed in future) - MUST come after API redirect
 [[redirects]]
   from = "/*"
   to = "/index.html"
