@@ -30,6 +30,11 @@ app.use(cors({
       return callback(null, true);
     }
     
+    // Allow custom domain analytiq-app.com
+    if (origin.includes('analytiq-app.com')) {
+      return callback(null, true);
+    }
+    
     // Check against allowed origins
     if (allowedOrigins.includes(origin)) {
       return callback(null, true);
