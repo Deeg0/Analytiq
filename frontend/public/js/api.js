@@ -1,7 +1,7 @@
 // Automatically detect API URL based on environment
 const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
     ? 'http://localhost:3000/api'
-    : '/api'; // Use relative path in production (same domain)
+    : 'https://analytiq-production-06b2.up.railway.app/api'; // Call Railway directly to avoid Netlify proxy timeout
 
 export async function analyzeUrl(url) {
     const response = await fetch(`${API_BASE_URL}/analyze`, {
