@@ -38,6 +38,12 @@ temp/
 # Backend specific
 backend/dist/
 backend/.env
+backend/.env.local
+backend/.env.*.local
+
+# Setup files that might contain secrets
+SETUP.md
+*.md.bak
 
 # Frontend specific (if using build tools)
 frontend/dist/
