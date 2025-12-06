@@ -27,6 +27,14 @@ const analyzeLimiter = rateLimit({
   message: 'Too many analysis requests, please try again later.',
 });
 
+// Handle GET requests with helpful error message
+router.get('/', (req, res) => {
+  res.status(405).json({
+    error: 'Method not allowed',
+    message: 'This endpoint only accepts POST requests. Please use the frontend interface to submit analysis requests.'
+  });
+});
+
 router.post('/', analyzeLimiter, async (req, res, next) => {
   try {
     const { inputType, content, fileName } = req.body;
