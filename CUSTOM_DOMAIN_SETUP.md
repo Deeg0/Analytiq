@@ -33,25 +33,102 @@ This guide will help you configure `analytiq-app.com` to point to your Netlify f
 
 ## Step 2: Configure Custom Domain in Netlify
 
+### Navigation Path:
+
 1. **In Netlify Dashboard**
-   - Go to your site
-   - Click **Site settings** → **Domain management**
+   - You should see your site: `lively-torrone-986fc5`
+   - In the left sidebar, look for these sections:
+     - Project overview
+     - Project configuration
+     - Deploys
+     - Preview Servers
+     - Agent runs
+     - Logs
+     - Metrics
+     - Web security
+     - **Domain management** ← **Click here!**
+     - Forms
+     - Blobs
 
-2. **Add Custom Domain**
-   - Click "Add custom domain"
-   - Enter: `analytiq-app.com`
-   - Click "Verify"
+2. **Click "Domain management"**
+   - This will open the domain settings page
+   - You'll see your current domain: `lively-torrone-986fc5.netlify.app`
 
-3. **Netlify Will Show DNS Instructions**
-   - Netlify will tell you what DNS records to add
-   - Usually it's:
-     - **Type**: A or CNAME
-     - **Name**: `@` (or blank)
-     - **Value**: Netlify's IP or domain
+3. **Add Custom Domain**
+   - Click the **"Add custom domain"** button (usually at the top right)
+   - Enter your domain: `analytiq-app.com` (or `www.analytiq-app.com`)
+   - Click **"Verify"** or **"Add domain"**
+
+4. **Netlify Will Show DNS Instructions**
+   - After adding the domain, Netlify will display specific DNS records you need to add
+   - The instructions will show:
+     - **For root domain (`analytiq-app.com`)**: 
+       - **Type**: A records
+       - **Name**: `@` (or leave blank)
+       - **Value**: Netlify's IP addresses (usually 4 IPs)
+     - **For www subdomain (`www.analytiq-app.com`)**:
+       - **Type**: CNAME
+       - **Name**: `www`
+       - **Value**: `lively-torrone-986fc5.netlify.app`
+   - **Copy these values** - you'll need them for your DNS provider
+
+### How to Find DNS Records on the Domain Management Page
+
+Once you're on the [Domain management page](https://app.netlify.com/projects/lively-torrone-986fc5/domain-management):
+
+1. **After Adding Your Custom Domain:**
+   - Look for your custom domain in the list (e.g., `analytiq-app.com`)
+   - Click on the domain name or the **"Verify DNS configuration"** link
+   - Netlify will show you a popup or section with the DNS records you need to add
+
+2. **Where to Find DNS Instructions:**
+   - **Option 1**: Click on your custom domain name in the list
+   - **Option 2**: Look for a button/link that says "Verify DNS" or "DNS configuration"
+   - **Option 3**: Check the status indicator next to your domain - if it says "DNS configuration needed", click it
+
+3. **What You'll See:**
+   - A section titled "DNS configuration" or "DNS records to add"
+   - It will show:
+     - **For root domain (`@` or blank)**:
+       - Type: **A**
+       - Value: Four IP addresses (e.g., `75.2.60.5`, `99.83.190.102`, etc.)
+     - **For www subdomain**:
+       - Type: **CNAME**
+       - Name: `www`
+       - Value: `lively-torrone-986fc5.netlify.app`
+
+4. **Copy the Records:**
+   - Write down or copy these values
+   - You'll add them to your DNS provider (Namecheap) in the next step
+
+5. **Important: About the "Add DNS records" Section**
+   - You might see a section in Netlify that says "Add DNS records (optional)"
+   - This section is **only if you're using Netlify's DNS service**
+   - **If you're using Namecheap DNS** (most common), you can **ignore this section**
+   - You'll add DNS records in Namecheap instead (see Step 3 below)
 
 ---
 
-## Step 3: Update DNS in Namecheap
+## Step 3: Choose Your DNS Provider
+
+You have two options for managing DNS:
+
+### Option A: Use Namecheap DNS (Recommended - Easier)
+
+**If your domain is registered with Namecheap**, keep using Namecheap's DNS and add records there. Skip to "Step 3A: Update DNS in Namecheap" below.
+
+### Option B: Use Netlify DNS (Advanced)
+
+**If you want Netlify to manage all DNS**, you would:
+1. Change your nameservers in Namecheap to point to Netlify's nameservers
+2. Then add DNS records in Netlify's "Add DNS records" section
+3. This is more complex and usually not necessary
+
+**Recommendation**: Use Option A (Namecheap DNS) unless you have a specific reason to use Netlify DNS.
+
+---
+
+## Step 3A: Update DNS in Namecheap (Recommended)
 
 ### Remove Old Railway CNAME
 
@@ -80,16 +157,82 @@ This guide will help you configure `analytiq-app.com` to point to your Netlify f
    - If you want `www.analytiq-app.com`:
    - **Type**: CNAME
    - **Host**: `www`
-   - **Value**: `your-site.netlify.app`
+   - **Value**: `lively-torrone-986fc5.netlify.app`
    - Click Save ✓
+
+---
+
+## Step 3B: Using Netlify DNS (Alternative - Not Recommended)
+
+**Only use this if you want Netlify to manage all your DNS records.**
+
+If you choose to use Netlify DNS:
+
+1. **Change Nameservers in Namecheap**
+   - In Namecheap: Domain List → Manage → Advanced DNS
+   - Change nameservers from "Namecheap BasicDNS" to "Custom DNS"
+   - Enter Netlify's nameservers (Netlify will provide these)
+   - Wait 24-48 hours for nameserver changes to propagate
+
+2. **Add DNS Records in Netlify**
+   - In Netlify: Domain management → DNS records section
+   - Click "Add new record"
+   - Add the records Netlify specified when you added the domain
+   - Netlify will automatically add the necessary A/CNAME records for your site
+
+**Note**: This is more complex and usually unnecessary. Most users should stick with Namecheap DNS (Step 3A).
 
 ---
 
 ## Step 4: Wait for DNS Propagation
 
-- DNS changes can take **15 minutes to 48 hours**
-- Usually takes **15-30 minutes**
-- Check status in Netlify dashboard
+### What "Netlify DNS propagating..." Means
+
+When you see **"Netlify DNS propagating..."** in your domain management page, it means:
+- ✅ Your domain has been added to Netlify
+- ✅ DNS records have been configured
+- ⏳ Netlify is waiting for DNS changes to propagate across the internet
+
+### How Long to Wait
+
+**Typical wait times:**
+- **Minimum**: 15 minutes
+- **Average**: 15-30 minutes
+- **Maximum**: 24-48 hours (rare, usually only for nameserver changes)
+
+**For DNS record changes (A/CNAME records):**
+- Usually **15-30 minutes** is enough
+- Can take up to 4-6 hours in some cases
+
+### What Happens During Propagation
+
+1. **DNS servers worldwide update** with your new records
+2. **Netlify checks** if your domain points to their servers
+3. **SSL certificate** is automatically provisioned once DNS is verified
+4. **Status changes** from "propagating" to "Active" or "Ready"
+
+### How to Check Status
+
+1. **In Netlify Dashboard:**
+   - Go to Domain management page
+   - Watch the status next to your domain
+   - It will change from "Netlify DNS propagating..." to "Active" or show a green checkmark
+
+2. **Check DNS Propagation:**
+   - Visit [whatsmydns.net](https://www.whatsmydns.net)
+   - Enter your domain: `analytiq-app.com`
+   - Check if it shows Netlify's IP addresses (for A records) or your Netlify site (for CNAME)
+
+3. **Test Your Domain:**
+   - Try visiting `https://analytiq-app.com` in your browser
+   - If it loads your site, DNS has propagated!
+
+### What to Do While Waiting
+
+- ✅ **Nothing!** Just wait - DNS propagation happens automatically
+- ✅ You can check back in 15-30 minutes
+- ✅ Your site will still work on `lively-torrone-986fc5.netlify.app` during this time
+- ❌ Don't change DNS records again - this can cause delays
 
 ---
 
