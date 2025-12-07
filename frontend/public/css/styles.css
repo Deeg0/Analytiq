@@ -1163,133 +1163,157 @@ header h1 {
     }
 
     header {
-        padding: 1.5rem 0;
-        margin-bottom: 2rem;
+        padding: 2rem 0 1.5rem;
+        margin-bottom: 2.5rem;
     }
 
     .header-logo {
-        margin-bottom: 1rem;
+        margin-bottom: 1.25rem;
     }
 
     .logo-image {
-        height: 120px;
+        height: 140px;
         max-width: 100%;
     }
 
     header h1 {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
+        font-size: 2.25rem;
+        margin-bottom: 0.75rem;
+        line-height: 1.2;
     }
 
     .subtitle {
-        font-size: 0.95rem;
-        padding: 0 0.5rem;
-        line-height: 1.5;
+        font-size: 1rem;
+        padding: 0 1rem;
+        line-height: 1.6;
+        color: var(--text-secondary);
     }
 
     .input-section {
-        padding: 1.5rem;
-        border-radius: 16px;
-        margin-bottom: 1.5rem;
+        padding: 2rem 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
     }
 
     .tabs {
-        gap: 0.25rem;
-        margin-bottom: 1.5rem;
+        gap: 0;
+        margin-bottom: 2rem;
+        border-bottom: 2px solid var(--border-color);
     }
 
     .tab-button {
-        padding: 0.75rem 1rem;
-        font-size: 0.9rem;
+        padding: 1rem 1.25rem;
+        font-size: 0.95rem;
         flex: 1;
         min-width: 0;
+        font-weight: 500;
     }
 
     .input-group {
-        margin-bottom: 1.25rem;
+        margin-bottom: 1.5rem;
     }
 
     .input-group label {
-        font-size: 0.95rem;
-        margin-bottom: 0.5rem;
+        font-size: 1rem;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
+        color: var(--text-primary);
     }
 
     .input-group input[type="text"],
     .input-group input[type="url"],
     .input-group textarea {
-        padding: 1rem 1.25rem;
+        padding: 1.125rem 1.25rem;
         font-size: 1rem;
-        border-radius: 12px;
+        border-radius: 8px;
+        border: 2px solid var(--border-color);
     }
 
     .input-group textarea {
-        min-height: 180px;
+        min-height: 200px;
+        line-height: 1.6;
     }
 
     .submit-button {
-        padding: 1.25rem;
-        font-size: 1rem;
-        border-radius: 12px;
-        margin-top: 0.5rem;
+        padding: 1.25rem 1.5rem;
+        font-size: 1.05rem;
+        border-radius: 8px;
+        margin-top: 0.75rem;
+        font-weight: 600;
+        box-shadow: var(--shadow-md);
     }
 
     .loading-section {
-        padding: 3rem 1.5rem;
-        border-radius: 16px;
+        padding: 4rem 2rem;
+        border-radius: 12px;
     }
 
     .loading-spinner {
-        width: 60px;
-        height: 60px;
-        border-width: 5px;
+        width: 64px;
+        height: 64px;
+        border-width: 4px;
     }
 
     .loading-section p {
-        font-size: 1rem;
-        padding: 0 0.5rem;
+        font-size: 1.05rem;
+        padding: 0 1rem;
+        color: var(--text-secondary);
     }
 
     .results-section {
-        padding: 1.5rem;
-        border-radius: 16px;
-        margin-bottom: 1.5rem;
+        padding: 2rem 1.5rem;
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        box-shadow: var(--shadow-md);
     }
 
     .results-section-group {
-        margin-bottom: 2rem;
-        padding-bottom: 1.5rem;
+        margin-bottom: 2.5rem;
+        padding-bottom: 2rem;
+    }
+
+    .results-section-group:last-child {
+        margin-bottom: 0;
+        padding-bottom: 0;
     }
 
     .section-header {
-        margin-bottom: 1.5rem;
-        padding-bottom: 0.75rem;
+        margin-bottom: 1.75rem;
+        padding-bottom: 1rem;
     }
 
     .section-header h2 {
-        font-size: 1.4rem;
+        font-size: 1.5rem;
         gap: 0.5rem;
+        font-weight: 600;
     }
 
     .score-card {
         flex-direction: column;
         text-align: center;
-        padding: 2rem 1.5rem;
-        border-radius: 16px;
-        gap: 1.5rem;
+        padding: 2.5rem 2rem;
+        border-radius: 12px;
+        gap: 2rem;
+        margin-bottom: 2.5rem;
+        box-shadow: var(--shadow-lg);
     }
 
     .score-circle {
-        width: 110px;
-        height: 110px;
+        width: 130px;
+        height: 130px;
         margin: 0 auto;
+        border-width: 4px;
     }
 
     .score-number {
-        font-size: 2.25rem;
+        font-size: 2.75rem;
+        font-weight: 700;
     }
 
     .score-label {
-        font-size: 0.85rem;
+        font-size: 0.9rem;
+        font-weight: 600;
     }
 
     .score-details {
@@ -1297,38 +1321,53 @@ header h1 {
     }
 
     .score-details h2 {
-        font-size: 1.5rem;
-        margin-bottom: 0.5rem;
+        font-size: 1.75rem;
+        margin-bottom: 0.75rem;
+        font-weight: 600;
     }
 
     .score-details p {
-        font-size: 1rem;
+        font-size: 1.05rem;
+        opacity: 0.95;
+        line-height: 1.5;
     }
 
     .categories h3,
     .evidence-hierarchy h3 {
-        font-size: 1.3rem;
-        margin-bottom: 1.25rem;
+        font-size: 1.35rem;
+        margin-bottom: 1.5rem;
+        font-weight: 600;
     }
 
     .category-grid,
     .metadata-grid,
     .flaws-grid {
         grid-template-columns: 1fr;
-        gap: 1.25rem;
+        gap: 1.5rem;
     }
 
     .category-item {
-        padding: 1.5rem;
-        border-radius: 16px;
+        padding: 1.75rem;
+        border-radius: 10px;
+        box-shadow: var(--shadow);
+        border-left-width: 4px;
     }
 
     .category-item h4 {
-        font-size: 1.05rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
     }
 
     .category-item .score {
-        font-size: 1.5rem;
+        font-size: 1.75rem;
+        font-weight: 700;
+        margin-bottom: 0.75rem;
+    }
+
+    .category-item .progress-bar {
+        margin-top: 1rem;
+        height: 8px;
     }
 
     .technical-details-grid {
@@ -1342,186 +1381,238 @@ header h1 {
     }
 
     .view-toggle {
-        gap: 0.25rem;
-        margin-bottom: 1.5rem;
+        gap: 0;
+        margin-bottom: 2rem;
         flex-wrap: wrap;
+        border-bottom: 2px solid var(--border-color);
     }
 
     .view-button {
-        padding: 0.75rem 1rem;
-        font-size: 0.9rem;
+        padding: 1rem 1.25rem;
+        font-size: 0.95rem;
         flex: 1;
         min-width: 0;
+        font-weight: 500;
     }
 
     .view-content h3 {
-        font-size: 1.3rem;
-        margin-bottom: 1rem;
+        font-size: 1.35rem;
+        margin-bottom: 1.25rem;
+        font-weight: 600;
     }
 
     .content-box {
-        padding: 1.5rem;
-        border-radius: 16px;
-        margin-bottom: 1.5rem;
-        font-size: 1rem;
-        line-height: 1.7;
+        padding: 1.75rem;
+        border-radius: 10px;
+        margin-bottom: 1.75rem;
+        font-size: 1.05rem;
+        line-height: 1.75;
+        box-shadow: var(--shadow-sm);
     }
 
     .category-detail-item {
-        padding: 1.5rem;
-        border-radius: 16px;
-        margin-bottom: 1.5rem;
+        padding: 1.75rem;
+        border-radius: 10px;
+        margin-bottom: 1.75rem;
+        box-shadow: var(--shadow);
+        border-left-width: 4px;
     }
 
     .category-detail-item h4 {
-        font-size: 1.2rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
     }
 
     .flaws-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 1rem;
-        padding-bottom: 1rem;
+        gap: 1.25rem;
+        padding-bottom: 1.25rem;
+        margin-bottom: 2rem;
     }
 
     .flaws-header h3 {
-        font-size: 1.3rem;
+        font-size: 1.35rem;
+        font-weight: 600;
     }
 
     .flaws-count {
         width: 100%;
-        padding: 1rem;
+        padding: 1.5rem;
+        border-radius: 10px;
+        box-shadow: var(--shadow);
     }
 
     .flaws-count .count-number {
-        font-size: 2rem;
+        font-size: 2.5rem;
+        font-weight: 700;
     }
 
     .flaws-count .count-label {
-        font-size: 0.85rem;
+        font-size: 0.9rem;
+        font-weight: 600;
     }
 
     .flaw-card {
         flex-direction: column;
-        padding: 1.5rem;
-        gap: 1rem;
+        padding: 1.75rem;
+        gap: 1.25rem;
+        border-radius: 10px;
+        box-shadow: var(--shadow);
+        border-left-width: 4px;
     }
 
     .flaw-icon {
         align-self: flex-start;
-        width: 45px;
-        height: 45px;
-        font-size: 1.3rem;
+        width: 50px;
+        height: 50px;
+        font-size: 1.5rem;
+        border-radius: 10px;
     }
 
     .flaw-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 0.75rem;
+        gap: 1rem;
+        width: 100%;
     }
 
     .flaw-header h4 {
-        font-size: 1.1rem;
+        font-size: 1.15rem;
+        font-weight: 600;
+        line-height: 1.3;
     }
 
     .severity-badge {
-        padding: 0.35rem 0.65rem;
-        font-size: 0.7rem;
+        padding: 0.5rem 0.75rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+        border-radius: 6px;
     }
 
     .flaw-description {
-        font-size: 0.95rem;
-        line-height: 1.6;
+        font-size: 1rem;
+        line-height: 1.65;
+        color: var(--text-primary);
     }
 
     .flaw-impact {
-        font-size: 0.9rem;
-        padding: 0.65rem;
+        font-size: 0.95rem;
+        padding: 1rem;
+        border-radius: 8px;
+        line-height: 1.6;
     }
 
     .issue-item,
     .fallacy-item {
-        padding: 1.25rem;
-        border-radius: 12px;
-        margin-bottom: 1.25rem;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1.5rem;
+        box-shadow: var(--shadow);
+        border-left-width: 4px;
     }
 
     .issue-item h5,
     .fallacy-item h5 {
-        font-size: 1rem;
-    }
-
-    .issue-item::before,
-    .fallacy-item::before {
-        width: 28px;
-        height: 28px;
-        font-size: 1.3rem;
-        left: -14px;
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
     }
 
     .quote-section,
     .debunking-section {
-        padding: 0.75rem;
-        margin: 0.75rem 0;
+        padding: 1rem;
+        margin: 1rem 0;
+        border-radius: 8px;
     }
 
     .quote-label,
     .debunking-label {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        margin-bottom: 0.5rem;
     }
 
     .quote {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
+        line-height: 1.65;
     }
 
     .quote-citation {
-        font-size: 0.75rem;
+        font-size: 0.8rem;
+        margin-top: 0.5rem;
     }
 
     .recommendations li {
-        padding: 1rem 1.25rem;
-        padding-left: 2.5rem;
-        border-radius: 6px;
-        margin-bottom: 0.875rem;
-        font-size: 0.95rem;
-        line-height: 1.6;
+        padding: 1.25rem 1.5rem;
+        padding-left: 3rem;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-size: 1rem;
+        line-height: 1.65;
+        box-shadow: var(--shadow-sm);
     }
 
     .recommendations li::before {
-        left: 0.875rem;
-        font-size: 1rem;
+        left: 1.25rem;
+        font-size: 1.1rem;
     }
 
     .metadata-item {
         padding: 1.5rem;
-        border-radius: 12px;
+        border-radius: 10px;
+        box-shadow: var(--shadow-sm);
     }
 
     .metadata-item label {
-        font-size: 0.85rem;
+        font-size: 0.875rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
     }
 
     .metadata-item value {
-        font-size: 1rem;
+        font-size: 1.05rem;
+        font-weight: 500;
+        line-height: 1.5;
     }
 
     .hierarchy-card {
-        padding: 1.25rem;
-        border-radius: 12px;
+        padding: 1.75rem;
+        border-radius: 10px;
+        box-shadow: var(--shadow);
+        border-left-width: 4px;
     }
 
     .hierarchy-card h4 {
-        font-size: 1.2rem;
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-bottom: 1.25rem;
+    }
+
+    .hierarchy-card p {
+        font-size: 1rem;
+        line-height: 1.65;
+        margin-bottom: 0.75rem;
     }
 
     .threat-item {
-        padding: 1.25rem;
-        border-radius: 12px;
-        margin-bottom: 1rem;
+        padding: 1.5rem;
+        border-radius: 10px;
+        margin-bottom: 1.25rem;
+        box-shadow: var(--shadow);
+        border-left-width: 4px;
     }
 
     .threat-item h5 {
+        font-size: 1.1rem;
+        font-weight: 600;
+        margin-bottom: 0.75rem;
+    }
+
+    .threat-item p {
         font-size: 1rem;
+        line-height: 1.65;
     }
 
     .error-section {
@@ -1542,94 +1633,97 @@ header h1 {
 /* Extra small devices */
 @media (max-width: 480px) {
     .container {
-        padding: 0.75rem;
+        padding: 0.875rem;
     }
 
     header {
-        padding: 1rem 0;
-        margin-bottom: 1.5rem;
+        padding: 1.5rem 0 1.25rem;
+        margin-bottom: 2rem;
     }
 
     .logo-image {
-        height: 100px;
+        height: 120px;
     }
 
     header h1 {
-        font-size: 1.75rem;
+        font-size: 2rem;
+        margin-bottom: 0.75rem;
     }
 
     .subtitle {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
+        padding: 0 0.75rem;
     }
 
     .input-section {
-        padding: 1.25rem;
+        padding: 1.75rem 1.5rem;
     }
 
     .tab-button {
-        padding: 0.65rem 0.75rem;
-        font-size: 0.85rem;
+        padding: 0.875rem 1rem;
+        font-size: 0.9rem;
     }
 
     .input-group input[type="text"],
     .input-group input[type="url"],
     .input-group textarea {
-        padding: 0.9rem 1rem;
-        font-size: 0.95rem;
+        padding: 1rem 1.125rem;
+        font-size: 1rem;
     }
 
     .submit-button {
-        padding: 1.1rem;
-        font-size: 0.95rem;
+        padding: 1.125rem 1.25rem;
+        font-size: 1rem;
     }
 
     .results-section {
-        padding: 1.25rem;
+        padding: 1.75rem 1.5rem;
     }
 
     .section-header h2 {
-        font-size: 1.25rem;
+        font-size: 1.35rem;
     }
 
     .score-card {
-        padding: 1.5rem 1.25rem;
+        padding: 2rem 1.5rem;
+        gap: 1.75rem;
     }
 
     .score-circle {
-        width: 100px;
-        height: 100px;
+        width: 120px;
+        height: 120px;
     }
 
     .score-number {
-        font-size: 2rem;
+        font-size: 2.5rem;
     }
 
     .score-details h2 {
-        font-size: 1.3rem;
+        font-size: 1.5rem;
     }
 
     .content-box {
-        padding: 1.25rem;
-        font-size: 0.95rem;
+        padding: 1.5rem;
+        font-size: 1rem;
     }
 
     .view-button {
-        padding: 0.65rem 0.75rem;
-        font-size: 0.85rem;
+        padding: 0.875rem 1rem;
+        font-size: 0.9rem;
     }
 
     .flaw-card {
-        padding: 1.25rem;
+        padding: 1.5rem;
     }
 
     .flaw-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 1.2rem;
+        width: 45px;
+        height: 45px;
+        font-size: 1.4rem;
     }
 
     .flaw-header h4 {
-        font-size: 1rem;
+        font-size: 1.1rem;
     }
 
     .category-item,
