@@ -78,10 +78,13 @@ export async function signInWithGoogle() {
     if (!supabase) throw new Error('Supabase not initialized');
     
     try {
+        // Use the current full URL to ensure redirect goes back to the same page
+        const redirectUrl = window.location.origin + window.location.pathname;
+        
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: window.location.origin
+                redirectTo: redirectUrl
             }
         });
         
