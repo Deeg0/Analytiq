@@ -18,7 +18,7 @@ header h1 {
 @keyframes float {
     0%, 100% {
         transform: translateY(0px);
-    }
+}
     50% {
         transform: translateY(-10px);
     }
@@ -68,6 +68,17 @@ header h1 {
 
 .view-content.active {
     display: block !important;
+}
+
+/* Auth tab buttons */
+.auth-tab-button {
+    border-bottom-color: transparent;
+    color: hsl(215.4 16.3% 46.9%);
+}
+
+.auth-tab-button.active {
+    border-bottom-color: hsl(221.2 83.2% 53.3%);
+    color: hsl(221.2 83.2% 53.3%);
 }
 
 /* Score animation */
@@ -213,5 +224,88 @@ header h1 {
 @media (max-width: 768px) {
     .container {
         @apply px-4;
+    }
+
+    /* Improve touch targets */
+    button, a {
+        min-height: 44px;
+        min-width: 44px;
+    }
+
+    /* Better spacing for mobile */
+    .prose p {
+        @apply mb-3;
+    }
+
+    .prose ul, .prose ol {
+        @apply mb-3 ml-4;
+    }
+
+    /* Improve readability on small screens */
+    body {
+        -webkit-text-size-adjust: 100%;
+        text-size-adjust: 100%;
+    }
+
+    /* Prevent horizontal scroll */
+    html, body {
+        overflow-x: hidden;
+        max-width: 100vw;
+    }
+
+    /* Better modal on mobile */
+    #auth-modal > div {
+        margin: 1rem;
+        max-height: calc(100vh - 2rem);
+    }
+
+    /* Improve score card on mobile */
+    #score-card {
+        padding: 1.5rem !important;
+    }
+
+    #score-circle {
+        margin-bottom: 1rem;
+    }
+}
+
+/* Extra small devices */
+@media (max-width: 480px) {
+    /* Even tighter spacing */
+    main {
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+    }
+
+    /* Smaller text for very small screens */
+    h1 {
+        font-size: 1.25rem;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+}
+
+    /* Compact buttons */
+    button {
+        padding: 0.625rem 1rem;
+        font-size: 0.875rem;
+}
+
+    /* Better input fields */
+    input, textarea {
+        font-size: 16px; /* Prevents zoom on iOS */
+    }
+}
+
+/* Landscape mobile */
+@media (max-width: 768px) and (orientation: landscape) {
+    header {
+        height: auto;
+        min-height: 60px;
+    }
+    
+    .hero-section {
+        margin-bottom: 1.5rem;
     }
 }

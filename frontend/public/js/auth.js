@@ -185,14 +185,16 @@ export function switchAuthTab(tab) {
     const signInForm = document.getElementById('signin-form');
     const signUpForm = document.getElementById('signup-form');
     
+    // Remove active class from both tabs first
+    signInTab?.classList.remove('active');
+    signUpTab?.classList.remove('active');
+    
     if (tab === 'signin') {
         signInTab?.classList.add('active');
-        signUpTab?.classList.remove('active');
         signInForm?.classList.remove('hidden');
         signUpForm?.classList.add('hidden');
-    } else {
+    } else if (tab === 'signup') {
         signUpTab?.classList.add('active');
-        signInTab?.classList.remove('active');
         signUpForm?.classList.remove('hidden');
         signInForm?.classList.add('hidden');
     }

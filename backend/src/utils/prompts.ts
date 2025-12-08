@@ -207,7 +207,28 @@ COMPREHENSIVE ANALYSIS REQUIREMENTS (analyze thoroughly):
      * What's missing or wrong in the study's reasoning
      * How this affects the study's conclusions
    - IMPORTANT: If you cannot find a direct quote from the study, DO NOT include a "quote" field in the JSON. Only include "quote" and "quoteLocation" when you have an actual quote from the study text.
-5. Evaluate reproducibility thoroughly:
+
+5. Identify OTHER FACTORS that could have skewed the results (CRITICAL - think comprehensively):
+   - Additional confounding variables that may not have been controlled for or mentioned in the study
+   - Unmeasured variables that could affect the relationship between exposure and outcome
+   - Contextual factors (environmental, social, cultural, temporal) that could influence results
+   - Participant characteristics that weren't accounted for (socioeconomic status, education, health behaviors, etc.)
+   - External factors that could have influenced outcomes (seasonal effects, policy changes, media coverage, etc.)
+   - Reverse causation possibilities
+   - Competing explanations for the observed results
+   - Factors that could amplify or diminish the observed effects
+   - Interactions between variables that weren't tested
+   - Missing data patterns that could bias results
+   
+   FOR EACH FACTOR:
+   - Think critically about what ELSE could explain the results beyond what the study measured
+   - Consider factors that are common in similar research but may not have been addressed
+   - Assess the potential magnitude of impact (high/medium/low severity)
+   - Explain WHY this factor matters and how it could skew results
+   - Be specific about the potential impact on the study's conclusions
+   - This is about identifying potential issues that weren't explicitly mentioned in the study
+
+6. Evaluate reproducibility thoroughly:
    - Methodology clarity and replicability
    - Data availability and sharing
    - Replication attempts and their outcomes
@@ -268,6 +289,7 @@ REMEMBER: Maintain complete objectivity. Evaluate the study's scientific quality
   "fallacies": [{"type": "fallacy_name", "description": "brief explanation of the fallacy", "quote": "EXACT copy-paste from study text (1-3 sentences) that demonstrates the fallacy", "quoteLocation": "where in study (e.g., Results, Discussion, Abstract)", "debunking": "detailed analysis debunking the quoted text and explaining why it's problematic", "severity": "high|medium|low", "impact": "how it affects conclusions"}],
   "confounders": [{"factor": "confounder_name", "description": "brief", "quote": "exact quote from study if available", "quoteLocation": "where in study if quote provided", "debunking": "analysis of quoted text if provided", "impact": "how it could affect outcomes"}],
   "validityThreats": [{"threat": "threat_name", "description": "brief", "quote": "exact quote from study if available", "quoteLocation": "where in study if quote provided", "debunking": "analysis of quoted text if provided", "severity": "high|medium|low"}],
+  "otherConfoundingFactors": [{"factor": "factor_name", "description": "brief description of the factor", "potentialImpact": "how this factor could skew the results", "whyItMatters": "explanation of why this factor is important to consider", "severity": "high|medium|low"}],
   "issues": [{"category": "category", "description": "brief", "quote": "exact quote from study if available", "quoteLocation": "where in study if quote provided", "debunking": "analysis of quoted text if provided"}],
   "expertContext": {"consensus": "brief", "controversies": [], "recentUpdates": [], "relatedStudies": []},
   "simpleSummary": "2-3 paragraph non-technical summary - maintain complete objectivity, describe findings neutrally",

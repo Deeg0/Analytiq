@@ -142,6 +142,13 @@ export async function analyzeWithAI(
         debunking: t.debunking || undefined,
         severity: t.severity || 'medium',
       })),
+      otherConfoundingFactors: (analysisData.otherConfoundingFactors || []).map((f: any) => ({
+        factor: f.factor || 'Unknown',
+        description: f.description || '',
+        potentialImpact: f.potentialImpact || '',
+        whyItMatters: f.whyItMatters || '',
+        severity: f.severity || 'medium',
+      })),
       issues: (analysisData.issues || []).map((i: any) => ({
         category: i.category || 'Unknown',
         description: i.description || '',

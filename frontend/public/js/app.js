@@ -34,6 +34,33 @@ window.togglePassword = function(inputId, button) {
     }
 };
 
+// Go to homepage - reset view and scroll to top
+window.goToHomepage = function(event) {
+    event.preventDefault();
+    
+    // Hide results and error sections
+    const resultsSection = document.getElementById('results-section');
+    const errorSection = document.getElementById('error-section');
+    const loadingSection = document.getElementById('loading-section');
+    const inputSection = document.getElementById('input-section');
+    
+    if (resultsSection) resultsSection.classList.add('hidden');
+    if (errorSection) errorSection.classList.add('hidden');
+    if (loadingSection) loadingSection.classList.add('hidden');
+    if (inputSection) inputSection.classList.remove('hidden');
+    
+    // Clear form inputs
+    const urlInput = document.getElementById('url-input');
+    const textInput = document.getElementById('text-input');
+    if (urlInput) urlInput.value = '';
+    if (textInput) textInput.value = '';
+    
+    // Scroll to top smoothly
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    return false;
+};
+
 // Setup tabs and view toggles
 setupTabs();
 setupViewToggle();

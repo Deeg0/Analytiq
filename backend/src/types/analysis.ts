@@ -66,6 +66,13 @@ export interface FlawDetection {
     debunking?: string;
     severity: 'high' | 'medium' | 'low';
   }>;
+  otherConfoundingFactors?: Array<{
+    factor: string;
+    description: string;
+    potentialImpact: string;
+    whyItMatters: string;
+    severity: 'high' | 'medium' | 'low';
+  }>;
   issues: Array<{
     category: string;
     description: string;

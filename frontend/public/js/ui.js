@@ -107,22 +107,10 @@ function updateAllResults(result) {
         renderCategoryDetails(result.trustScore.breakdown);
     }
     
-    // Render prominent flaws summary
-    const flawsSectionGroup = document.getElementById('flaws-section-group');
+    // Render flaws in their respective sections
     if (result.flawDetection) {
-        const hasFlaws = (result.flawDetection.fallacies && result.flawDetection.fallacies.length > 0) ||
-                        (result.flawDetection.issues && result.flawDetection.issues.length > 0) ||
-                        (result.flawDetection.validityThreats && result.flawDetection.validityThreats.length > 0);
-        
-        if (hasFlaws && flawsSectionGroup) {
-            flawsSectionGroup.classList.remove('hidden');
-        }
-        
-        renderFlawsSummary(result.flawDetection);
         renderIssues(result.flawDetection);
         renderValidityThreats(result.flawDetection);
-    } else if (flawsSectionGroup) {
-        flawsSectionGroup.style.display = 'none';
     }
     
     // Render expert context
@@ -214,7 +202,9 @@ function renderCategoryBreakdown(breakdown) {
         if (!data) return;
         
         const item = document.createElement('div');
-        item.className = 'category-item bg-muted/50 border border-border rounded-lg p-4';
+        item.className = 'category-item bg-muted/50 border border-border rounded-lg p-4 cursor-pointer hover:bg-muted/70 transition-colors';
+        item.setAttribute('data-category', cat.key);
+        item.onclick = () => scrollToCategory(cat.key);
         
         const percentage = Math.round((data.score / data.maxScore) * 100);
         const color = getScoreColor(percentage);
@@ -257,7 +247,8 @@ function renderCategoryDetails(breakdown) {
         const data = breakdown[cat.key] || (cat.key === 'bias' ? breakdown['fundingBias'] : null);
         if (!data) return;
         const item = document.createElement('div');
-        item.className = 'p-4 bg-muted/30 rounded-lg border border-border mb-4';
+        item.id = `category-${cat.key}`;
+        item.className = 'p-4 bg-muted/30 rounded-lg border border-border mb-4 scroll-mt-4';
         
         let html = `<h4 class="font-semibold mb-2">${cat.label} (${data.score}/${data.maxScore})</h4>`;
         html += `<div class="text-muted-foreground mb-4">${data.details || 'No details available.'}</div>`;
@@ -280,110 +271,6 @@ function renderCategoryDetails(breakdown) {
         
         item.innerHTML = html;
         container.appendChild(item);
-    });
-}
-
-function renderFlawsSummary(flawDetection) {
-    const summarySection = document.getElementById('flaws-summary');
-    const grid = document.getElementById('flaws-grid');
-    const countEl = document.getElementById('flaws-count');
-    if (!summarySection || !grid || !countEl) return;
-
-    const allFlaws = [];
-    
-    // Collect all fallacies
-    if (flawDetection.fallacies && flawDetection.fallacies.length > 0) {
-        flawDetection.fallacies.forEach(f => allFlaws.push({...f, type: 'fallacy'}));
-    }
-    
-    // Collect all issues
-    if (flawDetection.issues && flawDetection.issues.length > 0) {
-        flawDetection.issues.forEach(i => allFlaws.push({...i, type: 'issue'}));
-    }
-    
-    // Collect validity threats
-    if (flawDetection.validityThreats && flawDetection.validityThreats.length > 0) {
-        flawDetection.validityThreats.forEach(t => allFlaws.push({...t, type: 'threat'}));
-    }
-
-    if (allFlaws.length === 0) {
-        summarySection.style.display = 'none';
-        return;
-    }
-
-    summarySection.style.display = 'block';
-    grid.innerHTML = '';
-
-    // Sort by severity (high first)
-    const severityOrder = { high: 3, medium: 2, low: 1 };
-    allFlaws.sort((a, b) => {
-        const aSev = severityOrder[a.severity] || 1;
-        const bSev = severityOrder[b.severity] || 1;
-        return bSev - aSev;
-    });
-
-    // Show top 6 most critical issues
-    const topFlaws = allFlaws.slice(0, 6);
-    
-    countEl.innerHTML = `
-        <span class="count-number">${allFlaws.length}</span>
-        <span class="count-label">${allFlaws.length === 1 ? 'Issue' : 'Issues'} Found</span>
-    `;
-
-    topFlaws.forEach(flaw => {
-        const card = document.createElement('div');
-        const severity = flaw.severity || 'medium';
-        const severityInfo = getSeverityInfo(severity);
-        const flawType = flaw.type || flaw.category || flaw.threat || 'Issue';
-        const description = simplifyDescription(flaw.description || '');
-        
-        let borderColor = 'border-blue-500';
-        if (severity === 'high') borderColor = 'border-destructive';
-        else if (severity === 'medium') borderColor = 'border-yellow-500';
-        
-        card.className = `flaw-card border-l-4 p-4 rounded-md bg-card ${borderColor}`;
-        
-        let cardHtml = `
-            <div class="flex gap-4">
-                <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg" style="background: ${severityInfo.bgColor}">
-                    ${severityInfo.icon}
-                </div>
-                <div class="flex-1">
-                    <div class="flex items-start justify-between mb-2">
-                        <h4 class="font-semibold text-foreground">${simplifyFlawName(flawType)}</h4>
-                        <span class="px-2 py-1 rounded-md text-xs font-medium" style="background: ${severityInfo.bgColor}; color: ${severityInfo.textColor}">
-                            ${severityInfo.label}
-                        </span>
-                    </div>
-                    <p class="text-muted-foreground mb-3">${description}</p>`;
-        
-        // Add quote with citation if available and valid
-        if (flaw.quote && flaw.quote.trim() && !flaw.quote.toLowerCase().includes('no direct quote found') && !flaw.quote.toLowerCase().includes('no quote')) {
-            cardHtml += `
-                <div class="mb-3 p-3 bg-muted/50 rounded-md border border-border">
-                    <div class="text-xs font-medium text-muted-foreground mb-1">📄 Quote:</div>
-                    <div class="text-sm italic text-foreground">"${flaw.quote}"</div>
-                    ${flaw.quoteLocation && flaw.quoteLocation !== 'N/A' ? `<div class="text-xs text-muted-foreground mt-1"><strong>Location:</strong> ${flaw.quoteLocation}</div>` : ''}
-                </div>`;
-        }
-        
-        // Add debunking if available
-        if (flaw.debunking) {
-            cardHtml += `
-                <div class="mb-3 p-3 bg-accent/50 rounded-md border border-border">
-                    <div class="text-xs font-medium text-muted-foreground mb-1">🔍 Analysis:</div>
-                    <div class="text-sm text-foreground">${simplifyDescription(flaw.debunking)}</div>
-                </div>`;
-        }
-        
-        if (flaw.impact) {
-            cardHtml += `<p class="text-sm text-muted-foreground"><strong class="text-foreground">Why this matters:</strong> ${simplifyDescription(flaw.impact)}</p>`;
-        }
-        
-        cardHtml += `</div></div>`;
-        card.innerHTML = cardHtml;
-        
-        grid.appendChild(card);
     });
 }
 
@@ -412,6 +299,20 @@ function getSeverityInfo(severity) {
         }
     };
     return info[severity] || info.medium;
+}
+
+function capitalizeTitle(text) {
+    if (!text) return '';
+    
+    // Capitalize first letter of each word, handling common cases
+    return text.split(/[\s_-]+/).map(word => {
+        if (!word) return '';
+        // Handle special cases like "pH" or acronyms
+        if (word.length <= 2 && word === word.toUpperCase()) {
+            return word;
+        }
+        return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    }).join(' ');
 }
 
 function simplifyFlawName(name) {
@@ -468,76 +369,120 @@ function renderIssues(flawDetection) {
     if (!container) return;
     container.innerHTML = '';
 
+    let hasContent = false;
+
     if (flawDetection.fallacies && flawDetection.fallacies.length > 0) {
+        hasContent = true;
         flawDetection.fallacies.forEach(fallacy => {
-            const item = document.createElement('div');
-            item.className = 'mb-4 p-4 bg-muted/30 rounded-md border border-border';
+            const card = document.createElement('div');
+            const severity = fallacy.severity || 'medium';
+            const severityInfo = getSeverityInfo(severity);
+            const flawType = fallacy.type || 'Fallacy';
+            const description = simplifyDescription(fallacy.description || '');
             
-            const severityColor = fallacy.severity === 'high' ? 'text-destructive' : fallacy.severity === 'medium' ? 'text-yellow-600' : 'text-muted-foreground';
-            let html = `<h5 class="font-semibold mb-2 text-foreground">${simplifyFlawName(fallacy.type || 'Fallacy')} <span class="${severityColor}">(${fallacy.severity || 'medium'})</span></h5>`;
-            html += `<p class="text-muted-foreground mb-3">${simplifyDescription(fallacy.description)}</p>`;
+            let borderColor = 'border-blue-500';
+            if (severity === 'high') borderColor = 'border-destructive';
+            else if (severity === 'medium') borderColor = 'border-yellow-500';
+            
+            card.className = `flaw-card border-l-4 p-4 rounded-md bg-card ${borderColor} mb-4`;
+            
+            let cardHtml = `
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg" style="background: ${severityInfo.bgColor}">
+                        ${severityInfo.icon}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between mb-2">
+                            <h4 class="font-semibold text-foreground">${simplifyFlawName(flawType)}</h4>
+                            <span class="px-2 py-1 rounded-md text-xs font-medium" style="background: ${severityInfo.bgColor}; color: ${severityInfo.textColor}">
+                                ${severityInfo.label}
+                            </span>
+                        </div>
+                        <p class="text-muted-foreground mb-3">${description}</p>`;
             
             // Display quote with citation if available and valid
             if (fallacy.quote && fallacy.quote.trim() && !fallacy.quote.toLowerCase().includes('no direct quote found') && !fallacy.quote.toLowerCase().includes('no quote')) {
-                html += `<div class="mb-3 p-3 bg-muted/50 rounded-md border border-border">`;
-                html += `<div class="text-xs font-medium text-muted-foreground mb-1">📄 Quote from Study:</div>`;
-                html += `<div class="text-sm italic text-foreground">"${fallacy.quote}"</div>`;
-                if (fallacy.quoteLocation && fallacy.quoteLocation !== 'N/A') {
-                    html += `<div class="text-xs text-muted-foreground mt-1"><strong>Location:</strong> ${fallacy.quoteLocation}</div>`;
-                }
-                html += `</div>`;
+                cardHtml += `
+                    <div class="mb-3 p-3 bg-muted/50 rounded-md border border-border">
+                        <div class="text-xs font-medium text-muted-foreground mb-1">📄 Quote:</div>
+                        <div class="text-sm italic text-foreground">"${fallacy.quote}"</div>
+                        ${fallacy.quoteLocation && fallacy.quoteLocation !== 'N/A' ? `<div class="text-xs text-muted-foreground mt-1"><strong>Location:</strong> ${fallacy.quoteLocation}</div>` : ''}
+                    </div>`;
             }
             
             // Display debunking if available
             if (fallacy.debunking) {
-                html += `<div class="mb-3 p-3 bg-accent/50 rounded-md border border-border">`;
-                html += `<div class="text-xs font-medium text-muted-foreground mb-1">🔍 Analysis:</div>`;
-                html += `<div class="text-sm text-foreground">${simplifyDescription(fallacy.debunking)}</div>`;
-                html += `</div>`;
+                cardHtml += `
+                    <div class="mb-3 p-3 bg-accent/50 rounded-md border border-border">
+                        <div class="text-xs font-medium text-muted-foreground mb-1">🔍 Analysis:</div>
+                        <div class="text-sm text-foreground">${simplifyDescription(fallacy.debunking)}</div>
+                    </div>`;
             }
             
             if (fallacy.impact) {
-                html += `<p class="text-sm text-muted-foreground"><strong class="text-foreground">Impact:</strong> ${simplifyDescription(fallacy.impact)}</p>`;
+                cardHtml += `<p class="text-sm text-muted-foreground"><strong class="text-foreground">Why this matters:</strong> ${simplifyDescription(fallacy.impact)}</p>`;
             }
             
-            item.innerHTML = html;
-            container.appendChild(item);
+            cardHtml += `</div></div>`;
+            card.innerHTML = cardHtml;
+            container.appendChild(card);
         });
     }
 
     if (flawDetection.issues && flawDetection.issues.length > 0) {
+        hasContent = true;
         flawDetection.issues.forEach(issue => {
-            const item = document.createElement('div');
-            item.className = 'mb-4 p-4 bg-muted/30 rounded-md border border-border';
+            const card = document.createElement('div');
+            const severity = issue.severity || 'medium';
+            const severityInfo = getSeverityInfo(severity);
+            const issueCategory = issue.category || 'Issue';
             
-            let html = `<h5 class="font-semibold mb-2 text-foreground">${simplifyFlawName(issue.category || 'Issue')}</h5>`;
-            html += `<p class="text-muted-foreground mb-3">${simplifyDescription(issue.description)}</p>`;
+            let borderColor = 'border-blue-500';
+            if (severity === 'high') borderColor = 'border-destructive';
+            else if (severity === 'medium') borderColor = 'border-yellow-500';
+            
+            card.className = `flaw-card border-l-4 p-4 rounded-md bg-card ${borderColor} mb-4`;
+            
+            let cardHtml = `
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg" style="background: ${severityInfo.bgColor}">
+                        ${severityInfo.icon}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between mb-2">
+                            <h4 class="font-semibold text-foreground">${simplifyFlawName(issueCategory)}</h4>
+                            <span class="px-2 py-1 rounded-md text-xs font-medium" style="background: ${severityInfo.bgColor}; color: ${severityInfo.textColor}">
+                                ${severityInfo.label}
+                            </span>
+                        </div>
+                        <p class="text-muted-foreground mb-3">${simplifyDescription(issue.description)}</p>`;
             
             // Display quote with citation if available and valid
             if (issue.quote && issue.quote.trim() && !issue.quote.toLowerCase().includes('no direct quote found') && !issue.quote.toLowerCase().includes('no quote')) {
-                html += `<div class="mb-3 p-3 bg-muted/50 rounded-md border border-border">`;
-                html += `<div class="text-xs font-medium text-muted-foreground mb-1">📄 Quote from Study:</div>`;
-                html += `<div class="text-sm italic text-foreground">"${issue.quote}"</div>`;
-                if (issue.quoteLocation && issue.quoteLocation !== 'N/A') {
-                    html += `<div class="text-xs text-muted-foreground mt-1"><strong>Location:</strong> ${issue.quoteLocation}</div>`;
-                }
-                html += `</div>`;
+                cardHtml += `
+                    <div class="mb-3 p-3 bg-muted/50 rounded-md border border-border">
+                        <div class="text-xs font-medium text-muted-foreground mb-1">📄 Quote:</div>
+                        <div class="text-sm italic text-foreground">"${issue.quote}"</div>
+                        ${issue.quoteLocation && issue.quoteLocation !== 'N/A' ? `<div class="text-xs text-muted-foreground mt-1"><strong>Location:</strong> ${issue.quoteLocation}</div>` : ''}
+                    </div>`;
             }
             
             // Display debunking if available
             if (issue.debunking) {
-                html += `<div class="mb-3 p-3 bg-accent/50 rounded-md border border-border">`;
-                html += `<div class="text-xs font-medium text-muted-foreground mb-1">🔍 Analysis:</div>`;
-                html += `<div class="text-sm text-foreground">${simplifyDescription(issue.debunking)}</div>`;
-                html += `</div>`;
+                cardHtml += `
+                    <div class="mb-3 p-3 bg-accent/50 rounded-md border border-border">
+                        <div class="text-xs font-medium text-muted-foreground mb-1">🔍 Analysis:</div>
+                        <div class="text-sm text-foreground">${simplifyDescription(issue.debunking)}</div>
+                    </div>`;
             }
             
-            item.innerHTML = html;
-            container.appendChild(item);
+            cardHtml += `</div></div>`;
+            card.innerHTML = cardHtml;
+            container.appendChild(card);
         });
     }
 
-    if (container.innerHTML === '') {
+    if (!hasContent) {
         container.innerHTML = '<p class="text-muted-foreground">No major issues or fallacies detected.</p>';
     }
 }
@@ -593,7 +538,7 @@ function renderValidityThreats(flawDetection) {
             const item = document.createElement('div');
             item.className = 'mb-4 p-4 bg-muted/30 rounded-md border border-border';
             
-            let html = `<h5 class="font-semibold mb-2 text-foreground">${confounder.factor || 'Hidden Factor'}</h5>`;
+            let html = `<h5 class="font-semibold mb-2 text-foreground">${capitalizeTitle(confounder.factor || 'Hidden Factor')}</h5>`;
             html += `<p class="text-muted-foreground">${simplifyDescription(confounder.description || '')}</p>`;
             
             // Display quote with citation if available and valid
@@ -632,34 +577,53 @@ function renderValidityThreats(flawDetection) {
         threatsDiv.innerHTML = '<h4 class="font-semibold mb-4 text-foreground">Validity Threats</h4>';
         
         flawDetection.validityThreats.forEach(threat => {
-            const item = document.createElement('div');
-            item.className = 'mb-4 p-4 bg-muted/30 rounded-md border border-border';
-            const severityColor = threat.severity === 'high' ? 'text-destructive' : threat.severity === 'medium' ? 'text-yellow-600' : 'text-muted-foreground';
+            const card = document.createElement('div');
+            const severity = threat.severity || 'medium';
+            const severityInfo = getSeverityInfo(severity);
+            const threatName = threat.threat || 'Threat';
             
-            let html = `<h5 class="font-semibold mb-2 text-foreground">${simplifyFlawName(threat.threat || 'Threat')} <span class="${severityColor}">(${threat.severity || 'medium'})</span></h5>`;
-            html += `<p class="text-muted-foreground mb-3">${simplifyDescription(threat.description || '')}</p>`;
+            let borderColor = 'border-blue-500';
+            if (severity === 'high') borderColor = 'border-destructive';
+            else if (severity === 'medium') borderColor = 'border-yellow-500';
+            
+            card.className = `flaw-card border-l-4 p-4 rounded-md bg-card ${borderColor} mb-4`;
+            
+            let cardHtml = `
+                <div class="flex gap-4">
+                    <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg" style="background: ${severityInfo.bgColor}">
+                        ${severityInfo.icon}
+                    </div>
+                    <div class="flex-1">
+                        <div class="flex items-start justify-between mb-2">
+                            <h4 class="font-semibold text-foreground">${simplifyFlawName(threatName)}</h4>
+                            <span class="px-2 py-1 rounded-md text-xs font-medium" style="background: ${severityInfo.bgColor}; color: ${severityInfo.textColor}">
+                                ${severityInfo.label}
+                            </span>
+                        </div>
+                        <p class="text-muted-foreground mb-3">${simplifyDescription(threat.description || '')}</p>`;
             
             // Display quote with citation if available and valid
             if (threat.quote && threat.quote.trim() && !threat.quote.toLowerCase().includes('no direct quote found') && !threat.quote.toLowerCase().includes('no quote')) {
-                html += `<div class="mb-3 p-3 bg-muted/50 rounded-md border border-border">`;
-                html += `<div class="text-xs font-medium text-muted-foreground mb-1">📄 Quote from Study:</div>`;
-                html += `<div class="text-sm italic text-foreground">"${threat.quote}"</div>`;
-                if (threat.quoteLocation && threat.quoteLocation !== 'N/A') {
-                    html += `<div class="text-xs text-muted-foreground mt-1"><strong>Location:</strong> ${threat.quoteLocation}</div>`;
-                }
-                html += `</div>`;
+                cardHtml += `
+                    <div class="mb-3 p-3 bg-muted/50 rounded-md border border-border">
+                        <div class="text-xs font-medium text-muted-foreground mb-1">📄 Quote:</div>
+                        <div class="text-sm italic text-foreground">"${threat.quote}"</div>
+                        ${threat.quoteLocation && threat.quoteLocation !== 'N/A' ? `<div class="text-xs text-muted-foreground mt-1"><strong>Location:</strong> ${threat.quoteLocation}</div>` : ''}
+                    </div>`;
             }
             
             // Display debunking if available
             if (threat.debunking) {
-                html += `<div class="debunking-section">`;
-                html += `<div class="debunking-label">🔍 Analysis:</div>`;
-                html += `<div class="debunking">${simplifyDescription(threat.debunking)}</div>`;
-                html += `</div>`;
+                cardHtml += `
+                    <div class="mb-3 p-3 bg-accent/50 rounded-md border border-border">
+                        <div class="text-xs font-medium text-muted-foreground mb-1">🔍 Analysis:</div>
+                        <div class="text-sm text-foreground">${simplifyDescription(threat.debunking)}</div>
+                    </div>`;
             }
             
-            item.innerHTML = html;
-            threatsDiv.appendChild(item);
+            cardHtml += `</div></div>`;
+            card.innerHTML = cardHtml;
+            threatsDiv.appendChild(card);
         });
         
         container.appendChild(threatsDiv);
@@ -786,6 +750,35 @@ export function setupTabs() {
     });
 }
 
+// Scroll to category detail when clicking on category breakdown item
+function scrollToCategory(categoryKey) {
+    // Switch to technical view if not already there
+    const technicalView = document.getElementById('technical-view');
+    const technicalButton = document.querySelector('.view-button[data-view="technical"]');
+    
+    if (technicalView && !technicalView.classList.contains('active')) {
+        // Switch to technical view
+        if (technicalButton) {
+            technicalButton.click();
+        }
+    }
+    
+    // Wait a bit for view to switch, then scroll
+    setTimeout(() => {
+        const categoryElement = document.getElementById(`category-${categoryKey}`);
+        if (categoryElement) {
+            categoryElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            
+            // Add a highlight effect
+            categoryElement.style.transition = 'background-color 0.3s';
+            categoryElement.style.backgroundColor = 'rgba(37, 99, 235, 0.1)';
+            setTimeout(() => {
+                categoryElement.style.backgroundColor = '';
+            }, 2000);
+        }
+    }, 100);
+}
+
 export function setupViewToggle() {
     const viewButtons = document.querySelectorAll('.view-button');
     viewButtons.forEach(button => {
@@ -793,19 +786,7 @@ export function setupViewToggle() {
             const viewName = button.dataset.view;
             if (!viewName) return;
             
-            // Show Critical Issues only in technical view
-            const flawsSectionGroup = document.getElementById('flaws-section-group');
-            if (flawsSectionGroup) {
-                if (viewName === 'technical') {
-                    // Check if there are flaws to show
-                    const flawsGrid = document.getElementById('flaws-grid');
-                    if (flawsGrid && flawsGrid.children.length > 0) {
-                        flawsSectionGroup.classList.remove('hidden');
-                    }
-                } else {
-                    flawsSectionGroup.classList.add('hidden');
-                }
-            }
+            // Critical issues are now always shown in technical view (no separate section to toggle)
             
             // Update buttons
             viewButtons.forEach(btn => btn.classList.remove('active'));
