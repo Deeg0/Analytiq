@@ -115,7 +115,7 @@ function updateAllResults(result) {
                         (result.flawDetection.validityThreats && result.flawDetection.validityThreats.length > 0);
         
         if (hasFlaws && flawsSectionGroup) {
-            flawsSectionGroup.style.display = 'block';
+            flawsSectionGroup.classList.remove('hidden');
         }
         
         renderFlawsSummary(result.flawDetection);
@@ -214,16 +214,16 @@ function renderCategoryBreakdown(breakdown) {
         if (!data) return;
         
         const item = document.createElement('div');
-        item.className = 'category-item';
+        item.className = 'category-item bg-muted/50 border border-border rounded-lg p-4';
         
         const percentage = Math.round((data.score / data.maxScore) * 100);
         const color = getScoreColor(percentage);
         
         item.innerHTML = `
-            <h4>${cat.label}</h4>
-            <div class="score" style="color: ${color}">${data.score}/${data.maxScore}</div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: 0%; background: linear-gradient(90deg, ${color} 0%, ${getScoreGradientColor(percentage)} 100%)"></div>
+            <h4 class="font-semibold mb-2">${cat.label}</h4>
+            <div class="text-2xl font-bold mb-2" style="color: ${color}">${data.score}/${data.maxScore}</div>
+            <div class="w-full h-2 bg-muted rounded-full overflow-hidden">
+                <div class="progress-fill h-full transition-all duration-500" style="width: 0%; background: linear-gradient(90deg, ${color} 0%, ${getScoreGradientColor(percentage)} 100%)"></div>
             </div>
         `;
         
@@ -257,13 +257,13 @@ function renderCategoryDetails(breakdown) {
         const data = breakdown[cat.key] || (cat.key === 'bias' ? breakdown['fundingBias'] : null);
         if (!data) return;
         const item = document.createElement('div');
-        item.className = 'category-detail-item';
+        item.className = 'p-4 bg-muted/30 rounded-lg border border-border mb-4';
         
-        let html = `<h4>${cat.label} (${data.score}/${data.maxScore})</h4>`;
-        html += `<div class="details">${data.details || 'No details available.'}</div>`;
+        let html = `<h4 class="font-semibold mb-2">${cat.label} (${data.score}/${data.maxScore})</h4>`;
+        html += `<div class="text-muted-foreground mb-4">${data.details || 'No details available.'}</div>`;
         
         if (data.strengths && data.strengths.length > 0) {
-            html += `<div class="strengths"><h5>Strengths</h5><ul>`;
+            html += `<div class="mb-4"><h5 class="font-semibold mb-2 text-foreground">Strengths</h5><ul class="list-disc list-inside space-y-1 text-sm text-muted-foreground">`;
             data.strengths.forEach(s => {
                 html += `<li>${s}</li>`;
             });
@@ -271,7 +271,7 @@ function renderCategoryDetails(breakdown) {
         }
         
         if (data.issues && data.issues.length > 0) {
-            html += `<div class="issues"><h5>Issues</h5><ul>`;
+            html += `<div class="mb-4"><h5 class="font-semibold mb-2 text-foreground">Issues</h5><ul class="list-disc list-inside space-y-1 text-sm text-muted-foreground">`;
             data.issues.forEach(i => {
                 html += `<li>${i}</li>`;
             });
@@ -332,50 +332,55 @@ function renderFlawsSummary(flawDetection) {
 
     topFlaws.forEach(flaw => {
         const card = document.createElement('div');
-        card.className = 'flaw-card';
-        
         const severity = flaw.severity || 'medium';
         const severityInfo = getSeverityInfo(severity);
         const flawType = flaw.type || flaw.category || flaw.threat || 'Issue';
         const description = simplifyDescription(flaw.description || '');
         
+        let borderColor = 'border-blue-500';
+        if (severity === 'high') borderColor = 'border-destructive';
+        else if (severity === 'medium') borderColor = 'border-yellow-500';
+        
+        card.className = `flaw-card border-l-4 p-4 rounded-md bg-card ${borderColor}`;
+        
         let cardHtml = `
-            <div class="flaw-icon" style="background: ${severityInfo.bgColor}">
-                ${severityInfo.icon}
-            </div>
-            <div class="flaw-content">
-                <div class="flaw-header">
-                    <h4>${simplifyFlawName(flawType)}</h4>
-                    <span class="severity-badge" style="background: ${severityInfo.bgColor}; color: ${severityInfo.textColor}">
-                        ${severityInfo.label}
-                    </span>
+            <div class="flex gap-4">
+                <div class="flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-lg" style="background: ${severityInfo.bgColor}">
+                    ${severityInfo.icon}
                 </div>
-                <p class="flaw-description">${description}</p>`;
+                <div class="flex-1">
+                    <div class="flex items-start justify-between mb-2">
+                        <h4 class="font-semibold text-foreground">${simplifyFlawName(flawType)}</h4>
+                        <span class="px-2 py-1 rounded-md text-xs font-medium" style="background: ${severityInfo.bgColor}; color: ${severityInfo.textColor}">
+                            ${severityInfo.label}
+                        </span>
+                    </div>
+                    <p class="text-muted-foreground mb-3">${description}</p>`;
         
         // Add quote with citation if available and valid
         if (flaw.quote && flaw.quote.trim() && !flaw.quote.toLowerCase().includes('no direct quote found') && !flaw.quote.toLowerCase().includes('no quote')) {
             cardHtml += `
-                <div class="quote-section">
-                    <div class="quote-label">📄 Quote:</div>
-                    <div class="quote">"${flaw.quote}"</div>
-                    ${flaw.quoteLocation && flaw.quoteLocation !== 'N/A' ? `<div class="quote-citation"><strong>Location:</strong> ${flaw.quoteLocation}</div>` : ''}
+                <div class="mb-3 p-3 bg-muted/50 rounded-md border border-border">
+                    <div class="text-xs font-medium text-muted-foreground mb-1">📄 Quote:</div>
+                    <div class="text-sm italic text-foreground">"${flaw.quote}"</div>
+                    ${flaw.quoteLocation && flaw.quoteLocation !== 'N/A' ? `<div class="text-xs text-muted-foreground mt-1"><strong>Location:</strong> ${flaw.quoteLocation}</div>` : ''}
                 </div>`;
         }
         
         // Add debunking if available
         if (flaw.debunking) {
             cardHtml += `
-                <div class="debunking-section">
-                    <div class="debunking-label">🔍 Analysis:</div>
-                    <div class="debunking">${simplifyDescription(flaw.debunking)}</div>
+                <div class="mb-3 p-3 bg-accent/50 rounded-md border border-border">
+                    <div class="text-xs font-medium text-muted-foreground mb-1">🔍 Analysis:</div>
+                    <div class="text-sm text-foreground">${simplifyDescription(flaw.debunking)}</div>
                 </div>`;
         }
         
         if (flaw.impact) {
-            cardHtml += `<p class="flaw-impact"><strong>Why this matters:</strong> ${simplifyDescription(flaw.impact)}</p>`;
+            cardHtml += `<p class="text-sm text-muted-foreground"><strong class="text-foreground">Why this matters:</strong> ${simplifyDescription(flaw.impact)}</p>`;
         }
         
-        cardHtml += `</div>`;
+        cardHtml += `</div></div>`;
         card.innerHTML = cardHtml;
         
         grid.appendChild(card);
@@ -466,33 +471,33 @@ function renderIssues(flawDetection) {
     if (flawDetection.fallacies && flawDetection.fallacies.length > 0) {
         flawDetection.fallacies.forEach(fallacy => {
             const item = document.createElement('div');
-            item.className = 'fallacy-item';
+            item.className = 'mb-4 p-4 bg-muted/30 rounded-md border border-border';
             
-            const severityColor = fallacy.severity === 'high' ? '#ef4444' : fallacy.severity === 'medium' ? '#f59e0b' : '#64748b';
-            let html = `<h5>${simplifyFlawName(fallacy.type || 'Fallacy')} <span style="color: ${severityColor}">(${fallacy.severity || 'medium'})</span></h5>`;
-            html += `<p>${simplifyDescription(fallacy.description)}</p>`;
+            const severityColor = fallacy.severity === 'high' ? 'text-destructive' : fallacy.severity === 'medium' ? 'text-yellow-600' : 'text-muted-foreground';
+            let html = `<h5 class="font-semibold mb-2 text-foreground">${simplifyFlawName(fallacy.type || 'Fallacy')} <span class="${severityColor}">(${fallacy.severity || 'medium'})</span></h5>`;
+            html += `<p class="text-muted-foreground mb-3">${simplifyDescription(fallacy.description)}</p>`;
             
             // Display quote with citation if available and valid
             if (fallacy.quote && fallacy.quote.trim() && !fallacy.quote.toLowerCase().includes('no direct quote found') && !fallacy.quote.toLowerCase().includes('no quote')) {
-                html += `<div class="quote-section">`;
-                html += `<div class="quote-label">📄 Quote from Study:</div>`;
-                html += `<div class="quote">"${fallacy.quote}"</div>`;
+                html += `<div class="mb-3 p-3 bg-muted/50 rounded-md border border-border">`;
+                html += `<div class="text-xs font-medium text-muted-foreground mb-1">📄 Quote from Study:</div>`;
+                html += `<div class="text-sm italic text-foreground">"${fallacy.quote}"</div>`;
                 if (fallacy.quoteLocation && fallacy.quoteLocation !== 'N/A') {
-                    html += `<div class="quote-citation"><strong>Location:</strong> ${fallacy.quoteLocation}</div>`;
+                    html += `<div class="text-xs text-muted-foreground mt-1"><strong>Location:</strong> ${fallacy.quoteLocation}</div>`;
                 }
                 html += `</div>`;
             }
             
             // Display debunking if available
             if (fallacy.debunking) {
-                html += `<div class="debunking-section">`;
-                html += `<div class="debunking-label">🔍 Analysis:</div>`;
-                html += `<div class="debunking">${simplifyDescription(fallacy.debunking)}</div>`;
+                html += `<div class="mb-3 p-3 bg-accent/50 rounded-md border border-border">`;
+                html += `<div class="text-xs font-medium text-muted-foreground mb-1">🔍 Analysis:</div>`;
+                html += `<div class="text-sm text-foreground">${simplifyDescription(fallacy.debunking)}</div>`;
                 html += `</div>`;
             }
             
             if (fallacy.impact) {
-                html += `<p class="impact-note"><strong>Impact:</strong> ${simplifyDescription(fallacy.impact)}</p>`;
+                html += `<p class="text-sm text-muted-foreground"><strong class="text-foreground">Impact:</strong> ${simplifyDescription(fallacy.impact)}</p>`;
             }
             
             item.innerHTML = html;
@@ -503,27 +508,27 @@ function renderIssues(flawDetection) {
     if (flawDetection.issues && flawDetection.issues.length > 0) {
         flawDetection.issues.forEach(issue => {
             const item = document.createElement('div');
-            item.className = 'issue-item';
+            item.className = 'mb-4 p-4 bg-muted/30 rounded-md border border-border';
             
-            let html = `<h5>${simplifyFlawName(issue.category || 'Issue')}</h5>`;
-            html += `<p>${simplifyDescription(issue.description)}</p>`;
+            let html = `<h5 class="font-semibold mb-2 text-foreground">${simplifyFlawName(issue.category || 'Issue')}</h5>`;
+            html += `<p class="text-muted-foreground mb-3">${simplifyDescription(issue.description)}</p>`;
             
             // Display quote with citation if available and valid
             if (issue.quote && issue.quote.trim() && !issue.quote.toLowerCase().includes('no direct quote found') && !issue.quote.toLowerCase().includes('no quote')) {
-                html += `<div class="quote-section">`;
-                html += `<div class="quote-label">📄 Quote from Study:</div>`;
-                html += `<div class="quote">"${issue.quote}"</div>`;
+                html += `<div class="mb-3 p-3 bg-muted/50 rounded-md border border-border">`;
+                html += `<div class="text-xs font-medium text-muted-foreground mb-1">📄 Quote from Study:</div>`;
+                html += `<div class="text-sm italic text-foreground">"${issue.quote}"</div>`;
                 if (issue.quoteLocation && issue.quoteLocation !== 'N/A') {
-                    html += `<div class="quote-citation"><strong>Location:</strong> ${issue.quoteLocation}</div>`;
+                    html += `<div class="text-xs text-muted-foreground mt-1"><strong>Location:</strong> ${issue.quoteLocation}</div>`;
                 }
                 html += `</div>`;
             }
             
             // Display debunking if available
             if (issue.debunking) {
-                html += `<div class="debunking-section">`;
-                html += `<div class="debunking-label">🔍 Analysis:</div>`;
-                html += `<div class="debunking">${simplifyDescription(issue.debunking)}</div>`;
+                html += `<div class="mb-3 p-3 bg-accent/50 rounded-md border border-border">`;
+                html += `<div class="text-xs font-medium text-muted-foreground mb-1">🔍 Analysis:</div>`;
+                html += `<div class="text-sm text-foreground">${simplifyDescription(issue.debunking)}</div>`;
                 html += `</div>`;
             }
             
@@ -533,7 +538,7 @@ function renderIssues(flawDetection) {
     }
 
     if (container.innerHTML === '') {
-        container.innerHTML = '<p>No major issues or fallacies detected.</p>';
+        container.innerHTML = '<p class="text-muted-foreground">No major issues or fallacies detected.</p>';
     }
 }
 
@@ -560,10 +565,10 @@ function renderEvidenceHierarchy(hierarchy) {
     const levelName = hierarchyLabels[hierarchy.level] || hierarchy.level;
     const quality = qualityLabels[hierarchy.qualityWithinLevel] || hierarchy.qualityWithinLevel;
     
-    let html = `<div class="hierarchy-card">`;
-    html += `<h4>${levelName}</h4>`;
-    html += `<p><strong>Hierarchy Position:</strong> ${hierarchy.position}/6 (1 = strongest evidence)</p>`;
-    html += `<p><strong>Quality Within Level:</strong> ${quality}</p>`;
+    let html = `<div class="p-4 bg-muted/30 rounded-md border border-border">`;
+    html += `<h4 class="font-semibold mb-3 text-foreground">${levelName}</h4>`;
+    html += `<p class="text-sm text-muted-foreground mb-2"><strong class="text-foreground">Hierarchy Position:</strong> ${hierarchy.position}/6 (1 = strongest evidence)</p>`;
+    html += `<p class="text-sm text-muted-foreground"><strong class="text-foreground">Quality Within Level:</strong> ${quality}</p>`;
     html += `</div>`;
     
     container.innerHTML = html;
@@ -581,36 +586,36 @@ function renderValidityThreats(flawDetection) {
     if (flawDetection.confounders && flawDetection.confounders.length > 0) {
         hasContent = true;
         const confoundersDiv = document.createElement('div');
-        confoundersDiv.className = 'threats-section';
-        confoundersDiv.innerHTML = '<h4>Identified Confounders</h4>';
+        confoundersDiv.className = 'mb-6';
+        confoundersDiv.innerHTML = '<h4 class="font-semibold mb-4 text-foreground">Identified Confounders</h4>';
         
         flawDetection.confounders.forEach(confounder => {
             const item = document.createElement('div');
-            item.className = 'threat-item';
+            item.className = 'mb-4 p-4 bg-muted/30 rounded-md border border-border';
             
-            let html = `<h5>${confounder.factor || 'Hidden Factor'}</h5>`;
-            html += `<p>${simplifyDescription(confounder.description || '')}</p>`;
+            let html = `<h5 class="font-semibold mb-2 text-foreground">${confounder.factor || 'Hidden Factor'}</h5>`;
+            html += `<p class="text-muted-foreground">${simplifyDescription(confounder.description || '')}</p>`;
             
             // Display quote with citation if available and valid
             if (confounder.quote && confounder.quote.trim() && !confounder.quote.toLowerCase().includes('no direct quote found') && !confounder.quote.toLowerCase().includes('no quote')) {
-                html += `<div class="quote-section">`;
-                html += `<div class="quote-label">📄 Quote from Study:</div>`;
-                html += `<div class="quote">"${confounder.quote}"</div>`;
+                html += `<div class="mb-3 p-3 bg-muted/50 rounded-md border border-border">`;
+                html += `<div class="text-xs font-medium text-muted-foreground mb-1">📄 Quote from Study:</div>`;
+                html += `<div class="text-sm italic text-foreground">"${confounder.quote}"</div>`;
                 if (confounder.quoteLocation && confounder.quoteLocation !== 'N/A') {
-                    html += `<div class="quote-citation"><strong>Location:</strong> ${confounder.quoteLocation}</div>`;
+                    html += `<div class="text-xs text-muted-foreground mt-1"><strong>Location:</strong> ${confounder.quoteLocation}</div>`;
                 }
                 html += `</div>`;
             }
             
             // Display debunking if available
             if (confounder.debunking) {
-                html += `<div class="debunking-section">`;
-                html += `<div class="debunking-label">🔍 Analysis:</div>`;
-                html += `<div class="debunking">${simplifyDescription(confounder.debunking)}</div>`;
+                html += `<div class="mb-3 p-3 bg-accent/50 rounded-md border border-border">`;
+                html += `<div class="text-xs font-medium text-muted-foreground mb-1">🔍 Analysis:</div>`;
+                html += `<div class="text-sm text-foreground">${simplifyDescription(confounder.debunking)}</div>`;
                 html += `</div>`;
             }
             
-            html += `<p><strong>Why this matters:</strong> ${simplifyDescription(confounder.impact || 'Could affect the results')}</p>`;
+            html += `<p class="text-sm text-muted-foreground mt-3"><strong class="text-foreground">Why this matters:</strong> ${simplifyDescription(confounder.impact || 'Could affect the results')}</p>`;
             
             item.innerHTML = html;
             confoundersDiv.appendChild(item);
@@ -623,24 +628,24 @@ function renderValidityThreats(flawDetection) {
     if (flawDetection.validityThreats && flawDetection.validityThreats.length > 0) {
         hasContent = true;
         const threatsDiv = document.createElement('div');
-        threatsDiv.className = 'threats-section';
-        threatsDiv.innerHTML = '<h4>Validity Threats</h4>';
+        threatsDiv.className = 'mb-6';
+        threatsDiv.innerHTML = '<h4 class="font-semibold mb-4 text-foreground">Validity Threats</h4>';
         
         flawDetection.validityThreats.forEach(threat => {
             const item = document.createElement('div');
-            item.className = 'threat-item';
-            const severityColor = threat.severity === 'high' ? '#ef4444' : threat.severity === 'medium' ? '#f59e0b' : '#64748b';
+            item.className = 'mb-4 p-4 bg-muted/30 rounded-md border border-border';
+            const severityColor = threat.severity === 'high' ? 'text-destructive' : threat.severity === 'medium' ? 'text-yellow-600' : 'text-muted-foreground';
             
-            let html = `<h5>${simplifyFlawName(threat.threat || 'Threat')} <span style="color: ${severityColor}">(${threat.severity || 'medium'})</span></h5>`;
-            html += `<p>${simplifyDescription(threat.description || '')}</p>`;
+            let html = `<h5 class="font-semibold mb-2 text-foreground">${simplifyFlawName(threat.threat || 'Threat')} <span class="${severityColor}">(${threat.severity || 'medium'})</span></h5>`;
+            html += `<p class="text-muted-foreground mb-3">${simplifyDescription(threat.description || '')}</p>`;
             
             // Display quote with citation if available and valid
             if (threat.quote && threat.quote.trim() && !threat.quote.toLowerCase().includes('no direct quote found') && !threat.quote.toLowerCase().includes('no quote')) {
-                html += `<div class="quote-section">`;
-                html += `<div class="quote-label">📄 Quote from Study:</div>`;
-                html += `<div class="quote">"${threat.quote}"</div>`;
+                html += `<div class="mb-3 p-3 bg-muted/50 rounded-md border border-border">`;
+                html += `<div class="text-xs font-medium text-muted-foreground mb-1">📄 Quote from Study:</div>`;
+                html += `<div class="text-sm italic text-foreground">"${threat.quote}"</div>`;
                 if (threat.quoteLocation && threat.quoteLocation !== 'N/A') {
-                    html += `<div class="quote-citation"><strong>Location:</strong> ${threat.quoteLocation}</div>`;
+                    html += `<div class="text-xs text-muted-foreground mt-1"><strong>Location:</strong> ${threat.quoteLocation}</div>`;
                 }
                 html += `</div>`;
             }
@@ -661,7 +666,7 @@ function renderValidityThreats(flawDetection) {
     }
     
     if (!hasContent) {
-        container.innerHTML = '<p>No significant confounders or validity threats identified.</p>';
+        container.innerHTML = '<p class="text-muted-foreground">No significant confounders or validity threats identified.</p>';
     }
 }
 
@@ -701,11 +706,18 @@ function renderRecommendations(recommendations) {
     if (recommendations && recommendations.length > 0) {
         recommendations.forEach(rec => {
             const li = document.createElement('li');
-            li.textContent = rec;
+            li.className = 'flex items-start gap-3 p-3 bg-muted/30 rounded-md border border-border';
+            li.innerHTML = `
+                <span class="text-primary font-bold mt-0.5">→</span>
+                <span class="text-foreground flex-1">${rec}</span>
+            `;
             container.appendChild(li);
         });
     } else {
-        container.innerHTML = '<li>No specific recommendations available.</li>';
+        const li = document.createElement('li');
+        li.className = 'text-muted-foreground';
+        li.textContent = 'No specific recommendations available.';
+        container.appendChild(li);
     }
 }
 
@@ -735,16 +747,16 @@ function renderMetadata(metadata) {
         
         if (value) {
             const item = document.createElement('div');
-            item.className = 'metadata-item';
+            item.className = 'p-3 bg-muted/30 rounded-md border border-border';
             
             // Add word count indicator for journal and long fields
             const wordCount = typeof value === 'string' ? value.split(/\s+/).filter(w => w.length > 0).length : 0;
             const isLong = (field.key === 'journal' && wordCount > 20) || (wordCount > 500);
-            const summaryNote = isLong ? '<span class="summary-note" title="This field has been summarized">(Summarized)</span>' : '';
+            const summaryNote = isLong ? '<span class="text-xs text-muted-foreground" title="This field has been summarized">(Summarized)</span>' : '';
             
             item.innerHTML = `
-                <label>${field.label} ${summaryNote}</label>
-                <value>${value}</value>
+                <div class="text-xs font-medium text-muted-foreground mb-1">${field.label} ${summaryNote}</div>
+                <div class="text-sm text-foreground">${value}</div>
             `;
             grid.appendChild(item);
         }
@@ -780,6 +792,20 @@ export function setupViewToggle() {
         button.addEventListener('click', () => {
             const viewName = button.dataset.view;
             if (!viewName) return;
+            
+            // Show Critical Issues only in technical view
+            const flawsSectionGroup = document.getElementById('flaws-section-group');
+            if (flawsSectionGroup) {
+                if (viewName === 'technical') {
+                    // Check if there are flaws to show
+                    const flawsGrid = document.getElementById('flaws-grid');
+                    if (flawsGrid && flawsGrid.children.length > 0) {
+                        flawsSectionGroup.classList.remove('hidden');
+                    }
+                } else {
+                    flawsSectionGroup.classList.add('hidden');
+                }
+            }
             
             // Update buttons
             viewButtons.forEach(btn => btn.classList.remove('active'));
