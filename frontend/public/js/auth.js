@@ -127,9 +127,11 @@ function updateAuthUI() {
     const signupButton = document.getElementById('signup-button');
     const userInfo = document.getElementById('user-info');
     const authModal = document.getElementById('auth-modal');
+    const inputSection = document.getElementById('input-section');
+    const loginPrompt = document.getElementById('login-prompt');
     
     if (currentUser) {
-        // User is logged in
+        // User is logged in - show input section, hide login prompt
         if (authButton) {
             authButton.textContent = 'Sign Out';
             authButton.onclick = handleSignOut;
@@ -141,8 +143,14 @@ function updateAuthUI() {
             userInfo.textContent = currentUser.email || 'User';
             userInfo.style.display = 'block';
         }
+        if (inputSection) {
+            inputSection.classList.remove('hidden');
+        }
+        if (loginPrompt) {
+            loginPrompt.classList.add('hidden');
+        }
     } else {
-        // User is not logged in
+        // User is not logged in - hide input section, show login prompt
         if (authButton) {
             authButton.textContent = 'Sign In';
             authButton.onclick = () => {
@@ -159,6 +167,12 @@ function updateAuthUI() {
         }
         if (userInfo) {
             userInfo.style.display = 'none';
+        }
+        if (inputSection) {
+            inputSection.classList.add('hidden');
+        }
+        if (loginPrompt) {
+            loginPrompt.classList.remove('hidden');
         }
     }
 }
