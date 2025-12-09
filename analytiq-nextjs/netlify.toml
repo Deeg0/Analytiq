@@ -1,5 +1,4 @@
 [build]
-  base = "analytiq-nextjs"
   command = "npm install && npm run build"
   publish = ".next"
 
