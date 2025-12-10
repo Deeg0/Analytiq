@@ -466,6 +466,91 @@ export default function ResultsSection() {
                   </>
                 )}
 
+                {/* Causal Inference Evaluation */}
+                {results.causalInference && (
+                  <>
+                    <Separator className="my-6" />
+                    <Card className="border-2">
+                      <CardHeader>
+                        <div className="flex items-center justify-between">
+                          <CardTitle>Causal Inference Assessment</CardTitle>
+                          <Badge 
+                            variant={results.causalInference.canEstablishCausality ? "default" : "destructive"}
+                            className={
+                              results.causalInference.canEstablishCausality 
+                                ? 'bg-green-600 hover:bg-green-700' 
+                                : 'bg-red-600 hover:bg-red-700'
+                            }
+                          >
+                            {results.causalInference.canEstablishCausality ? 'Can Establish Causality' : 'Cannot Establish Causality'}
+                          </Badge>
+                        </div>
+                        <div className="mt-2">
+                          <Badge variant="outline" className={
+                            results.causalInference.confidence === 'high' ? 'border-green-500 text-green-600' :
+                            results.causalInference.confidence === 'medium' ? 'border-yellow-500 text-yellow-600' :
+                            'border-red-500 text-red-600'
+                          }>
+                            {results.causalInference.confidence.charAt(0).toUpperCase() + results.causalInference.confidence.slice(1)} Confidence
+                          </Badge>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div>
+                          <h4 className="font-semibold mb-2">Assessment</h4>
+                          <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                            {results.causalInference.reasoning}
+                          </p>
+                        </div>
+
+                        {results.causalInference.requirementsForCausality.met.length > 0 && (
+                          <div>
+                            <h4 className="font-semibold mb-2 text-green-600 dark:text-green-400">Requirements Met</h4>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                              {results.causalInference.requirementsForCausality.met.map((req, idx) => (
+                                <li key={idx}>{req}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {results.causalInference.requirementsForCausality.unmet.length > 0 && (
+                          <div>
+                            <h4 className="font-semibold mb-2 text-red-600 dark:text-red-400">Requirements Not Met</h4>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                              {results.causalInference.requirementsForCausality.unmet.map((req, idx) => (
+                                <li key={idx}>{req}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {results.causalInference.studyDesignLimitations.length > 0 && (
+                          <div>
+                            <h4 className="font-semibold mb-2 text-orange-600 dark:text-orange-400">Study Design Limitations</h4>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                              {results.causalInference.studyDesignLimitations.map((limitation, idx) => (
+                                <li key={idx}>{limitation}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                        {results.causalInference.alternativeExplanations.length > 0 && (
+                          <div>
+                            <h4 className="font-semibold mb-2 text-yellow-600 dark:text-yellow-400">Alternative Explanations</h4>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                              {results.causalInference.alternativeExplanations.map((explanation, idx) => (
+                                <li key={idx}>{explanation}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+
                 {/* Expert Context */}
                 {results.expertContext && (
                   <>

@@ -89,12 +89,25 @@ export interface ExpertContext {
   relatedStudies: string[];
 }
 
+export interface CausalInference {
+  canEstablishCausality: boolean;
+  confidence: 'high' | 'medium' | 'low';
+  reasoning: string;
+  studyDesignLimitations: string[];
+  alternativeExplanations: string[];
+  requirementsForCausality: {
+    met: string[];
+    unmet: string[];
+  };
+}
+
 export interface AnalysisResult {
   metadata: StudyMetadata;
   trustScore: TrustScore;
   evidenceHierarchy?: EvidenceHierarchy;
   flawDetection: FlawDetection;
   expertContext: ExpertContext;
+  causalInference?: CausalInference;
   simpleSummary: string;
   technicalCritique: string;
   biasReport: string;

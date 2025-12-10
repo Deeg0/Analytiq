@@ -143,6 +143,21 @@ IMPORTANT: Read and analyze the study content THOROUGHLY. You MUST examine ALL s
 - Connections between authors' backgrounds and study conclusions (even indirect ones)
 - When extracting quotes, search through ALL sections to find the best examples
 
+CRITICAL: BE EXTREMELY THOROUGH IN FINDING FLAWS - DO NOT MISS ANY:
+- Look for EVERY possible methodological flaw, no matter how subtle
+- Question EVERY assumption and claim made in the study
+- Identify ALL potential confounders, even if not mentioned in the study
+- Find ALL logical fallacies and reasoning errors throughout the document
+- Detect ALL types of bias (selection, measurement, publication, funding, author conflicts, etc.)
+- Look for missing controls, inadequate sample sizes, poor statistical practices
+- Identify ALL validity threats (internal, external, construct, statistical conclusion validity)
+- Be skeptical and thorough - if something seems off, investigate it
+- Don't accept claims at face value - verify if the methodology supports the conclusions
+- Look for overstatements, unsupported claims, and conclusions that go beyond the data
+- Check for p-hacking, multiple comparisons issues, selective reporting
+- Identify ALL alternative explanations for the observed results
+- Be comprehensive - it's better to identify too many potential issues than to miss important flaws
+
 EVIDENCE HIERARCHY (from strongest to weakest):
 1. Systematic Reviews/Meta-analyses (highest quality)
 2. Randomized Controlled Trials (RCTs)
@@ -292,6 +307,17 @@ REMEMBER: Maintain complete objectivity. Evaluate the study's scientific quality
   "otherConfoundingFactors": [{"factor": "factor_name", "description": "brief description of the factor", "potentialImpact": "how this factor could skew the results", "whyItMatters": "explanation of why this factor is important to consider", "severity": "high|medium|low"}],
   "issues": [{"category": "category", "description": "brief", "quote": "exact quote from study if available", "quoteLocation": "where in study if quote provided", "debunking": "analysis of quoted text if provided"}],
   "expertContext": {"consensus": "brief", "controversies": [], "recentUpdates": [], "relatedStudies": []},
+  "causalInference": {
+    "canEstablishCausality": true|false,
+    "confidence": "high|medium|low",
+    "reasoning": "2-3 paragraph explanation of whether this study can establish causality, considering study design, controls, confounders, and methodological rigor",
+    "studyDesignLimitations": ["limitation1", "limitation2"],
+    "alternativeExplanations": ["alternative explanation 1", "alternative explanation 2"],
+    "requirementsForCausality": {
+      "met": ["requirement that is met", "another requirement"],
+      "unmet": ["requirement that is NOT met", "another missing requirement"]
+    }
+  },
   "simpleSummary": "2-3 paragraph non-technical summary - maintain complete objectivity, describe findings neutrally",
   "technicalCritique": "2-3 paragraph technical analysis - focus on methodology and evidence quality with zero bias",
   "biasReport": "2-3 paragraph comprehensive bias analysis covering funding, author conflicts, ownership, affiliations, and any indirect connections - evaluate objectively",

@@ -165,6 +165,18 @@ export async function analyzeWithAI(
       relatedStudies: analysisData.expertContext?.relatedStudies || [],
     };
 
+    const causalInference = analysisData.causalInference ? {
+      canEstablishCausality: analysisData.causalInference.canEstablishCausality || false,
+      confidence: (analysisData.causalInference.confidence || 'low') as 'high' | 'medium' | 'low',
+      reasoning: analysisData.causalInference.reasoning || '',
+      studyDesignLimitations: analysisData.causalInference.studyDesignLimitations || [],
+      alternativeExplanations: analysisData.causalInference.alternativeExplanations || [],
+      requirementsForCausality: {
+        met: analysisData.causalInference.requirementsForCausality?.met || [],
+        unmet: analysisData.causalInference.requirementsForCausality?.unmet || [],
+      },
+    } : undefined;
+
     return {
       evidenceHierarchy,
       trustScore: {
@@ -180,6 +192,7 @@ export async function analyzeWithAI(
       },
       flawDetection,
       expertContext,
+      causalInference,
       simpleSummary: analysisData.simpleSummary || '',
       technicalCritique: analysisData.technicalCritique || '',
       biasReport: analysisData.biasReport || '',
