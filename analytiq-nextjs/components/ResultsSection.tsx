@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -29,15 +30,29 @@ function getScoreRatingColor(overall: number): string {
   return 'from-red-500 via-red-600 to-red-700'
 }
 
-function scrollToSection(id: string) {
-  const element = document.getElementById(id)
-  if (element) {
-    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
-  }
-}
-
 export default function ResultsSection() {
   const { results, error } = useAnalysis()
+  const [highlightedSection, setHighlightedSection] = useState<string | null>(null)
+
+  const scrollToSection = (id: string) => {
+    const element = document.getElementById(id)
+    if (element) {
+      // Scroll to center
+      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      // Trigger highlight
+      setHighlightedSection(id)
+    }
+  }
+
+  // Remove highlight class when animation completes
+  useEffect(() => {
+    if (highlightedSection) {
+      const timer = setTimeout(() => {
+        setHighlightedSection(null)
+      }, 1500)
+      return () => clearTimeout(timer)
+    }
+  }, [highlightedSection])
 
   if (!results && !error) return null
 
@@ -101,7 +116,7 @@ export default function ResultsSection() {
                 >
                   <CardContent className="p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold capitalize">{categoryNames[key] || key.replace(/([A-Z])/g, ' $1').trim()}</h4>
+                      <h4 className="font-semibold">{categoryNames[key] || key.replace(/([A-Z])/g, ' $1').trim()}</h4>
                       <Badge variant="outline" className={colorClass}>
                         {percentage}%
                       </Badge>
@@ -156,10 +171,18 @@ export default function ResultsSection() {
                     const sectionId = `category-${key}`
                     
                     return (
-                      <Card key={key} id={sectionId} className="scroll-mt-20">
+                      <Card 
+                        key={key} 
+                        id={sectionId} 
+                        className={`scroll-mt-20 transition-all duration-500 ${
+                          highlightedSection === sectionId 
+                            ? 'ring-2 ring-primary ring-offset-2 shadow-lg scale-[1.01]' 
+                            : ''
+                        }`}
+                      >
                         <CardHeader>
                           <div className="flex items-center justify-between">
-                            <CardTitle className="capitalize text-lg">
+                            <CardTitle className="text-lg">
                               {categoryNames[key] || key.replace(/([A-Z])/g, ' $1').trim()}
                             </CardTitle>
                             <div className="flex items-center gap-2">
@@ -239,7 +262,7 @@ export default function ResultsSection() {
                                         fallacy.severity === 'medium' ? 'border-yellow-500 text-yellow-600' :
                                         'border-gray-500 text-gray-600'
                                       }>
-                                        {fallacy.severity} severity
+                                        {fallacy.severity.charAt(0).toUpperCase() + fallacy.severity.slice(1)} Severity
                                       </Badge>
                                     )}
                                   </div>
@@ -323,7 +346,7 @@ export default function ResultsSection() {
                                         threat.severity === 'medium' ? 'border-yellow-500 text-yellow-600' :
                                         'border-gray-500 text-gray-600'
                                       }>
-                                        {threat.severity}
+                                        {threat.severity.charAt(0).toUpperCase() + threat.severity.slice(1)} Severity
                                       </Badge>
                                     )}
                                   </div>
