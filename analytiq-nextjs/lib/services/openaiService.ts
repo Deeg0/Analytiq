@@ -42,6 +42,7 @@ export async function analyzeWithAI(
       temperature: 0.3,
       max_tokens: 4000, // Increased to allow for more quotes and detailed debunking from all sections
       response_format: { type: 'json_object' },
+      timeout: 50000, // 50 second timeout for OpenAI API call
     });
 
     const analysisText = response.choices[0]?.message?.content;
@@ -217,6 +218,8 @@ export async function analyzeWithAI(
     };
   } catch (error: any) {
     console.error('OpenAI API Error:', error);
+    console.error('Error code:', error.code);
+    console.error('Error message:', error.message);
     
     // Handle specific OpenAI API errors
     if (error.response?.status === 401) {
@@ -225,10 +228,12 @@ export async function analyzeWithAI(
       throw new Error('OpenAI API rate limit exceeded: Please try again later');
     } else if (error.response?.status === 500 || error.response?.status === 503) {
       throw new Error('OpenAI API service temporarily unavailable: Please try again later');
-    } else if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
-      throw new Error('AI analysis timeout: The request took too long. Please try again.');
+    } else if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT' || error.message?.includes('timeout') || error.message?.includes('Timeout')) {
+      throw new Error('AI analysis timeout: The request took too long. Please try again with a shorter input or try again later.');
     } else if (error.message?.includes('JSON')) {
       throw new Error('AI analysis failed: Invalid response format. Please try again.');
+    } else if (error.name === 'AbortError' || error.message?.includes('aborted')) {
+      throw new Error('AI analysis was cancelled due to timeout. Please try again with a shorter input.');
     }
     
     throw new Error(`AI analysis failed: ${error.message || 'Unknown error occurred'}`);

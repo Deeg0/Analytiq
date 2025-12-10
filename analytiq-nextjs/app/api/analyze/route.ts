@@ -3,6 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import { analyzeStudy } from '@/lib/services/analysisService'
 import { AnalysisRequest } from '@/lib/types/analysis'
 
+// Increase timeout for this route (Vercel default is 10s for Hobby, 60s for Pro)
+export const maxDuration = 60 // 60 seconds
+export const runtime = 'nodejs'
+
 export async function POST(request: NextRequest) {
   try {
     // Check authentication with error handling
@@ -65,7 +69,15 @@ export async function POST(request: NextRequest) {
     // Call your existing analysis service with timeout protection
     let result
     try {
-      result = await analyzeStudy({ inputType, content })
+      // Add timeout wrapper
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('Analysis timeout: The request took too long. Please try again with a shorter input.')), 55000) // 55 seconds to allow for response
+      })
+      
+      result = await Promise.race([
+        analyzeStudy({ inputType, content }),
+        timeoutPromise
+      ]) as any
     } catch (analysisError: any) {
       console.error('Analysis service error:', analysisError)
       console.error('Error stack:', analysisError.stack)
