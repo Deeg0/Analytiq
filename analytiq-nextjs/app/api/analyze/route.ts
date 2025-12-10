@@ -16,7 +16,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const body: AnalysisRequest = await request.json()
+    let body: AnalysisRequest
+    try {
+      body = await request.json()
+    } catch (parseError) {
+      return NextResponse.json(
+        { error: 'Invalid JSON in request body' },
+        { status: 400 }
+      )
+    }
+
     const { inputType, content } = body
 
     if (!inputType || !content) {
@@ -29,12 +38,22 @@ export async function POST(request: NextRequest) {
     // Call your existing analysis service
     const result = await analyzeStudy({ inputType, content })
 
-    return NextResponse.json(result)
+    return NextResponse.json(result, {
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
   } catch (error: any) {
     console.error('Analysis error:', error)
+    // Ensure we always return JSON, even on errors
     return NextResponse.json(
       { error: error.message || 'Analysis failed' },
-      { status: 500 }
+      { 
+        status: 500,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      }
     )
   }
 }

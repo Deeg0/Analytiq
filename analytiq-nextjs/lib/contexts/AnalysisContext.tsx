@@ -39,11 +39,21 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inputType: 'url', content: url }),
       })
+      
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text()
+        throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}`)
+      }
+      
       const data = await response.json()
-      if (!response.ok) throw new Error(data.error)
+      if (!response.ok) {
+        throw new Error(data.error || `Request failed with status ${response.status}`)
+      }
       setResults(data)
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message || 'An error occurred while analyzing the study')
       setResults(null)
     } finally {
       setLoading(false)
@@ -65,11 +75,21 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ inputType: 'text', content: text }),
       })
+      
+      // Check if response is JSON
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text()
+        throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}`)
+      }
+      
       const data = await response.json()
-      if (!response.ok) throw new Error(data.error)
+      if (!response.ok) {
+        throw new Error(data.error || `Request failed with status ${response.status}`)
+      }
       setResults(data)
     } catch (err: any) {
-      setError(err.message)
+      setError(err.message || 'An error occurred while analyzing the study')
       setResults(null)
     } finally {
       setLoading(false)
