@@ -2,29 +2,29 @@ import { ExtractedContent, StudyMetadata } from '../types/analysis';
 
 // Optimize content - extract comprehensive sections for thorough analysis
 function getOptimizedContent(content: ExtractedContent): string {
-  const maxLength = 12000; // Further reduced to prevent timeouts
+  const maxLength = 20000; // Increased significantly to include all sections
   const parts: string[] = [];
   
   // Prioritize structured sections if available - extract MORE comprehensively from ALL sections
   if (content.sections) {
     // Include larger portions of each section to ensure quotes can be found throughout
     if (content.sections.abstract) {
-      parts.push(`=== ABSTRACT ===\n${content.sections.abstract.substring(0, 1500)}\n`);
+      parts.push(`=== ABSTRACT ===\n${content.sections.abstract.substring(0, 3000)}\n`);
     }
     if (content.sections.introduction) {
-      parts.push(`=== INTRODUCTION ===\n${content.sections.introduction.substring(0, 2000)}\n`);
+      parts.push(`=== INTRODUCTION ===\n${content.sections.introduction.substring(0, 4000)}\n`);
     }
     if (content.sections.methods) {
-      parts.push(`=== METHODS ===\n${content.sections.methods.substring(0, 3500)}\n`);
+      parts.push(`=== METHODS ===\n${content.sections.methods.substring(0, 5000)}\n`);
     }
     if (content.sections.results) {
-      parts.push(`=== RESULTS ===\n${content.sections.results.substring(0, 3500)}\n`);
+      parts.push(`=== RESULTS ===\n${content.sections.results.substring(0, 5000)}\n`);
     }
     if (content.sections.discussion) {
-      parts.push(`=== DISCUSSION ===\n${content.sections.discussion.substring(0, 2000)}\n`);
+      parts.push(`=== DISCUSSION ===\n${content.sections.discussion.substring(0, 4000)}\n`);
     }
     if (content.sections.conclusions) {
-      parts.push(`=== CONCLUSIONS ===\n${content.sections.conclusions.substring(0, 1000)}\n`);
+      parts.push(`=== CONCLUSIONS ===\n${content.sections.conclusions.substring(0, 2000)}\n`);
     }
   }
   
@@ -367,12 +367,12 @@ COMPREHENSIVE ANALYSIS REQUIREMENTS (analyze thoroughly):
        - Previous work and publications that might reveal patterns
        - Known positions or advocacy on related topics
      * INDIRECT CONNECTIONS are CRITICAL - investigate:
-       * Authors who own businesses related to study conclusions (e.g., sweets brand owner advocating sugar)
-       * Authors with past employment at companies with interests in study outcomes
-       * Authors with consulting relationships, advisory roles, or board positions
-       * Authors with patents, trademarks, or intellectual property related to findings
-       * Family members or close associates with financial interests
-       * Institutional affiliations that could benefit from study results
+     * Authors who own businesses related to study conclusions (e.g., sweets brand owner advocating sugar)
+     * Authors with past employment at companies with interests in study outcomes
+     * Authors with consulting relationships, advisory roles, or board positions
+     * Authors with patents, trademarks, or intellectual property related to findings
+     * Family members or close associates with financial interests
+     * Institutional affiliations that could benefit from study results
        * Authors who have received speaking fees or honoraria from industry
        * Authors who serve on advisory boards of companies with related interests
        * Authors whose previous research consistently aligns with industry positions
