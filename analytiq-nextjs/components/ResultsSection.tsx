@@ -629,6 +629,92 @@ export default function ResultsSection() {
           </Tabs>
         </CardContent>
       </Card>
+
+      {/* Study Information */}
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Study Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {results.metadata.title && (
+            <div>
+              <h4 className="font-semibold text-sm mb-1">Title</h4>
+              <p className="text-sm text-muted-foreground">{results.metadata.title}</p>
+            </div>
+          )}
+          
+          {results.metadata.authors && results.metadata.authors.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-sm mb-1">Authors</h4>
+              <p className="text-sm text-muted-foreground">{results.metadata.authors.join(', ')}</p>
+            </div>
+          )}
+          
+          {results.metadata.affiliations && results.metadata.affiliations.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-sm mb-1">Affiliations</h4>
+              <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                {results.metadata.affiliations.map((affiliation, idx) => (
+                  <li key={idx}>{affiliation}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {results.metadata.journal && (
+            <div>
+              <h4 className="font-semibold text-sm mb-1">Journal</h4>
+              <p className="text-sm text-muted-foreground">{results.metadata.journal}</p>
+            </div>
+          )}
+          
+          {results.metadata.publicationDate && (
+            <div>
+              <h4 className="font-semibold text-sm mb-1">Publication Date</h4>
+              <p className="text-sm text-muted-foreground">{results.metadata.publicationDate}</p>
+            </div>
+          )}
+          
+          {results.metadata.doi && (
+            <div>
+              <h4 className="font-semibold text-sm mb-1">DOI</h4>
+              <p className="text-sm text-muted-foreground">{results.metadata.doi}</p>
+            </div>
+          )}
+          
+          {results.metadata.studyType && (
+            <div>
+              <h4 className="font-semibold text-sm mb-1">Study Type</h4>
+              <p className="text-sm text-muted-foreground">{results.metadata.studyType}</p>
+            </div>
+          )}
+          
+          {results.metadata.sampleSize && (
+            <div>
+              <h4 className="font-semibold text-sm mb-1">Sample Size</h4>
+              <p className="text-sm text-muted-foreground">N = {results.metadata.sampleSize}</p>
+            </div>
+          )}
+          
+          {results.metadata.funding && results.metadata.funding.length > 0 && (
+            <div>
+              <h4 className="font-semibold text-sm mb-1 text-red-600 dark:text-red-400">Funding Sources</h4>
+              <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
+                {results.metadata.funding.map((fund, idx) => (
+                  <li key={idx}>{fund}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          
+          {results.metadata.impactFactor && (
+            <div>
+              <h4 className="font-semibold text-sm mb-1">Impact Factor</h4>
+              <p className="text-sm text-muted-foreground">{results.metadata.impactFactor}</p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   )
 }

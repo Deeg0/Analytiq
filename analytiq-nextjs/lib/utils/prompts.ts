@@ -143,30 +143,41 @@ IMPORTANT: Read and analyze the study content THOROUGHLY. You MUST examine ALL s
 - Connections between authors' backgrounds and study conclusions (even indirect ones)
 - When extracting quotes, search through ALL sections to find the best examples
 
-CRITICAL: BE EXTREMELY THOROUGH AND AGGRESSIVE IN FINDING FLAWS - DO NOT MISS ANY:
-- Look for EVERY possible methodological flaw, no matter how subtle - be HIGHLY CRITICAL
-- Question EVERY assumption and claim made in the study - assume nothing is valid without proof
-- Identify ALL potential confounders, even if not mentioned in the study - think creatively
-- Find ALL logical fallacies and reasoning errors throughout the document - be pedantic
-- Detect ALL types of bias (selection, measurement, publication, funding, author conflicts, etc.) - be SUSPICIOUS
-- Look for missing controls, inadequate sample sizes, poor statistical practices - be STRICT
-- Identify ALL validity threats (internal, external, construct, statistical conclusion validity) - be COMPREHENSIVE
-- Be EXTREMELY skeptical and thorough - if something seems off, investigate it DEEPLY
-- Don't accept claims at face value - verify if the methodology actually supports the conclusions
-- Look for overstatements, unsupported claims, and conclusions that go beyond the data - be CRITICAL
-- Check for p-hacking, multiple comparisons issues, selective reporting - be VIGILANT
-- Identify ALL alternative explanations for the observed results - think of EVERY possibility
-- Be comprehensive - it's better to identify too many potential issues than to miss important flaws
-- Assume the study has flaws until proven otherwise - be a SKEPTICAL REVIEWER
-- Look for methodological choices that seem designed to produce desired results
-- Check if the study design was influenced by funder or author interests
-- Investigate whether negative results were hidden or positive results were cherry-picked
-- Look for subtle manipulation of data, analysis, or presentation to favor certain conclusions
-- Be suspicious of studies with industry funding that produce industry-friendly results
-- Question whether the study was designed to fail or succeed in specific ways
-- Look for conflicts between what the data shows and what the conclusions claim
-- Investigate whether the authors have a history of producing biased research
-- Check if the methodology was chosen specifically to avoid finding certain results
+CRITICAL: BE EXTREMELY THOROUGH AND AGGRESSIVE IN FINDING FLAWS - DO NOT MISS ANY - BE RUTHLESS:
+- Look for EVERY possible methodological flaw, no matter how subtle - be HIGHLY CRITICAL and RUTHLESS
+- Question EVERY assumption and claim made in the study - assume nothing is valid without proof - TRUST NOTHING
+- Identify ALL potential confounders, even if not mentioned in the study - think creatively and SUSPICIOUSLY
+- Find ALL logical fallacies and reasoning errors throughout the document - be pedantic and UNFORGIVING
+- Detect ALL types of bias (selection, measurement, publication, funding, author conflicts, etc.) - be EXTREMELY SUSPICIOUS
+- Look for missing controls, inadequate sample sizes, poor statistical practices - be STRICT and DEMANDING
+- Identify ALL validity threats (internal, external, construct, statistical conclusion validity) - be COMPREHENSIVE and RUTHLESS
+- Be EXTREMELY skeptical and thorough - if something seems off, investigate it DEEPLY - ASSUME THE WORST
+- Don't accept claims at face value - verify if the methodology actually supports the conclusions - DEMAND PROOF
+- Look for overstatements, unsupported claims, and conclusions that go beyond the data - be CRITICAL and UNFORGIVING
+- Check for p-hacking, multiple comparisons issues, selective reporting - be VIGILANT and SUSPICIOUS
+- Identify ALL alternative explanations for the observed results - think of EVERY possibility - LEAVE NO STONE UNTURNED
+- Be comprehensive - it's better to identify too many potential issues than to miss important flaws - OVER-REPORT ISSUES
+- Assume the study has flaws until proven otherwise - be a SKEPTICAL REVIEWER - START FROM A POSITION OF DISTRUST
+- Look for methodological choices that seem designed to produce desired results - ASSUME MALICE
+- Check if the study design was influenced by funder or author interests - ASSUME CONFLICT OF INTEREST
+- Investigate whether negative results were hidden or positive results were cherry-picked - ASSUME SELECTIVE REPORTING
+- Look for subtle manipulation of data, analysis, or presentation to favor certain conclusions - ASSUME MANIPULATION
+- Be suspicious of studies with industry funding that produce industry-friendly results - ASSUME BIAS
+- Question whether the study was designed to fail or succeed in specific ways - ASSUME INTENTIONAL DESIGN
+- Look for conflicts between what the data shows and what the conclusions claim - ASSUME MISREPRESENTATION
+- Investigate whether the authors have a history of producing biased research - ASSUME PATTERN OF BIAS
+- Check if the methodology was chosen specifically to avoid finding certain results - ASSUME INTENTIONAL AVOIDANCE
+- Look for ANY sign of data manipulation, selective analysis, or result massaging - ASSUME THE WORST
+- Question whether the sample was chosen to produce specific results - ASSUME SELECTION BIAS
+- Check if statistical methods were chosen to maximize positive findings - ASSUME P-HACKING
+- Look for hidden conflicts of interest that weren't disclosed - ASSUME UNDISCLOSED CONFLICTS
+- Investigate whether the study was rushed or poorly executed to meet deadlines - ASSUME POOR QUALITY
+- Question every methodological choice - why was THIS method chosen over alternatives? - ASSUME SUSPICIOUS MOTIVES
+- Look for signs that the study was designed to support a predetermined conclusion - ASSUME CONFIRMATION BIAS
+- Be EXTREMELY critical of any study with industry funding - ASSUME INDUSTRY INFLUENCE
+- Question whether the authors have financial or professional incentives for specific results - ASSUME CONFLICTS
+- Look for patterns of bias across multiple aspects of the study - ASSUME SYSTEMATIC BIAS
+- Be RUTHLESS - if there's ANY doubt, identify it as a potential flaw - ERR ON THE SIDE OF CRITICISM
 
 EVIDENCE HIERARCHY (from strongest to weakest):
 1. Systematic Reviews/Meta-analyses (highest quality)
@@ -380,17 +391,27 @@ COMPREHENSIVE ANALYSIS REQUIREMENTS (analyze thoroughly):
    - Ghostwriting or industry involvement in manuscript preparation
    - Suppression of negative results or adverse findings
    
-   - CRITICAL INVESTIGATION REQUIREMENTS:
-     * If you recognize author names, use your knowledge to investigate their backgrounds deeply
-     * Research funding organizations thoroughly - who controls them, what else they own
-     * Look for hidden connections through parent companies, subsidiaries, or related entities
-     * Investigate whether conclusions align suspiciously with funder/author business interests
-     * Check for patterns of industry-friendly research from the same authors/funders
-     * Be suspicious of studies that perfectly align with funder/author commercial interests
-     * Look for red flags: industry funding + industry-friendly conclusions + author industry ties
-     * Investigate whether the study design was influenced to favor certain outcomes
-     * Check if negative results were downplayed or positive results were emphasized
-     * Look for methodological choices that might favor funder/author interests
+   - CRITICAL INVESTIGATION REQUIREMENTS - BE RUTHLESS AND EXTREMELY SUSPICIOUS:
+     * If you recognize author names, use your knowledge to investigate their backgrounds DEEPLY - ASSUME THEY HAVE CONFLICTS
+     * Research funding organizations thoroughly - who controls them, what else they own - ASSUME HIDDEN CONNECTIONS
+     * Look for hidden connections through parent companies, subsidiaries, or related entities - ASSUME THEY EXIST
+     * Investigate whether conclusions align suspiciously with funder/author business interests - ASSUME THEY DO
+     * Check for patterns of industry-friendly research from the same authors/funders - ASSUME A PATTERN
+     * Be EXTREMELY suspicious of studies that perfectly align with funder/author commercial interests - ASSUME BIAS
+     * Look for red flags: industry funding + industry-friendly conclusions + author industry ties - ASSUME ALL THREE
+     * Investigate whether the study design was influenced to favor certain outcomes - ASSUME IT WAS
+     * Check if negative results were downplayed or positive results were emphasized - ASSUME SELECTIVE REPORTING
+     * Look for methodological choices that might favor funder/author interests - ASSUME INTENTIONAL CHOICES
+     * Question whether the study was ghostwritten or influenced by industry - ASSUME INDUSTRY INVOLVEMENT
+     * Investigate whether data was manipulated or selectively analyzed - ASSUME MANIPULATION
+     * Check if the authors have undisclosed conflicts of interest - ASSUME UNDISCLOSED CONFLICTS
+     * Look for signs that the funder had input into study design or analysis - ASSUME FUNDER INFLUENCE
+     * Question whether the study was published to support a specific agenda - ASSUME AGENDA-DRIVEN
+     * Investigate whether the authors have a history of producing biased research - ASSUME A PATTERN
+     * Check if the study was designed to avoid finding negative results - ASSUME INTENTIONAL AVOIDANCE
+     * Look for any sign that results were massaged or spun to be more favorable - ASSUME RESULT MASSAGING
+     * Question whether the methodology was chosen to maximize chances of positive findings - ASSUME METHODOLOGICAL GAMING
+     * Be RUTHLESS - if there's ANY possibility of bias or conflict, identify it - ERR ON THE SIDE OF SUSPICION
 
 Score evidenceStrength based on hierarchy position AND quality within that level. Adjust all scores DOWNWARD AGGRESSIVELY for:
 - High severity fallacies (major deductions: -5-10 points)
