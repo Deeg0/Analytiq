@@ -69,9 +69,9 @@ export async function POST(request: NextRequest) {
     // Call your existing analysis service with timeout protection
     let result
     try {
-      // Add timeout wrapper
+      // Add timeout wrapper - reduced to prevent platform timeout
       const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('Analysis timeout: The request took too long. Please try again with a shorter input.')), 55000) // 55 seconds to allow for response
+        setTimeout(() => reject(new Error('Analysis timeout: The request took too long. Please try again with a shorter input or contact support.')), 50000) // 50 seconds to allow for response
       })
       
       result = await Promise.race([
