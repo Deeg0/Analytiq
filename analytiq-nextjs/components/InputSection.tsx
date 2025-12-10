@@ -7,7 +7,6 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
-import { Loader2 } from 'lucide-react'
 import { useAnalysis } from '@/lib/contexts/AnalysisContext'
 
 export default function InputSection() {
@@ -39,14 +38,7 @@ export default function InputSection() {
               onClick={() => analyzeUrl(url)}
               disabled={loading || !url}
             >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                'Analyze Study'
-              )}
+              {loading ? 'Analyzing...' : 'Analyze Study'}
             </Button>
           </TabsContent>
           <TabsContent value="text" className="space-y-4">
@@ -65,18 +57,19 @@ export default function InputSection() {
               onClick={() => analyzeText(text)}
               disabled={loading || text.length < 100}
             >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Analyzing...
-                </>
-              ) : (
-                'Analyze Study'
-              )}
+              {loading ? 'Analyzing...' : 'Analyze Study'}
             </Button>
           </TabsContent>
         </Tabs>
       </CardHeader>
+      {loading && (
+        <CardContent className="flex justify-center items-center py-8">
+          <div className="relative w-12 h-12">
+            <div className="absolute top-0 left-0 w-full h-full border-4 border-primary/20 rounded-full"></div>
+            <div className="absolute top-0 left-0 w-full h-full border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        </CardContent>
+      )}
     </Card>
   )
 }

@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
-import { Skeleton } from '@/components/ui/skeleton'
 import { useAnalysis } from '@/lib/contexts/AnalysisContext'
 
 // Helper function to get color based on score percentage
@@ -49,7 +48,7 @@ function formatTitle(text: string): string {
 }
 
 export default function ResultsSection() {
-  const { results, error, loading } = useAnalysis()
+  const { results, error } = useAnalysis()
   const [highlightedSection, setHighlightedSection] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<string>('simple')
 
@@ -78,56 +77,6 @@ export default function ResultsSection() {
       return () => clearTimeout(timer)
     }
   }, [highlightedSection])
-
-  // Show loading state
-  if (loading) {
-    return (
-      <div className="space-y-4 sm:space-y-6 md:space-y-8">
-        <Card>
-          <CardHeader>
-            <CardTitle>Overview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div className="flex items-center gap-6">
-                <Skeleton className="h-24 w-24 rounded-full" />
-                <div className="space-y-2 flex-1">
-                  <Skeleton className="h-8 w-48" />
-                  <Skeleton className="h-4 w-32" />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Card key={i}>
-                    <CardContent className="p-4 space-y-3">
-                      <Skeleton className="h-5 w-32" />
-                      <Skeleton className="h-8 w-20" />
-                      <Skeleton className="h-2 w-full" />
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Detailed Analysis</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <Skeleton className="h-10 w-full" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-full" />
-                <Skeleton className="h-4 w-3/4" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
 
   if (!results && !error) return null
 
