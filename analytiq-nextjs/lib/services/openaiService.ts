@@ -165,17 +165,34 @@ export async function analyzeWithAI(
       relatedStudies: analysisData.expertContext?.relatedStudies || [],
     };
 
-    const causalInference = analysisData.causalInference ? {
-      canEstablishCausality: analysisData.causalInference.canEstablishCausality || false,
-      confidence: (analysisData.causalInference.confidence || 'low') as 'high' | 'medium' | 'low',
-      reasoning: analysisData.causalInference.reasoning || '',
-      studyDesignLimitations: analysisData.causalInference.studyDesignLimitations || [],
-      alternativeExplanations: analysisData.causalInference.alternativeExplanations || [],
-      requirementsForCausality: {
-        met: analysisData.causalInference.requirementsForCausality?.met || [],
-        unmet: analysisData.causalInference.requirementsForCausality?.unmet || [],
-      },
-    } : undefined;
+    let causalInference;
+    try {
+      causalInference = analysisData.causalInference ? {
+        canEstablishCausality: Boolean(analysisData.causalInference.canEstablishCausality) || false,
+        confidence: (['high', 'medium', 'low'].includes(analysisData.causalInference.confidence) 
+          ? analysisData.causalInference.confidence 
+          : 'low') as 'high' | 'medium' | 'low',
+        reasoning: String(analysisData.causalInference.reasoning || ''),
+        studyDesignLimitations: Array.isArray(analysisData.causalInference.studyDesignLimitations) 
+          ? analysisData.causalInference.studyDesignLimitations 
+          : [],
+        alternativeExplanations: Array.isArray(analysisData.causalInference.alternativeExplanations) 
+          ? analysisData.causalInference.alternativeExplanations 
+          : [],
+        requirementsForCausality: {
+          met: Array.isArray(analysisData.causalInference.requirementsForCausality?.met) 
+            ? analysisData.causalInference.requirementsForCausality.met 
+            : [],
+          unmet: Array.isArray(analysisData.causalInference.requirementsForCausality?.unmet) 
+            ? analysisData.causalInference.requirementsForCausality.unmet 
+            : [],
+        },
+      } : undefined;
+    } catch (causalError: any) {
+      console.error('Error parsing causal inference:', causalError);
+      // If causal inference parsing fails, just skip it
+      causalInference = undefined;
+    }
 
     return {
       evidenceHierarchy,

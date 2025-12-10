@@ -132,11 +132,16 @@ export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisRe
     try {
       aiAnalysis = await analyzeWithAI(extractedContent, metadata, sourceUrl);
     } catch (error: any) {
+      console.error('AI analysis error:', error);
+      console.error('Error stack:', error?.stack);
       if (error.message?.includes('API key') || error.message?.includes('authentication')) {
         throw new Error('OpenAI API authentication failed. Please check your API key.');
       }
       if (error.message?.includes('timeout') || error.message?.includes('rate limit')) {
         throw new Error('AI analysis service is temporarily unavailable. Please try again in a moment.');
+      }
+      if (error.message?.includes('JSON') || error.message?.includes('parse')) {
+        throw new Error('AI analysis returned invalid data. Please try again.');
       }
       throw new Error(`AI analysis failed: ${error.message || 'Unknown error occurred'}`);
     }
