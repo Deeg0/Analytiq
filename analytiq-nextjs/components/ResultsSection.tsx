@@ -2,11 +2,39 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Progress } from '@/components/ui/progress'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAnalysis } from '@/lib/contexts/AnalysisContext'
+
+// Helper function to get color based on score percentage
+function getScoreColor(percentage: number): string {
+  if (percentage >= 80) return 'text-green-600 dark:text-green-400'
+  if (percentage >= 60) return 'text-yellow-600 dark:text-yellow-400'
+  if (percentage >= 40) return 'text-orange-600 dark:text-orange-400'
+  return 'text-red-600 dark:text-red-400'
+}
+
+function getScoreBgColor(percentage: number): string {
+  if (percentage >= 80) return 'bg-green-500'
+  if (percentage >= 60) return 'bg-yellow-500'
+  if (percentage >= 40) return 'bg-orange-500'
+  return 'bg-red-500'
+}
+
+function getScoreRatingColor(overall: number): string {
+  if (overall >= 80) return 'from-green-500 via-green-600 to-green-700'
+  if (overall >= 60) return 'from-yellow-500 via-yellow-600 to-yellow-700'
+  if (overall >= 40) return 'from-orange-500 via-orange-600 to-orange-700'
+  return 'from-red-500 via-red-600 to-red-700'
+}
+
+function scrollToSection(id: string) {
+  const element = document.getElementById(id)
+  if (element) {
+    element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
+}
 
 export default function ResultsSection() {
   const { results, error } = useAnalysis()
@@ -23,6 +51,15 @@ export default function ResultsSection() {
 
   if (!results) return null
 
+  const overallPercentage = results.trustScore.overall
+  const categoryNames: Record<string, string> = {
+    methodology: 'Methodology Quality',
+    evidenceStrength: 'Evidence Strength',
+    bias: 'Bias Detection',
+    reproducibility: 'Reproducibility',
+    statisticalValidity: 'Statistical Validity',
+  }
+
   return (
     <div className="space-y-4 sm:space-y-6 md:space-y-8">
       {/* Score Card */}
@@ -31,7 +68,7 @@ export default function ResultsSection() {
           <CardTitle>Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="bg-gradient-to-br from-primary via-primary/95 to-primary/90 rounded-2xl p-6 sm:p-8 md:p-10 text-primary-foreground mb-6 sm:mb-8">
+          <div className={`bg-gradient-to-br ${getScoreRatingColor(overallPercentage)} rounded-2xl p-6 sm:p-8 md:p-10 text-white mb-6 sm:mb-8`}>
             <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 md:gap-8">
               <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full bg-white/25 backdrop-blur-md border-4 border-white/40 flex flex-col items-center justify-center">
                 <span className="text-3xl sm:text-4xl font-bold">{results.trustScore.overall}</span>
@@ -52,12 +89,35 @@ export default function ResultsSection() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
             {Object.entries(results.trustScore.breakdown).map(([key, data]: [string, any]) => {
               const percentage = Math.round((data.score / data.maxScore) * 100)
+              const colorClass = getScoreColor(percentage)
+              const bgColorClass = getScoreBgColor(percentage)
+              const sectionId = `category-${key}`
+              
               return (
-                <Card key={key} className="cursor-pointer hover:bg-muted/70 transition-colors">
+                <Card 
+                  key={key} 
+                  className="cursor-pointer hover:bg-muted/70 transition-all hover:shadow-md"
+                  onClick={() => scrollToSection(sectionId)}
+                >
                   <CardContent className="p-4">
-                    <h4 className="font-semibold mb-2 capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</h4>
-                    <div className="text-2xl font-bold mb-2">{data.score}/{data.maxScore}</div>
-                    <Progress value={percentage} />
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-semibold capitalize">{categoryNames[key] || key.replace(/([A-Z])/g, ' $1').trim()}</h4>
+                      <Badge variant="outline" className={colorClass}>
+                        {percentage}%
+                      </Badge>
+                    </div>
+                    <div className={`text-2xl font-bold mb-2 ${colorClass}`}>
+                      {data.score}/{data.maxScore}
+                    </div>
+                    <div className="bg-muted relative h-2 w-full overflow-hidden rounded-full">
+                      <div 
+                        className={`h-full transition-all ${bgColorClass}`}
+                        style={{ width: `${percentage}%` }}
+                      />
+                    </div>
+                    <div className="mt-2 text-xs text-muted-foreground">
+                      Click to view details →
+                    </div>
                   </CardContent>
                 </Card>
               )
@@ -79,15 +139,360 @@ export default function ResultsSection() {
               <TabsTrigger value="bias">Bias Report</TabsTrigger>
             </TabsList>
             <TabsContent value="simple" className="mt-4">
-              <p className="text-muted-foreground whitespace-pre-wrap">{results.simpleSummary}</p>
+              <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{results.simpleSummary}</p>
             </TabsContent>
-            <TabsContent value="technical" className="mt-4">
-              <p className="text-muted-foreground mb-4 whitespace-pre-wrap">{results.technicalCritique}</p>
-              <Separator className="my-4" />
-              {/* Category details, issues, etc. will be added here */}
+            <TabsContent value="technical" className="mt-4 space-y-6">
+              <div>
+                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed mb-6">{results.technicalCritique}</p>
+                <Separator className="my-6" />
+                
+                {/* Category Details */}
+                <div className="space-y-6">
+                  <h3 className="text-xl font-semibold mb-4">Category Breakdown</h3>
+                  {Object.entries(results.trustScore.breakdown).map(([key, data]: [string, any]) => {
+                    const percentage = Math.round((data.score / data.maxScore) * 100)
+                    const colorClass = getScoreColor(percentage)
+                    const bgColorClass = getScoreBgColor(percentage)
+                    const sectionId = `category-${key}`
+                    
+                    return (
+                      <Card key={key} id={sectionId} className="scroll-mt-20">
+                        <CardHeader>
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="capitalize text-lg">
+                              {categoryNames[key] || key.replace(/([A-Z])/g, ' $1').trim()}
+                            </CardTitle>
+                            <div className="flex items-center gap-2">
+                              <span className={`text-2xl font-bold ${colorClass}`}>
+                                {data.score}/{data.maxScore}
+                              </span>
+                              <Badge variant="outline" className={colorClass}>
+                                {percentage}%
+                              </Badge>
+                            </div>
+                          </div>
+                          <div className="bg-muted relative h-2 w-full overflow-hidden rounded-full mt-2">
+                            <div 
+                              className={`h-full transition-all ${bgColorClass}`}
+                              style={{ width: `${percentage}%` }}
+                            />
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-4">
+                          {data.details && (
+                            <div>
+                              <h4 className="font-semibold mb-2">Details</h4>
+                              <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                                {data.details}
+                              </p>
+                            </div>
+                          )}
+                          
+                          {data.strengths && data.strengths.length > 0 && (
+                            <div>
+                              <h4 className="font-semibold mb-2 text-green-600 dark:text-green-400">Strengths</h4>
+                              <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                                {data.strengths.map((strength: string, idx: number) => (
+                                  <li key={idx}>{strength}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                          
+                          {data.issues && data.issues.length > 0 && (
+                            <div>
+                              <h4 className="font-semibold mb-2 text-red-600 dark:text-red-400">Issues</h4>
+                              <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                                {data.issues.map((issue: string, idx: number) => (
+                                  <li key={idx}>{issue}</li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )
+                  })}
+                </div>
+
+                {/* Flaw Detection */}
+                {results.flawDetection && (
+                  <>
+                    <Separator className="my-6" />
+                    <div className="space-y-4">
+                      <h3 className="text-xl font-semibold">Flaw Detection</h3>
+                      
+                      {results.flawDetection.fallacies && results.flawDetection.fallacies.length > 0 && (
+                        <div>
+                          <h4 className="font-semibold mb-3 text-red-600 dark:text-red-400">Logical Fallacies</h4>
+                          <div className="space-y-4">
+                            {results.flawDetection.fallacies.map((fallacy, idx) => (
+                              <Card key={idx} className="border-red-200 dark:border-red-800">
+                                <CardContent className="p-4">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <Badge variant="destructive" className="mb-2">
+                                      {fallacy.type}
+                                    </Badge>
+                                    {fallacy.severity && (
+                                      <Badge variant="outline" className={
+                                        fallacy.severity === 'high' ? 'border-red-500 text-red-600' :
+                                        fallacy.severity === 'medium' ? 'border-yellow-500 text-yellow-600' :
+                                        'border-gray-500 text-gray-600'
+                                      }>
+                                        {fallacy.severity} severity
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground mb-2">{fallacy.description}</p>
+                                  {fallacy.quote && (
+                                    <div className="bg-muted p-3 rounded-md my-2">
+                                      <p className="text-xs font-semibold text-muted-foreground mb-1">Quote:</p>
+                                      <p className="text-sm italic">"{fallacy.quote}"</p>
+                                      {fallacy.quoteLocation && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          Location: {fallacy.quoteLocation}
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
+                                  {fallacy.debunking && (
+                                    <div className="bg-red-50 dark:bg-red-950/20 p-3 rounded-md mt-2">
+                                      <p className="text-xs font-semibold text-red-700 dark:text-red-400 mb-1">Analysis:</p>
+                                      <p className="text-sm text-red-900 dark:text-red-300">{fallacy.debunking}</p>
+                                    </div>
+                                  )}
+                                  {fallacy.impact && (
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                      <strong>Impact:</strong> {fallacy.impact}
+                                    </p>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {results.flawDetection.confounders && results.flawDetection.confounders.length > 0 && (
+                        <div className="mt-4">
+                          <h4 className="font-semibold mb-3 text-orange-600 dark:text-orange-400">Confounding Factors</h4>
+                          <div className="space-y-3">
+                            {results.flawDetection.confounders.map((confounder, idx) => (
+                              <Card key={idx} className="border-orange-200 dark:border-orange-800">
+                                <CardContent className="p-4">
+                                  <h5 className="font-semibold mb-2">{confounder.factor}</h5>
+                                  <p className="text-sm text-muted-foreground mb-2">{confounder.description}</p>
+                                  {confounder.quote && (
+                                    <div className="bg-muted p-3 rounded-md my-2">
+                                      <p className="text-xs font-semibold text-muted-foreground mb-1">Quote:</p>
+                                      <p className="text-sm italic">"{confounder.quote}"</p>
+                                      {confounder.quoteLocation && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          Location: {confounder.quoteLocation}
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
+                                  {confounder.debunking && (
+                                    <p className="text-sm text-muted-foreground mt-2">{confounder.debunking}</p>
+                                  )}
+                                  {confounder.impact && (
+                                    <p className="text-xs text-muted-foreground mt-2">
+                                      <strong>Impact:</strong> {confounder.impact}
+                                    </p>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {results.flawDetection.validityThreats && results.flawDetection.validityThreats.length > 0 && (
+                        <div className="mt-4">
+                          <h4 className="font-semibold mb-3 text-red-600 dark:text-red-400">Validity Threats</h4>
+                          <div className="space-y-3">
+                            {results.flawDetection.validityThreats.map((threat, idx) => (
+                              <Card key={idx} className="border-red-200 dark:border-red-800">
+                                <CardContent className="p-4">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <h5 className="font-semibold">{threat.threat}</h5>
+                                    {threat.severity && (
+                                      <Badge variant="outline" className={
+                                        threat.severity === 'high' ? 'border-red-500 text-red-600' :
+                                        threat.severity === 'medium' ? 'border-yellow-500 text-yellow-600' :
+                                        'border-gray-500 text-gray-600'
+                                      }>
+                                        {threat.severity}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <p className="text-sm text-muted-foreground mb-2">{threat.description}</p>
+                                  {threat.quote && (
+                                    <div className="bg-muted p-3 rounded-md my-2">
+                                      <p className="text-xs font-semibold text-muted-foreground mb-1">Quote:</p>
+                                      <p className="text-sm italic">"{threat.quote}"</p>
+                                      {threat.quoteLocation && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          Location: {threat.quoteLocation}
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
+                                  {threat.debunking && (
+                                    <div className="bg-red-50 dark:bg-red-950/20 p-3 rounded-md mt-2">
+                                      <p className="text-xs font-semibold text-red-700 dark:text-red-400 mb-1">Analysis:</p>
+                                      <p className="text-sm text-red-900 dark:text-red-300">{threat.debunking}</p>
+                                    </div>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {results.flawDetection.issues && results.flawDetection.issues.length > 0 && (
+                        <div className="mt-4">
+                          <h4 className="font-semibold mb-3">Other Issues</h4>
+                          <div className="space-y-3">
+                            {results.flawDetection.issues.map((issue, idx) => (
+                              <Card key={idx}>
+                                <CardContent className="p-4">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <Badge variant="outline">{issue.category}</Badge>
+                                  </div>
+                                  <p className="text-sm text-muted-foreground mb-2">{issue.description}</p>
+                                  {issue.quote && (
+                                    <div className="bg-muted p-3 rounded-md my-2">
+                                      <p className="text-xs font-semibold text-muted-foreground mb-1">Quote:</p>
+                                      <p className="text-sm italic">"{issue.quote}"</p>
+                                      {issue.quoteLocation && (
+                                        <p className="text-xs text-muted-foreground mt-1">
+                                          Location: {issue.quoteLocation}
+                                        </p>
+                                      )}
+                                    </div>
+                                  )}
+                                  {issue.debunking && (
+                                    <p className="text-sm text-muted-foreground mt-2">{issue.debunking}</p>
+                                  )}
+                                </CardContent>
+                              </Card>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {/* Evidence Hierarchy */}
+                {results.evidenceHierarchy && (
+                  <>
+                    <Separator className="my-6" />
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Evidence Hierarchy</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">Level:</span>
+                            <Badge variant="outline" className="capitalize">
+                              {results.evidenceHierarchy.level.replace('_', ' ')}
+                            </Badge>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">Position in Hierarchy:</span>
+                            <span className="text-muted-foreground">{results.evidenceHierarchy.position}/6</span>
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="font-semibold">Quality Within Level:</span>
+                            <Badge variant="outline" className="capitalize">
+                              {results.evidenceHierarchy.qualityWithinLevel}
+                            </Badge>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+
+                {/* Expert Context */}
+                {results.expertContext && (
+                  <>
+                    <Separator className="my-6" />
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Expert Context</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {results.expertContext.consensus && (
+                          <div>
+                            <h4 className="font-semibold mb-2">Field Consensus</h4>
+                            <p className="text-sm text-muted-foreground whitespace-pre-wrap leading-relaxed">
+                              {results.expertContext.consensus}
+                            </p>
+                          </div>
+                        )}
+                        {results.expertContext.controversies && results.expertContext.controversies.length > 0 && (
+                          <div>
+                            <h4 className="font-semibold mb-2 text-yellow-600 dark:text-yellow-400">Controversies</h4>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                              {results.expertContext.controversies.map((controversy, idx) => (
+                                <li key={idx}>{controversy}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {results.expertContext.recentUpdates && results.expertContext.recentUpdates.length > 0 && (
+                          <div>
+                            <h4 className="font-semibold mb-2">Recent Updates</h4>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                              {results.expertContext.recentUpdates.map((update, idx) => (
+                                <li key={idx}>{update}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                        {results.expertContext.relatedStudies && results.expertContext.relatedStudies.length > 0 && (
+                          <div>
+                            <h4 className="font-semibold mb-2">Related Studies</h4>
+                            <ul className="list-disc list-inside space-y-1 text-sm text-muted-foreground">
+                              {results.expertContext.relatedStudies.map((study, idx) => (
+                                <li key={idx}>{study}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+
+                {/* Recommendations */}
+                {results.recommendations && results.recommendations.length > 0 && (
+                  <>
+                    <Separator className="my-6" />
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Recommendations</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ul className="list-disc list-inside space-y-2 text-sm text-muted-foreground">
+                          {results.recommendations.map((recommendation, idx) => (
+                            <li key={idx} className="leading-relaxed">{recommendation}</li>
+                          ))}
+                        </ul>
+                      </CardContent>
+                    </Card>
+                  </>
+                )}
+              </div>
             </TabsContent>
             <TabsContent value="bias" className="mt-4">
-              <p className="text-muted-foreground whitespace-pre-wrap">{results.biasReport}</p>
+              <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{results.biasReport}</p>
             </TabsContent>
           </Tabs>
         </CardContent>
@@ -95,4 +500,3 @@ export default function ResultsSection() {
     </div>
   )
 }
-
