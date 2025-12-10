@@ -44,16 +44,35 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
       const contentType = response.headers.get('content-type')
       if (!contentType || !contentType.includes('application/json')) {
         const text = await response.text()
+        // Check for timeout errors
+        if (text.includes('Timeout') || text.includes('timeout') || response.status === 504 || response.status === 502) {
+          throw new Error('Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
+        }
+        // Check for other HTML error pages
+        if (text.includes('<HTML>') || text.includes('<html>') || text.includes('Inactivity Timeout')) {
+          throw new Error('Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
+        }
         throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}`)
       }
       
       const data = await response.json()
       if (!response.ok) {
+        // Handle timeout status codes
+        if (response.status === 504 || response.status === 502) {
+          throw new Error('Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
+        }
         throw new Error(data.error || `Request failed with status ${response.status}`)
       }
       setResults(data)
     } catch (err: any) {
-      setError(err.message || 'An error occurred while analyzing the study')
+      // Handle fetch errors (network issues, timeouts, etc.)
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setError('Network error: Unable to connect to the server. Please check your connection and try again.')
+      } else if (err.message?.includes('timeout') || err.message?.includes('Timeout') || err.message?.includes('Inactivity Timeout')) {
+        setError('Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
+      } else {
+        setError(err.message || 'An error occurred while analyzing the study')
+      }
       setResults(null)
     } finally {
       setLoading(false)
@@ -80,16 +99,35 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
       const contentType = response.headers.get('content-type')
       if (!contentType || !contentType.includes('application/json')) {
         const text = await response.text()
+        // Check for timeout errors
+        if (text.includes('Timeout') || text.includes('timeout') || response.status === 504 || response.status === 502) {
+          throw new Error('Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
+        }
+        // Check for other HTML error pages
+        if (text.includes('<HTML>') || text.includes('<html>') || text.includes('Inactivity Timeout')) {
+          throw new Error('Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
+        }
         throw new Error(`Server returned non-JSON response: ${text.substring(0, 100)}`)
       }
       
       const data = await response.json()
       if (!response.ok) {
+        // Handle timeout status codes
+        if (response.status === 504 || response.status === 502) {
+          throw new Error('Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
+        }
         throw new Error(data.error || `Request failed with status ${response.status}`)
       }
       setResults(data)
     } catch (err: any) {
-      setError(err.message || 'An error occurred while analyzing the study')
+      // Handle fetch errors (network issues, timeouts, etc.)
+      if (err.name === 'TypeError' && err.message.includes('fetch')) {
+        setError('Network error: Unable to connect to the server. Please check your connection and try again.')
+      } else if (err.message?.includes('timeout') || err.message?.includes('Timeout') || err.message?.includes('Inactivity Timeout')) {
+        setError('Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
+      } else {
+        setError(err.message || 'An error occurred while analyzing the study')
+      }
       setResults(null)
     } finally {
       setLoading(false)
