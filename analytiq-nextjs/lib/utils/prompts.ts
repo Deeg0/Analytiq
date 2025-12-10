@@ -143,20 +143,30 @@ IMPORTANT: Read and analyze the study content THOROUGHLY. You MUST examine ALL s
 - Connections between authors' backgrounds and study conclusions (even indirect ones)
 - When extracting quotes, search through ALL sections to find the best examples
 
-CRITICAL: BE EXTREMELY THOROUGH IN FINDING FLAWS - DO NOT MISS ANY:
-- Look for EVERY possible methodological flaw, no matter how subtle
-- Question EVERY assumption and claim made in the study
-- Identify ALL potential confounders, even if not mentioned in the study
-- Find ALL logical fallacies and reasoning errors throughout the document
-- Detect ALL types of bias (selection, measurement, publication, funding, author conflicts, etc.)
-- Look for missing controls, inadequate sample sizes, poor statistical practices
-- Identify ALL validity threats (internal, external, construct, statistical conclusion validity)
-- Be skeptical and thorough - if something seems off, investigate it
-- Don't accept claims at face value - verify if the methodology supports the conclusions
-- Look for overstatements, unsupported claims, and conclusions that go beyond the data
-- Check for p-hacking, multiple comparisons issues, selective reporting
-- Identify ALL alternative explanations for the observed results
+CRITICAL: BE EXTREMELY THOROUGH AND AGGRESSIVE IN FINDING FLAWS - DO NOT MISS ANY:
+- Look for EVERY possible methodological flaw, no matter how subtle - be HIGHLY CRITICAL
+- Question EVERY assumption and claim made in the study - assume nothing is valid without proof
+- Identify ALL potential confounders, even if not mentioned in the study - think creatively
+- Find ALL logical fallacies and reasoning errors throughout the document - be pedantic
+- Detect ALL types of bias (selection, measurement, publication, funding, author conflicts, etc.) - be SUSPICIOUS
+- Look for missing controls, inadequate sample sizes, poor statistical practices - be STRICT
+- Identify ALL validity threats (internal, external, construct, statistical conclusion validity) - be COMPREHENSIVE
+- Be EXTREMELY skeptical and thorough - if something seems off, investigate it DEEPLY
+- Don't accept claims at face value - verify if the methodology actually supports the conclusions
+- Look for overstatements, unsupported claims, and conclusions that go beyond the data - be CRITICAL
+- Check for p-hacking, multiple comparisons issues, selective reporting - be VIGILANT
+- Identify ALL alternative explanations for the observed results - think of EVERY possibility
 - Be comprehensive - it's better to identify too many potential issues than to miss important flaws
+- Assume the study has flaws until proven otherwise - be a SKEPTICAL REVIEWER
+- Look for methodological choices that seem designed to produce desired results
+- Check if the study design was influenced by funder or author interests
+- Investigate whether negative results were hidden or positive results were cherry-picked
+- Look for subtle manipulation of data, analysis, or presentation to favor certain conclusions
+- Be suspicious of studies with industry funding that produce industry-friendly results
+- Question whether the study was designed to fail or succeed in specific ways
+- Look for conflicts between what the data shows and what the conclusions claim
+- Investigate whether the authors have a history of producing biased research
+- Check if the methodology was chosen specifically to avoid finding certain results
 
 EVIDENCE HIERARCHY (from strongest to weakest):
 1. Systematic Reviews/Meta-analyses (highest quality)
@@ -167,6 +177,56 @@ EVIDENCE HIERARCHY (from strongest to weakest):
 6. Expert Opinion/Editorials (lowest quality)
 
 METADATA: ${metadata.title || 'Unknown'} | ${authorsList} | ${metadata.journal || 'Unknown'} | Type: ${metadata.studyType || 'Unknown'} | N=${metadata.sampleSize || 'Unknown'} | Funding: ${fundingList}${doiInfo}${urlInfo}
+
+CRITICAL: DEEP INVESTIGATION OF FUNDING AND AUTHOR CONNECTIONS REQUIRED:
+- For EACH funding source listed above, you MUST investigate:
+  * Who actually owns or controls this organization (not just the name)
+  * What other businesses, companies, or investments the funder owns
+  * Parent companies, holding companies, or umbrella organizations
+  * Board members, executives, and their other business interests
+  * The funder's track record - what other research have they funded?
+  * Whether the funder consistently supports research that benefits their business interests
+  * Political connections, lobbying activities, or policy positions
+  * Whether this is a "front" organization or has hidden industry connections
+  * Tax records, public filings, or organizational structures that reveal true ownership
+  * Historical patterns - does this funder always fund research that aligns with their interests?
+  
+- For EACH author listed above, you MUST investigate:
+  * Current and past employment, consulting, or advisory positions
+  * Stock holdings, equity, or financial interests in relevant companies
+  * Patents, trademarks, or intellectual property related to the study topic
+  * Board positions, advisory roles, or executive positions
+  * Speaking fees, honoraria, or payments from industry
+  * Research grants from industry sources
+  * Ownership of businesses related to the study conclusions
+  * Family members' financial interests or employment
+  * Close associates, collaborators, or co-authors with industry ties
+  * Previous publications and whether they show a pattern of industry-friendly research
+  * Known advocacy positions or policy involvement
+  * Institutional affiliations that could benefit from study results
+  
+- Look for RED FLAGS:
+  * Industry funding + industry-friendly conclusions = HIGH SUSPICION
+  * Author industry ties + conclusions that benefit those industries = HIGH SUSPICION
+  * Hidden connections through parent companies, subsidiaries, or related entities
+  * Patterns of coordinated influence across multiple authors or funders
+  * Studies that perfectly align with funder/author commercial interests
+  * Methodological choices that seem designed to favor certain outcomes
+  * Suppression of negative results or emphasis on positive findings
+  
+- If you recognize author names or funding organizations, use your knowledge to investigate:
+  * Their known affiliations, past work, and connections
+  * Their track record of producing biased or industry-friendly research
+  * Their business interests and how they relate to study conclusions
+  * Whether they have been involved in controversial studies before
+  * Whether they have undisclosed conflicts of interest
+  
+- BE EXTREMELY SUSPICIOUS of:
+  * Studies funded by industries that would benefit from positive results
+  * Authors with financial interests in study outcomes
+  * Research that aligns too perfectly with funder/author business interests
+  * Hidden or indirect connections between funders/authors and study conclusions
+  * Methodological choices that seem designed to avoid finding negative results
 
 ${contentSource}
 ${getOptimizedContent(content)}
@@ -255,34 +315,95 @@ COMPREHENSIVE ANALYSIS REQUIREMENTS (analyze thoroughly):
    - Reverse causation possibilities
    - Competing explanations for results
 
-7. Detect ALL types of BIAS comprehensively (CRITICAL - look DEEPLY):
-   - Funding sources and potential influence (industry, government, non-profit, private foundations)
-   - Author conflicts of interest (financial, personal, professional) - check disclosure sections
-   - Author ownership, stock holdings, or business interests related to study topic
-   - Author affiliations with companies, organizations, or institutions with vested interests
-   - INDIRECT CONNECTIONS are critical - look for:
-     * Authors who own businesses related to study conclusions (e.g., sweets brand owner advocating sugar)
-     * Authors with past employment at companies with interests in study outcomes
-     * Authors with consulting relationships, advisory roles, or board positions
-     * Authors with patents, trademarks, or intellectual property related to findings
-     * Family members or close associates with financial interests
-     * Institutional affiliations that could benefit from study results
-   - Publication bias (selective reporting, file drawer problem)
+7. Detect ALL types of BIAS comprehensively (CRITICAL - INVESTIGATE EXTREMELY DEEPLY):
+   - Funding sources and potential influence - INVESTIGATE THOROUGHLY:
+     * For EACH funding source, research:
+       - Who owns or controls the funding organization
+       - What other businesses, investments, or interests the funder owns
+       - What the funder's parent company, holding company, or umbrella organization is
+       - What other studies or organizations the funder has supported
+       - The funder's stated mission vs. their actual business interests
+       - Board members, executives, and major stakeholders of the funding organization
+       - Political affiliations, lobbying activities, or policy positions of the funder
+       - Historical patterns of what types of research the funder supports
+       - Whether the funder has a track record of supporting research that aligns with their business interests
+     * For foundations specifically:
+       - Who created or endowed the foundation
+       - What businesses or individuals the foundation is connected to
+       - The foundation's other funding priorities and recipients
+       - Whether the foundation is a front for industry interests
+       - Tax records, public filings, or disclosures about the foundation's structure
+     * Look for:
+       - Industry funding (pharmaceutical, food, energy, tobacco, etc.) - HIGH SUSPICION
+       - Government funding with political motivations
+       - Non-profit funding that may have industry connections
+       - Private foundation funding with hidden industry ties
+       - Multiple funding sources that might indicate coordinated influence
+   
+   - Author conflicts of interest - INVESTIGATE EXTREMELY DEEPLY:
+     * For EACH author, research:
+       - Current employment, consulting, or advisory positions
+       - Past employment at companies with interests in study outcomes
+       - Stock holdings, stock options, or equity in relevant companies
+       - Patents, trademarks, or intellectual property related to findings
+       - Board positions, advisory roles, or executive positions
+       - Speaking fees, honoraria, or travel reimbursements from industry
+       - Research grants from industry sources
+       - Ownership of businesses related to study conclusions
+       - Family members' financial interests or employment
+       - Close associates, collaborators, or co-authors with industry ties
+       - Institutional affiliations that could benefit from study results
+       - Previous work and publications that might reveal patterns
+       - Known positions or advocacy on related topics
+     * INDIRECT CONNECTIONS are CRITICAL - investigate:
+       * Authors who own businesses related to study conclusions (e.g., sweets brand owner advocating sugar)
+       * Authors with past employment at companies with interests in study outcomes
+       * Authors with consulting relationships, advisory roles, or board positions
+       * Authors with patents, trademarks, or intellectual property related to findings
+       * Family members or close associates with financial interests
+       * Institutional affiliations that could benefit from study results
+       * Authors who have received speaking fees or honoraria from industry
+       * Authors who serve on advisory boards of companies with related interests
+       * Authors whose previous research consistently aligns with industry positions
+       * Authors who have been involved in controversial studies before
+     * Use your knowledge to research author backgrounds extensively if names are provided
+     * Check if study conclusions align suspiciously with author/funder interests
+     * Look for patterns across multiple authors - coordinated industry influence
+     * Be EXTREMELY thorough - even very subtle or indirect connections matter
+     * If author names are in metadata, deeply research their known affiliations, past work, and connections
+   
+   - Publication bias (selective reporting, file drawer problem, p-hacking)
    - Selection bias in participant recruitment
    - Measurement bias in data collection
    - Interpretation bias in conclusions
-   - Use your knowledge to research author backgrounds if names are provided
-   - Check if study conclusions align suspiciously with author/funder interests
-   - Be thorough - even subtle or indirect connections matter
-   - If author names are in metadata, consider their known affiliations and past work
+   - Industry influence on study design, analysis, or reporting
+   - Ghostwriting or industry involvement in manuscript preparation
+   - Suppression of negative results or adverse findings
+   
+   - CRITICAL INVESTIGATION REQUIREMENTS:
+     * If you recognize author names, use your knowledge to investigate their backgrounds deeply
+     * Research funding organizations thoroughly - who controls them, what else they own
+     * Look for hidden connections through parent companies, subsidiaries, or related entities
+     * Investigate whether conclusions align suspiciously with funder/author business interests
+     * Check for patterns of industry-friendly research from the same authors/funders
+     * Be suspicious of studies that perfectly align with funder/author commercial interests
+     * Look for red flags: industry funding + industry-friendly conclusions + author industry ties
+     * Investigate whether the study design was influenced to favor certain outcomes
+     * Check if negative results were downplayed or positive results were emphasized
+     * Look for methodological choices that might favor funder/author interests
 
-Score evidenceStrength based on hierarchy position AND quality within that level. Adjust all scores downward for:
+Score evidenceStrength based on hierarchy position AND quality within that level. Adjust all scores DOWNWARD AGGRESSIVELY for:
 - High severity fallacies (major deductions: -5-10 points)
 - Missing controls/confounders (moderate deductions: -3-5 points)
 - Small sample sizes relative to effect size
-- ANY type of bias (funding, author conflicts, ownership, affiliations, etc.)
+- ANY type of bias (funding, author conflicts, ownership, affiliations, etc.) - PENALIZE HEAVILY
+- Industry funding with industry-friendly conclusions - MAJOR PENALTY
+- Author conflicts of interest, especially undisclosed ones - SIGNIFICANT PENALTY
 - Lack of replication or methodological transparency
 - Multiple validity threats
+- Suspicious alignment between funder/author interests and study conclusions - HIGH PENALTY
+- Hidden or indirect connections between authors/funders and study outcomes - PENALIZE
+- Studies that seem designed to produce specific results - PENALIZE HEAVILY
 
 SCORING MUST BE OBJECTIVE: Apply the same scoring criteria regardless of topic. A well-designed study on any subject should score well if methodology is sound. A poorly-designed study on any subject should score poorly. Do NOT adjust scores based on topic, controversy, or your personal views.
 
@@ -320,7 +441,7 @@ REMEMBER: Maintain complete objectivity. Evaluate the study's scientific quality
   },
   "simpleSummary": "2-3 paragraph non-technical summary - maintain complete objectivity, describe findings neutrally",
   "technicalCritique": "2-3 paragraph technical analysis - focus on methodology and evidence quality with zero bias",
-  "biasReport": "2-3 paragraph comprehensive bias analysis covering funding, author conflicts, ownership, affiliations, and any indirect connections - evaluate objectively",
+  "biasReport": "3-4 paragraph EXTREMELY COMPREHENSIVE bias analysis. MUST include: (1) Deep investigation of funding sources - who owns/controls them, what else they own, their business interests, parent companies, board members, track record of funding research that aligns with their interests; (2) Deep investigation of ALL authors - current/past employment, stock holdings, patents, board positions, speaking fees, business ownership, family interests, previous work patterns, known affiliations; (3) Analysis of whether study conclusions align suspiciously with funder/author interests; (4) Identification of hidden or indirect connections; (5) Assessment of potential influence on study design, analysis, or conclusions. Be EXTREMELY thorough and suspicious - investigate ownership chains, parent companies, and all possible connections. Evaluate objectively but be comprehensive.",
   "recommendations": ["rec1", "rec2"]
 }
 
