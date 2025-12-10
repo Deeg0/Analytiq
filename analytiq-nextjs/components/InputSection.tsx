@@ -8,14 +8,22 @@ import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { useAnalysis } from '@/lib/contexts/AnalysisContext'
+import LoadingIndicator from '@/components/LoadingIndicator'
 
 export default function InputSection() {
   const [url, setUrl] = useState('')
   const [text, setText] = useState('')
-  const { analyzeUrl, analyzeText, loading } = useAnalysis()
+  const { analyzeUrl, analyzeText, loading, progress, estimatedTimeRemaining } = useAnalysis()
 
   return (
-    <Card className="mb-6 sm:mb-8">
+    <>
+      {loading && (
+        <LoadingIndicator 
+          progress={progress} 
+          estimatedTimeRemaining={estimatedTimeRemaining} 
+        />
+      )}
+      <Card className="mb-6 sm:mb-8">
       <CardHeader>
         <Tabs defaultValue="url" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -63,6 +71,7 @@ export default function InputSection() {
         </Tabs>
       </CardHeader>
     </Card>
+    </>
   )
 }
 
