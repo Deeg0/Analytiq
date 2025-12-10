@@ -7,23 +7,16 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { Loader2 } from 'lucide-react'
 import { useAnalysis } from '@/lib/contexts/AnalysisContext'
-import LoadingIndicator from '@/components/LoadingIndicator'
 
 export default function InputSection() {
   const [url, setUrl] = useState('')
   const [text, setText] = useState('')
-  const { analyzeUrl, analyzeText, loading, progress, estimatedTimeRemaining } = useAnalysis()
+  const { analyzeUrl, analyzeText, loading } = useAnalysis()
 
   return (
-    <>
-      {loading && (
-        <LoadingIndicator 
-          progress={progress} 
-          estimatedTimeRemaining={estimatedTimeRemaining} 
-        />
-      )}
-      <Card className="mb-6 sm:mb-8">
+    <Card className="mb-6 sm:mb-8">
       <CardHeader>
         <Tabs defaultValue="url" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
@@ -46,7 +39,14 @@ export default function InputSection() {
               onClick={() => analyzeUrl(url)}
               disabled={loading || !url}
             >
-              {loading ? 'Analyzing...' : 'Analyze Study'}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                'Analyze Study'
+              )}
             </Button>
           </TabsContent>
           <TabsContent value="text" className="space-y-4">
@@ -65,13 +65,19 @@ export default function InputSection() {
               onClick={() => analyzeText(text)}
               disabled={loading || text.length < 100}
             >
-              {loading ? 'Analyzing...' : 'Analyze Study'}
+              {loading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Analyzing...
+                </>
+              ) : (
+                'Analyze Study'
+              )}
             </Button>
           </TabsContent>
         </Tabs>
       </CardHeader>
     </Card>
-    </>
   )
 }
 
