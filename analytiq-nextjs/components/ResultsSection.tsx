@@ -30,18 +30,42 @@ function getScoreRatingColor(overall: number): string {
   return 'from-red-500 via-red-600 to-red-700'
 }
 
+// Helper function to format titles: replace underscores, capitalize words
+function formatTitle(text: string): string {
+  if (!text) return text
+  // Replace underscores with spaces
+  const withSpaces = text.replace(/_/g, ' ')
+  // Split by spaces and capitalize each word
+  return withSpaces
+    .split(' ')
+    .map(word => {
+      // Handle empty strings
+      if (!word) return word
+      // Capitalize first letter and lowercase the rest
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+    })
+    .join(' ')
+}
+
 export default function ResultsSection() {
   const { results, error } = useAnalysis()
   const [highlightedSection, setHighlightedSection] = useState<string | null>(null)
+  const [activeTab, setActiveTab] = useState<string>('simple')
 
   const scrollToSection = (id: string) => {
-    const element = document.getElementById(id)
-    if (element) {
-      // Scroll to center
-      element.scrollIntoView({ behavior: 'smooth', block: 'center' })
-      // Trigger highlight
-      setHighlightedSection(id)
-    }
+    // Switch to technical tab first
+    setActiveTab('technical')
+    
+    // Small delay to ensure tab content is rendered before scrolling
+    setTimeout(() => {
+      const element = document.getElementById(id)
+      if (element) {
+        // Scroll to center
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        // Trigger highlight
+        setHighlightedSection(id)
+      }
+    }, 100)
   }
 
   // Remove highlight class when animation completes
@@ -147,7 +171,7 @@ export default function ResultsSection() {
           <CardTitle>Detailed Analysis</CardTitle>
         </CardHeader>
         <CardContent>
-          <Tabs defaultValue="simple" className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-3">
               <TabsTrigger value="simple">Simple Summary</TabsTrigger>
               <TabsTrigger value="technical">Technical Critique</TabsTrigger>
@@ -254,7 +278,7 @@ export default function ResultsSection() {
                                 <CardContent className="p-4">
                                   <div className="flex items-start justify-between mb-2">
                                     <Badge variant="destructive" className="mb-2">
-                                      {fallacy.type}
+                                      {formatTitle(fallacy.type)}
                                     </Badge>
                                     {fallacy.severity && (
                                       <Badge variant="outline" className={
@@ -303,7 +327,7 @@ export default function ResultsSection() {
                             {results.flawDetection.confounders.map((confounder, idx) => (
                               <Card key={idx} className="border-orange-200 dark:border-orange-800">
                                 <CardContent className="p-4">
-                                  <h5 className="font-semibold mb-2">{confounder.factor}</h5>
+                                  <h5 className="font-semibold mb-2">{formatTitle(confounder.factor)}</h5>
                                   <p className="text-sm text-muted-foreground mb-2">{confounder.description}</p>
                                   {confounder.quote && (
                                     <div className="bg-muted p-3 rounded-md my-2">
@@ -339,7 +363,7 @@ export default function ResultsSection() {
                               <Card key={idx} className="border-red-200 dark:border-red-800">
                                 <CardContent className="p-4">
                                   <div className="flex items-start justify-between mb-2">
-                                    <h5 className="font-semibold">{threat.threat}</h5>
+                                    <h5 className="font-semibold">{formatTitle(threat.threat)}</h5>
                                     {threat.severity && (
                                       <Badge variant="outline" className={
                                         threat.severity === 'high' ? 'border-red-500 text-red-600' :
@@ -383,7 +407,7 @@ export default function ResultsSection() {
                               <Card key={idx}>
                                 <CardContent className="p-4">
                                   <div className="flex items-start justify-between mb-2">
-                                    <Badge variant="outline">{issue.category}</Badge>
+                                    <Badge variant="outline">{formatTitle(issue.category)}</Badge>
                                   </div>
                                   <p className="text-sm text-muted-foreground mb-2">{issue.description}</p>
                                   {issue.quote && (
