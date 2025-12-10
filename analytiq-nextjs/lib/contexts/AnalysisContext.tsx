@@ -40,32 +40,30 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
         body: JSON.stringify({ inputType: 'url', content: url }),
       })
       
-      // Get response text first to check for HTML errors
+      // Get response text first
       const responseText = await response.text()
       
-      // Check for timeout errors in HTML responses
-      if (responseText.includes('Inactivity Timeout') || responseText.includes('Timeout') || responseText.includes('<HTML>') || responseText.includes('<html>')) {
-        throw new Error('Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
-      }
-      
-      // Check status codes for timeouts
-      if (response.status === 504 || response.status === 502) {
-        throw new Error('Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
-      }
-      
-      // Try to parse as JSON
+      // Try to parse as JSON first
       let data
       try {
         data = JSON.parse(responseText)
       } catch (parseError) {
-        throw new Error(`Server returned invalid response: ${responseText.substring(0, 100)}`)
-      }
-      if (!response.ok) {
-        // Handle timeout status codes
-        if (response.status === 504 || response.status === 502) {
+        // If JSON parsing fails, check for HTML timeout errors
+        if (responseText.includes('Inactivity Timeout') || responseText.includes('<HTML>') || responseText.includes('<html>')) {
           throw new Error('Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
         }
-        throw new Error(data.error || `Request failed with status ${response.status}`)
+        // If it's not HTML timeout, it's an invalid response
+        throw new Error(`Server returned invalid response: ${responseText.substring(0, 100)}`)
+      }
+      
+      // Check if response is not OK
+      if (!response.ok) {
+        // Use error message from JSON if available, otherwise use status-based message
+        const errorMessage = data.error || data.errorMessage || data.details
+        if (response.status === 504 || response.status === 502) {
+          throw new Error(errorMessage || 'Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
+        }
+        throw new Error(errorMessage || `Request failed with status ${response.status}`)
       }
       setResults(data)
     } catch (err: any) {
@@ -99,32 +97,30 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
         body: JSON.stringify({ inputType: 'text', content: text }),
       })
       
-      // Get response text first to check for HTML errors
+      // Get response text first
       const responseText = await response.text()
       
-      // Check for timeout errors in HTML responses
-      if (responseText.includes('Inactivity Timeout') || responseText.includes('Timeout') || responseText.includes('<HTML>') || responseText.includes('<html>')) {
-        throw new Error('Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
-      }
-      
-      // Check status codes for timeouts
-      if (response.status === 504 || response.status === 502) {
-        throw new Error('Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
-      }
-      
-      // Try to parse as JSON
+      // Try to parse as JSON first
       let data
       try {
         data = JSON.parse(responseText)
       } catch (parseError) {
-        throw new Error(`Server returned invalid response: ${responseText.substring(0, 100)}`)
-      }
-      if (!response.ok) {
-        // Handle timeout status codes
-        if (response.status === 504 || response.status === 502) {
+        // If JSON parsing fails, check for HTML timeout errors
+        if (responseText.includes('Inactivity Timeout') || responseText.includes('<HTML>') || responseText.includes('<html>')) {
           throw new Error('Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
         }
-        throw new Error(data.error || `Request failed with status ${response.status}`)
+        // If it's not HTML timeout, it's an invalid response
+        throw new Error(`Server returned invalid response: ${responseText.substring(0, 100)}`)
+      }
+      
+      // Check if response is not OK
+      if (!response.ok) {
+        // Use error message from JSON if available, otherwise use status-based message
+        const errorMessage = data.error || data.errorMessage || data.details
+        if (response.status === 504 || response.status === 502) {
+          throw new Error(errorMessage || 'Request timeout: The analysis took too long. Please try again with a shorter input or try again later.')
+        }
+        throw new Error(errorMessage || `Request failed with status ${response.status}`)
       }
       setResults(data)
     } catch (err: any) {
