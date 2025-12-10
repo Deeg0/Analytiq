@@ -3,8 +3,8 @@ import { createClient } from '@/lib/supabase/server'
 import { analyzeStudy } from '@/lib/services/analysisService'
 import { AnalysisRequest } from '@/lib/types/analysis'
 
-// Increase timeout for this route (Vercel default is 10s for Hobby, 60s for Pro)
-export const maxDuration = 60 // 60 seconds
+// Increase timeout for this route (Vercel: 10s free, 60s Pro | Railway: up to 5 minutes)
+export const maxDuration = 60 // 60 seconds (Vercel-specific, Railway handles longer naturally)
 export const runtime = 'nodejs'
 
 export async function POST(request: NextRequest) {
