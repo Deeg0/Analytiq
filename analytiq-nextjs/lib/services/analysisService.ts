@@ -91,41 +91,32 @@ export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisRe
     // Step 2: Extract metadata
     const metadata = extractMetadata(extractedContent);
 
-    // Step 2.5: Summarize metadata fields if needed
+    // Step 2.5: Summarize metadata fields if needed (only if actually long to save time)
     // Journal: summarize if > 100 words
-    if (metadata.journal && typeof metadata.journal === 'string') {
+    if (metadata.journal && typeof metadata.journal === 'string' && metadata.journal.split(/\s+/).length > 100) {
       metadata.journal = await summarizeJournal(metadata.journal);
     }
     
-    // Other fields: summarize if > 500 words
-    if (metadata.title && typeof metadata.title === 'string') {
+    // Other fields: summarize if > 500 words (skip if short)
+    if (metadata.title && typeof metadata.title === 'string' && metadata.title.split(/\s+/).length > 500) {
       metadata.title = await summarizeMetadataField(metadata.title);
     }
     
-    // Summarize other text fields that might be long
-    if (metadata.publicationDate && typeof metadata.publicationDate === 'string') {
-      metadata.publicationDate = await summarizeMetadataField(metadata.publicationDate);
-    }
-    
-    // Summarize funding sources if any are too long
+    // Skip publicationDate summarization (usually short)
+    // Summarize funding sources only if any are too long (> 200 words)
     if (metadata.funding && Array.isArray(metadata.funding)) {
       const summarized = await Promise.all(
-        metadata.funding.map(async fund => 
-          typeof fund === 'string' ? (await summarizeMetadataField(fund)) || fund : fund
-        )
+        metadata.funding.map(async fund => {
+          if (typeof fund === 'string' && fund.split(/\s+/).length > 200) {
+            return (await summarizeMetadataField(fund)) || fund;
+          }
+          return fund;
+        })
       );
       metadata.funding = summarized.filter((f): f is string => typeof f === 'string');
     }
     
-    // Summarize affiliations if any are too long
-    if (metadata.affiliations && Array.isArray(metadata.affiliations)) {
-      const summarized = await Promise.all(
-        metadata.affiliations.map(async aff => 
-          typeof aff === 'string' ? (await summarizeMetadataField(aff)) || aff : aff
-        )
-      );
-      metadata.affiliations = summarized.filter((a): a is string => typeof a === 'string');
-    }
+    // Skip affiliations summarization to save time (usually short)
 
     // Step 3: Perform AI analysis with timeout protection
     let aiAnalysis;

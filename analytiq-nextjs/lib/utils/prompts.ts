@@ -2,29 +2,29 @@ import { ExtractedContent, StudyMetadata } from '../types/analysis';
 
 // Optimize content - extract comprehensive sections for thorough analysis
 function getOptimizedContent(content: ExtractedContent): string {
-  const maxLength = 15000; // Reduced to speed up analysis and prevent timeouts
+  const maxLength = 12000; // Further reduced to prevent timeouts
   const parts: string[] = [];
   
   // Prioritize structured sections if available - extract MORE comprehensively from ALL sections
   if (content.sections) {
     // Include larger portions of each section to ensure quotes can be found throughout
     if (content.sections.abstract) {
-      parts.push(`=== ABSTRACT ===\n${content.sections.abstract.substring(0, 2000)}\n`);
+      parts.push(`=== ABSTRACT ===\n${content.sections.abstract.substring(0, 1500)}\n`);
     }
     if (content.sections.introduction) {
-      parts.push(`=== INTRODUCTION ===\n${content.sections.introduction.substring(0, 3000)}\n`);
+      parts.push(`=== INTRODUCTION ===\n${content.sections.introduction.substring(0, 2000)}\n`);
     }
     if (content.sections.methods) {
-      parts.push(`=== METHODS ===\n${content.sections.methods.substring(0, 4000)}\n`);
+      parts.push(`=== METHODS ===\n${content.sections.methods.substring(0, 3500)}\n`);
     }
     if (content.sections.results) {
-      parts.push(`=== RESULTS ===\n${content.sections.results.substring(0, 4000)}\n`);
+      parts.push(`=== RESULTS ===\n${content.sections.results.substring(0, 3500)}\n`);
     }
     if (content.sections.discussion) {
-      parts.push(`=== DISCUSSION ===\n${content.sections.discussion.substring(0, 3000)}\n`);
+      parts.push(`=== DISCUSSION ===\n${content.sections.discussion.substring(0, 2000)}\n`);
     }
     if (content.sections.conclusions) {
-      parts.push(`=== CONCLUSIONS ===\n${content.sections.conclusions.substring(0, 1500)}\n`);
+      parts.push(`=== CONCLUSIONS ===\n${content.sections.conclusions.substring(0, 1000)}\n`);
     }
   }
   
