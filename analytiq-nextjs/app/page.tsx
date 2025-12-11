@@ -45,9 +45,16 @@ export default function Home() {
       const {
         data: { subscription },
       } = supabase.auth.onAuthStateChange((event, session) => {
-        // Track new signups
-        if (event === 'SIGNED_UP') {
-          if (session?.user) {
+        // Track new signups - check if user was just created
+        if (event === 'SIGNED_IN' && session?.user) {
+          // Check if this is a new user (created_at equals updated_at indicates new account)
+          const userCreatedAt = new Date(session.user.created_at).getTime()
+          const userUpdatedAt = new Date(session.user.updated_at || session.user.created_at).getTime()
+          // If created very recently (within last 5 seconds), treat as new signup
+          const isNewUser = Math.abs(userCreatedAt - userUpdatedAt) < 5000 && 
+                            Date.now() - userCreatedAt < 10000
+          
+          if (isNewUser) {
             sessionStorage.setItem('analytiq-just-signed-up', 'true')
           }
         }
