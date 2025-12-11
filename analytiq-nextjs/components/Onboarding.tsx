@@ -205,19 +205,45 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 }
 
 // Hook to check if onboarding should be shown
-export function useOnboarding() {
+export function useOnboarding(user: any) {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const completed = localStorage.getItem('analytiq-onboarding-completed')
-      setShowOnboarding(completed !== 'true')
+    if (typeof window === 'undefined') {
       setIsLoading(false)
+      return
     }
-  }, [])
+
+    // Only show onboarding for signed-in users who just signed up
+    if (!user) {
+      setShowOnboarding(false)
+      setIsLoading(false)
+      return
+    }
+
+    // Check if this is a new signup (user just signed up)
+    const justSignedUp = sessionStorage.getItem('analytiq-just-signed-up') === 'true'
+    
+    // Check if onboarding was already completed for this user
+    const completedKey = `analytiq-onboarding-completed-${user.id}`
+    const completed = localStorage.getItem(completedKey) === 'true'
+
+    // Show onboarding if user just signed up and hasn't completed it
+    setShowOnboarding(justSignedUp && !completed)
+    setIsLoading(false)
+
+    // Clear the signup flag after checking
+    if (justSignedUp) {
+      sessionStorage.removeItem('analytiq-just-signed-up')
+    }
+  }, [user])
 
   const completeOnboarding = () => {
+    if (user) {
+      const completedKey = `analytiq-onboarding-completed-${user.id}`
+      localStorage.setItem(completedKey, 'true')
+    }
     setShowOnboarding(false)
   }
 

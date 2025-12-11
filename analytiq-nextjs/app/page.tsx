@@ -15,13 +15,21 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup'>('signin')
-  const { showOnboarding, isLoading: onboardingLoading, completeOnboarding } = useOnboarding()
+  const { showOnboarding, isLoading: onboardingLoading, completeOnboarding } = useOnboarding(user)
 
   useEffect(() => {
     // Only initialize Supabase on client side
     if (typeof window === 'undefined') {
       setLoading(false)
       return
+    }
+
+    // Check if redirected from OAuth signup
+    const urlParams = new URLSearchParams(window.location.search)
+    if (urlParams.get('new_signup') === 'true') {
+      sessionStorage.setItem('analytiq-just-signed-up', 'true')
+      // Clean up URL
+      window.history.replaceState({}, '', window.location.pathname)
     }
 
     try {
@@ -36,7 +44,13 @@ export default function Home() {
       // Listen for auth changes
       const {
         data: { subscription },
-      } = supabase.auth.onAuthStateChange((_event, session) => {
+      } = supabase.auth.onAuthStateChange((event, session) => {
+        // Track new signups
+        if (event === 'SIGNED_UP') {
+          if (session?.user) {
+            sessionStorage.setItem('analytiq-just-signed-up', 'true')
+          }
+        }
         setUser(session?.user ?? null)
       })
 

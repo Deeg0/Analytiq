@@ -54,12 +54,17 @@ export default function AuthModal({ open, onOpenChange, defaultTab = 'signin' }:
     setError(null)
 
     try {
-      const { error } = await supabase.auth.signUp({
+      const { data, error } = await supabase.auth.signUp({
         email,
         password,
       })
 
       if (error) throw error
+      
+      // Mark that user just signed up (for onboarding)
+      if (data.user) {
+        sessionStorage.setItem('analytiq-just-signed-up', 'true')
+      }
       
       setError('Check your email to confirm your account!')
       setTimeout(() => {
@@ -80,14 +85,26 @@ export default function AuthModal({ open, onOpenChange, defaultTab = 'signin' }:
     setError(null)
 
     try {
+      // Check if this is signup (signup tab) or signin
+      const isSignUp = activeTab === 'signup'
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: {
+            // Store signup intent in redirect URL
+            ...(isSignUp && { signup: 'true' }),
+          },
         },
       })
 
       if (error) throw error
+      
+      // For signup, mark that user is signing up
+      if (isSignUp) {
+        sessionStorage.setItem('analytiq-just-signed-up', 'true')
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to sign in with Google')
       setLoading(false)
