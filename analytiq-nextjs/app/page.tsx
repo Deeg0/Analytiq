@@ -8,12 +8,14 @@ import Hero from '@/components/Hero'
 import InputSection from '@/components/InputSection'
 import ResultsSection from '@/components/ResultsSection'
 import AuthModal from '@/components/AuthModal'
+import Onboarding, { useOnboarding } from '@/components/Onboarding'
 
 export default function Home() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup'>('signin')
+  const { showOnboarding, isLoading: onboardingLoading, completeOnboarding } = useOnboarding()
 
   useEffect(() => {
     // Only initialize Supabase on client side
@@ -55,7 +57,7 @@ export default function Home() {
     setAuthModalOpen(true)
   }
 
-  if (loading) {
+  if (loading || onboardingLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-muted-foreground">Loading...</div>
@@ -81,6 +83,7 @@ export default function Home() {
           onOpenChange={setAuthModalOpen}
           defaultTab={authModalTab}
         />
+        {showOnboarding && <Onboarding onComplete={completeOnboarding} />}
       </div>
     </AnalysisProvider>
   )

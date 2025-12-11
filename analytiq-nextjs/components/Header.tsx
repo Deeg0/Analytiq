@@ -4,8 +4,9 @@ import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Home } from 'lucide-react'
+import { Home, HelpCircle } from 'lucide-react'
 import { usePathname } from 'next/navigation'
+import { useState } from 'react'
 
 interface HeaderProps {
   user?: any
@@ -22,6 +23,11 @@ export default function Header({ user, onSignInClick, onSignUpClick }: HeaderPro
     if (confirm('Are you sure you want to sign out?')) {
       await supabase.auth.signOut()
     }
+  }
+
+  const handleShowOnboarding = () => {
+    localStorage.removeItem('analytiq-onboarding-completed')
+    window.location.reload()
   }
 
   return (
@@ -51,6 +57,17 @@ export default function Header({ user, onSignInClick, onSignUpClick }: HeaderPro
                   <span className="hidden sm:inline">Home</span>
                 </Button>
               </Link>
+            )}
+            {isHomePage && (
+              <Button 
+                variant="ghost" 
+                className="gap-2 hidden sm:flex"
+                onClick={handleShowOnboarding}
+                title="Show onboarding tour"
+              >
+                <HelpCircle className="h-4 w-4" />
+                <span className="hidden md:inline">Tour</span>
+              </Button>
             )}
             {user && (
               <>
