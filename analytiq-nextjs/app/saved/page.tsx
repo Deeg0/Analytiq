@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Header from '@/components/Header'
@@ -35,6 +35,7 @@ export default function SavedAnalysesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState<'date' | 'score'>('date')
   const router = useRouter()
+  const dialogScrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const supabase = createClient()
@@ -152,19 +153,17 @@ export default function SavedAnalysesPage() {
     setIsDialogOpen(true)
   }
 
-  // Scroll dialog content to top when it opens
+  // Reset scroll position when dialog opens
   useEffect(() => {
-    if (isDialogOpen) {
-      // Small delay to ensure dialog content is rendered
-      const timer = setTimeout(() => {
-        const scrollContainer = document.querySelector('[data-slot="dialog-content"] .overflow-y-auto')
-        if (scrollContainer) {
-          scrollContainer.scrollTop = 0
+    if (isDialogOpen && dialogScrollRef.current) {
+      // Small delay to ensure content is rendered
+      setTimeout(() => {
+        if (dialogScrollRef.current) {
+          dialogScrollRef.current.scrollTop = 0
         }
-      }, 100)
-      return () => clearTimeout(timer)
+      }, 50)
     }
-  }, [isDialogOpen])
+  }, [isDialogOpen, selectedAnalysis])
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false)
@@ -378,7 +377,7 @@ export default function SavedAnalysesPage() {
               {selectedAnalysis?.metadata?.title || 'Analysis Details'}
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto px-6 py-4" id="dialog-scroll-container">
+          <div ref={dialogScrollRef} className="flex-1 overflow-y-auto px-6 py-4">
             {selectedAnalysis && (
               <AnalysisContext.Provider value={{
                 loading: false,
