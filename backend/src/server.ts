@@ -9,7 +9,7 @@ import analysisRoutes from './routes/analysis';
 import healthRoutes from './routes/health';
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = parseInt(process.env.PORT || '3000', 10);
 
 // Trust proxy - required for Railway and rate limiting
 app.set('trust proxy', true);
