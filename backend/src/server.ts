@@ -65,10 +65,10 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Root route - must be before static files
-app.get('/', (req, res) => {
-  console.log('Root route hit:', req.method, req.url);
-  res.json({
+// Root route - must be before static files and other routes
+app.get('/', (req, res, next) => {
+  console.log('Root route hit:', req.method, req.url, req.path);
+  return res.json({
     status: 'ok',
     message: 'analytIQ Backend API',
     version: '1.0.0',
