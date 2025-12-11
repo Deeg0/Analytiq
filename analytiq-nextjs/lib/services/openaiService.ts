@@ -40,9 +40,8 @@ export async function analyzeWithAI(
         },
       ],
       temperature: 0.3,
-      max_tokens: 3000, // Further reduced to speed up response time
+      max_tokens: 4000, // Increased to allow for more quotes and detailed debunking from all sections
       response_format: { type: 'json_object' },
-      timeout: 40000, // 40 second timeout for OpenAI API call
     });
 
     const analysisText = response.choices[0]?.message?.content;
@@ -166,34 +165,17 @@ export async function analyzeWithAI(
       relatedStudies: analysisData.expertContext?.relatedStudies || [],
     };
 
-    let causalInference;
-    try {
-      causalInference = analysisData.causalInference ? {
-        canEstablishCausality: Boolean(analysisData.causalInference.canEstablishCausality) || false,
-        confidence: (['high', 'medium', 'low'].includes(analysisData.causalInference.confidence) 
-          ? analysisData.causalInference.confidence 
-          : 'low') as 'high' | 'medium' | 'low',
-        reasoning: String(analysisData.causalInference.reasoning || ''),
-        studyDesignLimitations: Array.isArray(analysisData.causalInference.studyDesignLimitations) 
-          ? analysisData.causalInference.studyDesignLimitations 
-          : [],
-        alternativeExplanations: Array.isArray(analysisData.causalInference.alternativeExplanations) 
-          ? analysisData.causalInference.alternativeExplanations 
-          : [],
-        requirementsForCausality: {
-          met: Array.isArray(analysisData.causalInference.requirementsForCausality?.met) 
-            ? analysisData.causalInference.requirementsForCausality.met 
-            : [],
-          unmet: Array.isArray(analysisData.causalInference.requirementsForCausality?.unmet) 
-            ? analysisData.causalInference.requirementsForCausality.unmet 
-            : [],
-        },
-      } : undefined;
-    } catch (causalError: any) {
-      console.error('Error parsing causal inference:', causalError);
-      // If causal inference parsing fails, just skip it
-      causalInference = undefined;
-    }
+    const causalInference = analysisData.causalInference ? {
+      canEstablishCausality: analysisData.causalInference.canEstablishCausality || false,
+      confidence: (analysisData.causalInference.confidence || 'low') as 'high' | 'medium' | 'low',
+      reasoning: analysisData.causalInference.reasoning || '',
+      studyDesignLimitations: analysisData.causalInference.studyDesignLimitations || [],
+      alternativeExplanations: analysisData.causalInference.alternativeExplanations || [],
+      requirementsForCausality: {
+        met: analysisData.causalInference.requirementsForCausality?.met || [],
+        unmet: analysisData.causalInference.requirementsForCausality?.unmet || [],
+      },
+    } : undefined;
 
     return {
       evidenceHierarchy,
@@ -218,8 +200,6 @@ export async function analyzeWithAI(
     };
   } catch (error: any) {
     console.error('OpenAI API Error:', error);
-    console.error('Error code:', error.code);
-    console.error('Error message:', error.message);
     
     // Handle specific OpenAI API errors
     if (error.response?.status === 401) {
@@ -228,12 +208,10 @@ export async function analyzeWithAI(
       throw new Error('OpenAI API rate limit exceeded: Please try again later');
     } else if (error.response?.status === 500 || error.response?.status === 503) {
       throw new Error('OpenAI API service temporarily unavailable: Please try again later');
-    } else if (error.code === 'ECONNABORTED' || error.code === 'ETIMEDOUT' || error.message?.includes('timeout') || error.message?.includes('Timeout')) {
-      throw new Error('AI analysis timeout: The request took too long. Please try again with a shorter input or try again later.');
+    } else if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      throw new Error('AI analysis timeout: The request took too long. Please try again.');
     } else if (error.message?.includes('JSON')) {
       throw new Error('AI analysis failed: Invalid response format. Please try again.');
-    } else if (error.name === 'AbortError' || error.message?.includes('aborted')) {
-      throw new Error('AI analysis was cancelled due to timeout. Please try again with a shorter input.');
     }
     
     throw new Error(`AI analysis failed: ${error.message || 'Unknown error occurred'}`);
