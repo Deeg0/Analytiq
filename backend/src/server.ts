@@ -85,6 +85,19 @@ app.get('/', (req, res) => {
 app.use('/api/health', healthRoutes);
 app.use('/api/analyze', analysisRoutes);
 
+// 404 handler for unmatched routes
+app.use((req, res) => {
+  res.status(404).json({
+    error: 'Not Found',
+    message: `Cannot ${req.method} ${req.path}`,
+    availableEndpoints: {
+      root: 'GET /',
+      health: 'GET /api/health',
+      analyze: 'POST /api/analyze'
+    }
+  });
+});
+
 // Error handling middleware
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
   console.error('Error:', err);
