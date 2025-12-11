@@ -29,9 +29,12 @@ export default function Header({ user, onSignInClick, onSignUpClick }: HeaderPro
     // Remove onboarding completion for current user
     if (user?.id) {
       localStorage.removeItem(`analytiq-onboarding-completed-${user.id}`)
+    } else {
+      // For anonymous users, remove global completion flag
+      localStorage.removeItem('analytiq-onboarding-completed')
     }
-    // Set flag to show onboarding
-    sessionStorage.setItem('analytiq-just-signed-up', 'true')
+    // Set manual trigger flag to show onboarding
+    sessionStorage.setItem('analytiq-show-onboarding', 'true')
     window.location.reload()
   }
 
