@@ -7,8 +7,12 @@ interface AnalysisContextType {
   loading: boolean
   results: AnalysisResult | null
   error: string | null
+  user: any
+  inputType: 'url' | 'text' | null
+  inputContent: string | null
   analyzeUrl: (url: string) => Promise<void>
   analyzeText: (text: string) => Promise<void>
+  setResults: (results: AnalysisResult | null, inputType?: 'url' | 'text', inputContent?: string) => void
 }
 
 const AnalysisContext = createContext<AnalysisContextType | undefined>(undefined)
@@ -23,6 +27,8 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [inputType, setInputType] = useState<'url' | 'text' | null>(null)
+  const [inputContent, setInputContent] = useState<string | null>(null)
 
   // Determine which API endpoint to use
   const getApiUrl = () => {
@@ -44,6 +50,8 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
 
     setLoading(true)
     setError(null)
+    setInputType('url')
+    setInputContent(url)
     try {
       const response = await fetch(getApiUrl(), {
         method: 'POST',
@@ -81,6 +89,8 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
 
     setLoading(true)
     setError(null)
+    setInputType('text')
+    setInputContent(text)
     try {
       const response = await fetch(getApiUrl(), {
         method: 'POST',
@@ -108,8 +118,15 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
     }
   }
 
+  const setResultsDirectly = (newResults: AnalysisResult | null, newInputType?: 'url' | 'text', newInputContent?: string) => {
+    setResults(newResults)
+    if (newInputType) setInputType(newInputType)
+    if (newInputContent) setInputContent(newInputContent)
+    setError(null)
+  }
+
   return (
-    <AnalysisContext.Provider value={{ loading, results, error, analyzeUrl, analyzeText }}>
+    <AnalysisContext.Provider value={{ loading, results, error, user, inputType, inputContent, analyzeUrl, analyzeText, setResults: setResultsDirectly }}>
       {children}
     </AnalysisContext.Provider>
   )

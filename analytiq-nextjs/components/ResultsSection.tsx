@@ -3,10 +3,13 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { useAnalysis } from '@/lib/contexts/AnalysisContext'
+import { saveStudy } from '@/app/actions/studies'
+import { Bookmark, BookmarkCheck } from 'lucide-react'
 
 // Helper function to get color based on score percentage
 function getScoreColor(percentage: number): string {
@@ -48,9 +51,12 @@ function formatTitle(text: string): string {
 }
 
 export default function ResultsSection() {
-  const { results, error } = useAnalysis()
+  const { results, error, user, inputType, inputContent } = useAnalysis()
   const [highlightedSection, setHighlightedSection] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<string>('simple')
+  const [saving, setSaving] = useState(false)
+  const [saved, setSaved] = useState(false)
+  const [saveError, setSaveError] = useState<string | null>(null)
 
   const scrollToSection = (id: string) => {
     // Switch to technical tab first
@@ -78,6 +84,35 @@ export default function ResultsSection() {
     }
   }, [highlightedSection])
 
+  const handleSaveStudy = async () => {
+    if (!user) {
+      setSaveError('Please sign in to save studies')
+      return
+    }
+
+    if (!results || !inputType || !inputContent) {
+      setSaveError('Missing study data')
+      return
+    }
+
+    setSaving(true)
+    setSaveError(null)
+    
+    try {
+      const title = results.metadata.title || 
+                   results.metadata.doi || 
+                   (inputType === 'url' ? inputContent : 'Text Analysis')
+      
+      await saveStudy(title, inputType, inputContent, results)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } catch (err: any) {
+      setSaveError(err.message || 'Failed to save study')
+    } finally {
+      setSaving(false)
+    }
+  }
+
   if (!results && !error) return null
 
   if (error) {
@@ -104,7 +139,40 @@ export default function ResultsSection() {
       {/* Score Card */}
       <Card>
         <CardHeader>
-          <CardTitle>Overview</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle>Overview</CardTitle>
+            {user && (
+              <Button
+                onClick={handleSaveStudy}
+                disabled={saving || saved}
+                variant={saved ? "default" : "outline"}
+                size="sm"
+                className="gap-2"
+              >
+                {saving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : saved ? (
+                  <>
+                    <BookmarkCheck className="w-4 h-4" />
+                    Saved
+                  </>
+                ) : (
+                  <>
+                    <Bookmark className="w-4 h-4" />
+                    Save Study
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
+          {saveError && (
+            <Alert variant="destructive" className="mt-2">
+              <AlertDescription>{saveError}</AlertDescription>
+            </Alert>
+          )}
         </CardHeader>
         <CardContent>
           <div className={`bg-gradient-to-br ${getScoreRatingColor(overallPercentage)} rounded-2xl p-6 sm:p-8 md:p-10 text-white mb-6 sm:mb-8`}>

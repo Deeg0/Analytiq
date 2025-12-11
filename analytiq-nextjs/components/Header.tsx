@@ -41,9 +41,16 @@ export default function Header({ user, onSignInClick, onSignUpClick }: HeaderPro
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
             {user && (
-              <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">
-                {user.email}
-              </span>
+              <>
+                <Link href="/saved">
+                  <Button variant="ghost" className="hidden sm:flex">
+                    Saved Studies
+                  </Button>
+                </Link>
+                <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">
+                  {user.email}
+                </span>
+              </>
             )}
             {user ? (
               <Button onClick={handleSignOut} variant="outline">
