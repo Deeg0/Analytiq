@@ -215,6 +215,28 @@ export function useOnboarding(user: any) {
       return
     }
 
+    // Check if user manually triggered onboarding (via question mark button)
+    const manualTrigger = sessionStorage.getItem('analytiq-show-onboarding') === 'true'
+    
+    if (manualTrigger) {
+      // Clear the manual trigger flag
+      sessionStorage.removeItem('analytiq-show-onboarding')
+      
+      // Check if onboarding was already completed
+      let completed = false
+      if (user?.id) {
+        const completedKey = `analytiq-onboarding-completed-${user.id}`
+        completed = localStorage.getItem(completedKey) === 'true'
+      } else {
+        completed = localStorage.getItem('analytiq-onboarding-completed') === 'true'
+      }
+      
+      // Show onboarding if not completed (or if completed, we already cleared it)
+      setShowOnboarding(!completed)
+      setIsLoading(false)
+      return
+    }
+
     // Only show onboarding for signed-in users who just signed up
     if (!user) {
       setShowOnboarding(false)
@@ -240,9 +262,11 @@ export function useOnboarding(user: any) {
   }, [user])
 
   const completeOnboarding = () => {
-    if (user) {
+    if (user?.id) {
       const completedKey = `analytiq-onboarding-completed-${user.id}`
       localStorage.setItem(completedKey, 'true')
+    } else {
+      localStorage.setItem('analytiq-onboarding-completed', 'true')
     }
     setShowOnboarding(false)
   }
