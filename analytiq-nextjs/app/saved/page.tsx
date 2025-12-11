@@ -152,6 +152,20 @@ export default function SavedAnalysesPage() {
     setIsDialogOpen(true)
   }
 
+  // Scroll dialog content to top when it opens
+  useEffect(() => {
+    if (isDialogOpen) {
+      // Small delay to ensure dialog content is rendered
+      const timer = setTimeout(() => {
+        const scrollContainer = document.querySelector('[data-slot="dialog-content"] .overflow-y-auto')
+        if (scrollContainer) {
+          scrollContainer.scrollTop = 0
+        }
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [isDialogOpen])
+
   const handleCloseDialog = () => {
     setIsDialogOpen(false)
     setSelectedAnalysis(null)
@@ -364,7 +378,7 @@ export default function SavedAnalysesPage() {
               {selectedAnalysis?.metadata?.title || 'Analysis Details'}
             </DialogTitle>
           </DialogHeader>
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="flex-1 overflow-y-auto px-6 py-4" id="dialog-scroll-container">
             {selectedAnalysis && (
               <AnalysisContext.Provider value={{
                 loading: false,
