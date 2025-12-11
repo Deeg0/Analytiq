@@ -172,19 +172,10 @@ export default function ResultsSection() {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 h-auto">
-              <TabsTrigger value="simple" className="text-xs sm:text-sm px-2 sm:px-3 py-2 sm:py-1.5">
-                <span className="hidden sm:inline">Simple Summary</span>
-                <span className="sm:hidden">Summary</span>
-              </TabsTrigger>
-              <TabsTrigger value="technical" className="text-xs sm:text-sm px-2 sm:px-3 py-2 sm:py-1.5">
-                <span className="hidden sm:inline">Technical Critique</span>
-                <span className="sm:hidden">Technical</span>
-              </TabsTrigger>
-              <TabsTrigger value="bias" className="text-xs sm:text-sm px-2 sm:px-3 py-2 sm:py-1.5">
-                <span className="hidden sm:inline">Bias Report</span>
-                <span className="sm:hidden">Bias</span>
-              </TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="simple">Simple Summary</TabsTrigger>
+              <TabsTrigger value="technical">Technical Critique</TabsTrigger>
+              <TabsTrigger value="bias">Bias Report</TabsTrigger>
             </TabsList>
             <TabsContent value="simple" className="mt-4">
               <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{results.simpleSummary}</p>
@@ -195,8 +186,8 @@ export default function ResultsSection() {
                 <Separator className="my-6" />
                 
                 {/* Category Details */}
-                <div className="space-y-4 sm:space-y-6">
-                  <h3 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Category Breakdown</h3>
+                <div className="space-y-6">
+                  <h3 className="text-xl font-semibold mb-4">Category Breakdown</h3>
                   {Object.entries(results.trustScore.breakdown).map(([key, data]: [string, any]) => {
                     const percentage = Math.round((data.score / data.maxScore) * 100)
                     const colorClass = getScoreColor(percentage)
@@ -214,15 +205,15 @@ export default function ResultsSection() {
                         }`}
                       >
                         <CardHeader>
-                          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-                            <CardTitle className="text-base sm:text-lg">
+                          <div className="flex items-center justify-between">
+                            <CardTitle className="text-lg">
                               {categoryNames[key] || key.replace(/([A-Z])/g, ' $1').trim()}
                             </CardTitle>
                             <div className="flex items-center gap-2">
-                              <span className={`text-xl sm:text-2xl font-bold ${colorClass}`}>
+                              <span className={`text-2xl font-bold ${colorClass}`}>
                                 {data.score}/{data.maxScore}
                               </span>
-                              <Badge variant="outline" className={`${colorClass} text-xs sm:text-sm`}>
+                              <Badge variant="outline" className={colorClass}>
                                 {percentage}%
                               </Badge>
                             </div>
@@ -276,7 +267,7 @@ export default function ResultsSection() {
                   <>
                     <Separator className="my-6" />
                     <div className="space-y-4">
-                      <h3 className="text-lg sm:text-xl font-semibold">Flaw Detection</h3>
+                      <h3 className="text-xl font-semibold">Flaw Detection</h3>
                       
                       {results.flawDetection.fallacies && results.flawDetection.fallacies.length > 0 && (
                         <div>
@@ -284,27 +275,26 @@ export default function ResultsSection() {
                           <div className="space-y-4">
                             {results.flawDetection.fallacies.map((fallacy, idx) => (
                               <Card key={idx} className="border-red-200 dark:border-red-800">
-                                <CardContent className="p-3 sm:p-4">
-                                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
-                                    <Badge variant="destructive" className="mb-0 sm:mb-2 text-xs sm:text-sm w-fit">
+                                <CardContent className="p-4">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <Badge variant="destructive" className="mb-2">
                                       {formatTitle(fallacy.type)}
                                     </Badge>
                                     {fallacy.severity && (
-                                      <Badge variant="outline" className={`text-xs sm:text-sm w-fit ${
+                                      <Badge variant="outline" className={
                                         fallacy.severity === 'high' ? 'border-red-500 text-red-600' :
                                         fallacy.severity === 'medium' ? 'border-yellow-500 text-yellow-600' :
                                         'border-gray-500 text-gray-600'
-                                      }`}>
-                                        <span className="hidden sm:inline">{fallacy.severity.charAt(0).toUpperCase() + fallacy.severity.slice(1)} Severity</span>
-                                        <span className="sm:hidden">{fallacy.severity.charAt(0).toUpperCase() + fallacy.severity.slice(1)}</span>
+                                      }>
+                                        {fallacy.severity.charAt(0).toUpperCase() + fallacy.severity.slice(1)} Severity
                                       </Badge>
                                     )}
                                   </div>
                                   <p className="text-sm text-muted-foreground mb-2">{fallacy.description}</p>
                                   {fallacy.quote && (
-                                    <div className="bg-muted p-2 sm:p-3 rounded-md my-2">
+                                    <div className="bg-muted p-3 rounded-md my-2">
                                       <p className="text-xs font-semibold text-muted-foreground mb-1">Quote:</p>
-                                      <p className="text-xs sm:text-sm italic break-words">"{fallacy.quote}"</p>
+                                      <p className="text-sm italic">"{fallacy.quote}"</p>
                                       {fallacy.quoteLocation && (
                                         <p className="text-xs text-muted-foreground mt-1">
                                           Location: {fallacy.quoteLocation}
@@ -313,9 +303,9 @@ export default function ResultsSection() {
                                     </div>
                                   )}
                                   {fallacy.debunking && (
-                                    <div className="bg-red-50 dark:bg-red-950/20 p-2 sm:p-3 rounded-md mt-2">
+                                    <div className="bg-red-50 dark:bg-red-950/20 p-3 rounded-md mt-2">
                                       <p className="text-xs font-semibold text-red-700 dark:text-red-400 mb-1">Analysis:</p>
-                                      <p className="text-xs sm:text-sm text-red-900 dark:text-red-300 break-words">{fallacy.debunking}</p>
+                                      <p className="text-sm text-red-900 dark:text-red-300">{fallacy.debunking}</p>
                                     </div>
                                   )}
                                   {fallacy.impact && (
@@ -336,13 +326,13 @@ export default function ResultsSection() {
                           <div className="space-y-3">
                             {results.flawDetection.confounders.map((confounder, idx) => (
                               <Card key={idx} className="border-orange-200 dark:border-orange-800">
-                                <CardContent className="p-3 sm:p-4">
-                                  <h5 className="font-semibold mb-2 text-sm sm:text-base">{formatTitle(confounder.factor)}</h5>
+                                <CardContent className="p-4">
+                                  <h5 className="font-semibold mb-2">{formatTitle(confounder.factor)}</h5>
                                   <p className="text-sm text-muted-foreground mb-2">{confounder.description}</p>
                                   {confounder.quote && (
-                                    <div className="bg-muted p-2 sm:p-3 rounded-md my-2">
+                                    <div className="bg-muted p-3 rounded-md my-2">
                                       <p className="text-xs font-semibold text-muted-foreground mb-1">Quote:</p>
-                                      <p className="text-xs sm:text-sm italic break-words">"{confounder.quote}"</p>
+                                      <p className="text-sm italic">"{confounder.quote}"</p>
                                       {confounder.quoteLocation && (
                                         <p className="text-xs text-muted-foreground mt-1">
                                           Location: {confounder.quoteLocation}
@@ -371,25 +361,24 @@ export default function ResultsSection() {
                           <div className="space-y-3">
                             {results.flawDetection.validityThreats.map((threat, idx) => (
                               <Card key={idx} className="border-red-200 dark:border-red-800">
-                                <CardContent className="p-3 sm:p-4">
-                                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-2 mb-2">
-                                    <h5 className="font-semibold text-sm sm:text-base">{formatTitle(threat.threat)}</h5>
+                                <CardContent className="p-4">
+                                  <div className="flex items-start justify-between mb-2">
+                                    <h5 className="font-semibold">{formatTitle(threat.threat)}</h5>
                                     {threat.severity && (
-                                      <Badge variant="outline" className={`text-xs sm:text-sm w-fit ${
+                                      <Badge variant="outline" className={
                                         threat.severity === 'high' ? 'border-red-500 text-red-600' :
                                         threat.severity === 'medium' ? 'border-yellow-500 text-yellow-600' :
                                         'border-gray-500 text-gray-600'
-                                      }`}>
-                                        <span className="hidden sm:inline">{threat.severity.charAt(0).toUpperCase() + threat.severity.slice(1)} Severity</span>
-                                        <span className="sm:hidden">{threat.severity.charAt(0).toUpperCase() + threat.severity.slice(1)}</span>
+                                      }>
+                                        {threat.severity.charAt(0).toUpperCase() + threat.severity.slice(1)} Severity
                                       </Badge>
                                     )}
                                   </div>
                                   <p className="text-sm text-muted-foreground mb-2">{threat.description}</p>
                                   {threat.quote && (
-                                    <div className="bg-muted p-2 sm:p-3 rounded-md my-2">
+                                    <div className="bg-muted p-3 rounded-md my-2">
                                       <p className="text-xs font-semibold text-muted-foreground mb-1">Quote:</p>
-                                      <p className="text-xs sm:text-sm italic break-words">"{threat.quote}"</p>
+                                      <p className="text-sm italic">"{threat.quote}"</p>
                                       {threat.quoteLocation && (
                                         <p className="text-xs text-muted-foreground mt-1">
                                           Location: {threat.quoteLocation}
@@ -398,9 +387,9 @@ export default function ResultsSection() {
                                     </div>
                                   )}
                                   {threat.debunking && (
-                                    <div className="bg-red-50 dark:bg-red-950/20 p-2 sm:p-3 rounded-md mt-2">
+                                    <div className="bg-red-50 dark:bg-red-950/20 p-3 rounded-md mt-2">
                                       <p className="text-xs font-semibold text-red-700 dark:text-red-400 mb-1">Analysis:</p>
-                                      <p className="text-xs sm:text-sm text-red-900 dark:text-red-300 break-words">{threat.debunking}</p>
+                                      <p className="text-sm text-red-900 dark:text-red-300">{threat.debunking}</p>
                                     </div>
                                   )}
                                 </CardContent>
@@ -416,15 +405,15 @@ export default function ResultsSection() {
                           <div className="space-y-3">
                             {results.flawDetection.issues.map((issue, idx) => (
                               <Card key={idx}>
-                                <CardContent className="p-3 sm:p-4">
+                                <CardContent className="p-4">
                                   <div className="flex items-start justify-between mb-2">
-                                    <Badge variant="outline" className="text-xs sm:text-sm">{formatTitle(issue.category)}</Badge>
+                                    <Badge variant="outline">{formatTitle(issue.category)}</Badge>
                                   </div>
                                   <p className="text-sm text-muted-foreground mb-2">{issue.description}</p>
                                   {issue.quote && (
-                                    <div className="bg-muted p-2 sm:p-3 rounded-md my-2">
+                                    <div className="bg-muted p-3 rounded-md my-2">
                                       <p className="text-xs font-semibold text-muted-foreground mb-1">Quote:</p>
-                                      <p className="text-xs sm:text-sm italic break-words">"{issue.quote}"</p>
+                                      <p className="text-sm italic">"{issue.quote}"</p>
                                       {issue.quoteLocation && (
                                         <p className="text-xs text-muted-foreground mt-1">
                                           Location: {issue.quoteLocation}
@@ -483,22 +472,17 @@ export default function ResultsSection() {
                     <Separator className="my-6" />
                     <Card className="border-2">
                       <CardHeader>
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-                          <CardTitle className="text-base sm:text-lg">Causal Inference Assessment</CardTitle>
+                        <div className="flex items-center justify-between">
+                          <CardTitle>Causal Inference Assessment</CardTitle>
                           <Badge 
                             variant={results.causalInference.canEstablishCausality ? "default" : "destructive"}
-                            className={`text-xs sm:text-sm ${
+                            className={
                               results.causalInference.canEstablishCausality 
                                 ? 'bg-green-600 hover:bg-green-700' 
                                 : 'bg-red-600 hover:bg-red-700'
-                            }`}
+                            }
                           >
-                            <span className="hidden sm:inline">
-                              {results.causalInference.canEstablishCausality ? 'Can Establish Causality' : 'Cannot Establish Causality'}
-                            </span>
-                            <span className="sm:hidden">
-                              {results.causalInference.canEstablishCausality ? 'Can Establish' : 'Cannot Establish'}
-                            </span>
+                            {results.causalInference.canEstablishCausality ? 'Can Establish Causality' : 'Cannot Establish Causality'}
                           </Badge>
                         </div>
                         <div className="mt-2">
@@ -560,6 +544,72 @@ export default function ResultsSection() {
                                 <li key={idx}>{explanation}</li>
                               ))}
                             </ul>
+                          </div>
+                        )}
+
+                        {/* Bradford Hill Criteria */}
+                        {results.causalInference.bradfordHillCriteria && results.causalInference.bradfordHillCriteria.impliesCausation && (
+                          <div className="mt-6 pt-6 border-t">
+                            <div className="flex items-center justify-between mb-4">
+                              <h4 className="font-semibold text-lg">Bradford Hill Criteria for Causation</h4>
+                              <Badge variant="outline" className={
+                                results.causalInference.bradfordHillCriteria.criteriaMet >= 7 ? 'border-green-500 text-green-600' :
+                                results.causalInference.bradfordHillCriteria.criteriaMet >= 4 ? 'border-yellow-500 text-yellow-600' :
+                                'border-red-500 text-red-600'
+                              }>
+                                {results.causalInference.bradfordHillCriteria.criteriaMet}/{results.causalInference.bradfordHillCriteria.criteriaTotal} Criteria Met
+                              </Badge>
+                            </div>
+                            
+                            {results.causalInference.bradfordHillCriteria.overallAssessment && (
+                              <div className="mb-4 p-3 bg-muted rounded-md">
+                                <p className="text-sm text-muted-foreground whitespace-pre-wrap">
+                                  {results.causalInference.bradfordHillCriteria.overallAssessment}
+                                </p>
+                              </div>
+                            )}
+
+                            <div className="space-y-3">
+                              {results.causalInference.bradfordHillCriteria.criteria.map((criterion, idx) => (
+                                <Card key={idx} className={
+                                  criterion.met && (criterion.strength === 'strong' || criterion.strength === 'moderate')
+                                    ? 'border-green-500 border-l-4' 
+                                    : criterion.met && criterion.strength === 'weak'
+                                    ? 'border-yellow-500 border-l-4'
+                                    : 'border-red-500 border-l-4'
+                                }>
+                                  <CardContent className="p-4">
+                                    <div className="flex items-start justify-between mb-2">
+                                      <div className="flex items-center gap-2 flex-wrap">
+                                        <h5 className="font-semibold">{criterion.criterion}</h5>
+                                        <Badge 
+                                          variant={criterion.met && (criterion.strength === 'strong' || criterion.strength === 'moderate') ? "default" : "secondary"}
+                                          className={
+                                            criterion.met && criterion.strength === 'strong' ? 'bg-green-600 hover:bg-green-700' :
+                                            criterion.met && criterion.strength === 'moderate' ? 'bg-yellow-600 hover:bg-yellow-700' :
+                                            criterion.met && criterion.strength === 'weak' ? 'bg-orange-500 hover:bg-orange-600' :
+                                            'bg-gray-500 hover:bg-gray-600'
+                                          }
+                                        >
+                                          {criterion.met ? 'Met' : 'Not Met'}
+                                        </Badge>
+                                        {criterion.strength !== 'none' && (
+                                          <Badge variant="outline" className="capitalize">
+                                            {criterion.strength}
+                                          </Badge>
+                                        )}
+                                      </div>
+                                    </div>
+                                    {criterion.evidence && (
+                                      <p className="text-sm text-muted-foreground mb-2">{criterion.evidence}</p>
+                                    )}
+                                    {criterion.notes && (
+                                      <p className="text-xs text-muted-foreground italic">{criterion.notes}</p>
+                                    )}
+                                  </CardContent>
+                                </Card>
+                              ))}
+                            </div>
                           </div>
                         )}
                       </CardContent>
@@ -647,22 +697,22 @@ export default function ResultsSection() {
       </Card>
 
       {/* Study Information */}
-      <Card className="mt-4 sm:mt-6">
-        <CardHeader className="pb-3 sm:pb-6">
-          <CardTitle className="text-base sm:text-lg">Study Information</CardTitle>
+      <Card className="mt-6">
+        <CardHeader>
+          <CardTitle>Study Information</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 sm:space-y-4">
+        <CardContent className="space-y-3">
           {results.metadata.title && (
             <div>
               <h4 className="font-semibold text-sm mb-1">Title</h4>
-              <p className="text-xs sm:text-sm text-muted-foreground break-words">{results.metadata.title}</p>
+              <p className="text-sm text-muted-foreground">{results.metadata.title}</p>
             </div>
           )}
           
           {results.metadata.authors && results.metadata.authors.length > 0 && (
             <div>
               <h4 className="font-semibold text-sm mb-1">Authors</h4>
-              <p className="text-xs sm:text-sm text-muted-foreground break-words">{results.metadata.authors.join(', ')}</p>
+              <p className="text-sm text-muted-foreground">{results.metadata.authors.join(', ')}</p>
             </div>
           )}
           
@@ -715,9 +765,9 @@ export default function ResultsSection() {
           {results.metadata.funding && results.metadata.funding.length > 0 && (
             <div>
               <h4 className="font-semibold text-sm mb-1 text-red-600 dark:text-red-400">Funding Sources</h4>
-              <ul className="list-disc list-inside text-xs sm:text-sm text-muted-foreground space-y-1">
+              <ul className="list-disc list-inside text-sm text-muted-foreground space-y-1">
                 {results.metadata.funding.map((fund, idx) => (
-                  <li key={idx} className="break-words">{fund}</li>
+                  <li key={idx}>{fund}</li>
                 ))}
               </ul>
             </div>

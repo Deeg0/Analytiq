@@ -39,22 +39,22 @@ export default function Header({ user, onSignInClick, onSignUpClick }: HeaderPro
               Analyt<span className="text-primary">IQ</span>
             </h1>
           </Link>
-          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {user && (
-              <span className="text-xs sm:text-sm text-muted-foreground hidden md:inline truncate max-w-[120px] sm:max-w-none">
+              <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">
                 {user.email}
               </span>
             )}
             {user ? (
-              <Button onClick={handleSignOut} variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-4">
+              <Button onClick={handleSignOut} variant="outline">
                 Sign Out
               </Button>
             ) : (
               <>
-                <Button onClick={onSignInClick} variant="outline" size="sm" className="text-xs sm:text-sm px-2 sm:px-4">
+                <Button onClick={onSignInClick} variant="outline">
                   Sign In
                 </Button>
-                <Button onClick={onSignUpClick} size="sm" className="text-xs sm:text-sm px-2 sm:px-4">
+                <Button onClick={onSignUpClick}>
                   Sign Up
                 </Button>
               </>

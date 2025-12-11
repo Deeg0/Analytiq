@@ -89,6 +89,14 @@ export interface ExpertContext {
   relatedStudies: string[];
 }
 
+export interface BradfordHillCriterion {
+  criterion: string;
+  met: boolean;
+  evidence: string;
+  strength: 'strong' | 'moderate' | 'weak' | 'none';
+  notes?: string;
+}
+
 export interface CausalInference {
   canEstablishCausality: boolean;
   confidence: 'high' | 'medium' | 'low';
@@ -98,6 +106,13 @@ export interface CausalInference {
   requirementsForCausality: {
     met: string[];
     unmet: string[];
+  };
+  bradfordHillCriteria?: {
+    impliesCausation: boolean; // Does the study infer or imply causation?
+    criteria: BradfordHillCriterion[];
+    overallAssessment: string; // Summary of how well the study meets Bradford Hill Criteria
+    criteriaMet: number; // Number of criteria met (out of 9)
+    criteriaTotal: number; // Total criteria (9)
   };
 }
 

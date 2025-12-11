@@ -450,6 +450,18 @@ REMEMBER: Maintain complete objectivity. Evaluate the study's scientific quality
   "issues": [{"category": "category", "description": "brief", "quote": "exact quote from study if available", "quoteLocation": "where in study if quote provided", "debunking": "analysis of quoted text if provided"}],
   "expertContext": {"consensus": "brief", "controversies": [], "recentUpdates": [], "relatedStudies": []},
   "causalInference": {
+    // CRITICAL: If the study INFERS, IMPLIES, or CLAIMS causation (check title, abstract, conclusions, discussion for words like "causes", "leads to", "results in", "due to", "because of", "effect of", "impact of", etc.), you MUST evaluate it against the Bradford Hill Criteria for Causation.
+    // The 9 Bradford Hill Criteria are:
+    // 1. Strength of Association - How strong is the association? Stronger associations are more likely to be causal.
+    // 2. Consistency - Have similar findings been observed in different studies, populations, or settings?
+    // 3. Specificity - Is the association specific to the exposure and outcome, or could other factors explain it?
+    // 4. Temporality - Does the exposure precede the outcome? (CRITICAL - must be met for causation)
+    // 5. Biological Gradient (Dose-Response) - Is there evidence of a dose-response relationship?
+    // 6. Plausibility - Is there a biologically plausible mechanism?
+    // 7. Coherence - Does the association cohere with known facts and other evidence?
+    // 8. Experiment - Is there experimental evidence (RCTs, intervention studies)?
+    // 9. Analogy - Are there analogous relationships with similar exposures/outcomes?
+    // For each criterion, assess whether it's met, provide specific evidence from the study, rate the strength (strong/moderate/weak/none), and include notes if relevant.
     "canEstablishCausality": true|false,
     "confidence": "high|medium|low",
     "reasoning": "2-3 paragraph explanation of whether this study can establish causality, considering study design, controls, confounders, and methodological rigor",
@@ -458,6 +470,23 @@ REMEMBER: Maintain complete objectivity. Evaluate the study's scientific quality
     "requirementsForCausality": {
       "met": ["requirement that is met", "another requirement"],
       "unmet": ["requirement that is NOT met", "another missing requirement"]
+    },
+    "bradfordHillCriteria": {
+      "impliesCausation": true|false, // Does the study infer, imply, or claim causation? Check title, abstract, conclusions, discussion
+      "criteria": [
+        {"criterion": "Strength of Association", "met": true|false, "evidence": "specific evidence from study", "strength": "strong|moderate|weak|none", "notes": "optional additional notes"},
+        {"criterion": "Consistency", "met": true|false, "evidence": "evidence of consistent findings across studies/populations", "strength": "strong|moderate|weak|none", "notes": "optional"},
+        {"criterion": "Specificity", "met": true|false, "evidence": "evidence that the association is specific to the exposure and outcome", "strength": "strong|moderate|weak|none", "notes": "optional"},
+        {"criterion": "Temporality", "met": true|false, "evidence": "evidence that exposure precedes outcome (critical - must be met for causation)", "strength": "strong|moderate|weak|none", "notes": "optional"},
+        {"criterion": "Biological Gradient (Dose-Response)", "met": true|false, "evidence": "evidence of dose-response relationship", "strength": "strong|moderate|weak|none", "notes": "optional"},
+        {"criterion": "Plausibility", "met": true|false, "evidence": "biological plausibility of the mechanism", "strength": "strong|moderate|weak|none", "notes": "optional"},
+        {"criterion": "Coherence", "met": true|false, "evidence": "coherence with known facts and other evidence", "strength": "strong|moderate|weak|none", "notes": "optional"},
+        {"criterion": "Experiment", "met": true|false, "evidence": "experimental evidence (RCT, intervention studies)", "strength": "strong|moderate|weak|none", "notes": "optional"},
+        {"criterion": "Analogy", "met": true|false, "evidence": "analogous relationships with similar exposures/outcomes", "strength": "strong|moderate|weak|none", "notes": "optional"}
+      ],
+      "overallAssessment": "2-3 paragraph assessment of how well the study meets Bradford Hill Criteria for causation",
+      "criteriaMet": 0-9, // Number of criteria that are met (strength must be "strong" or "moderate" to count as met)
+      "criteriaTotal": 9
     }
   },
   "simpleSummary": "2-3 paragraph non-technical summary - maintain complete objectivity, describe findings neutrally",

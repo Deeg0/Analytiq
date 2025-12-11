@@ -175,6 +175,19 @@ export async function analyzeWithAI(
         met: analysisData.causalInference.requirementsForCausality?.met || [],
         unmet: analysisData.causalInference.requirementsForCausality?.unmet || [],
       },
+      bradfordHillCriteria: analysisData.causalInference.bradfordHillCriteria ? {
+        impliesCausation: analysisData.causalInference.bradfordHillCriteria.impliesCausation || false,
+        criteria: (analysisData.causalInference.bradfordHillCriteria.criteria || []).map((c: any) => ({
+          criterion: c.criterion || '',
+          met: c.met || false,
+          evidence: c.evidence || '',
+          strength: (c.strength || 'none') as 'strong' | 'moderate' | 'weak' | 'none',
+          notes: c.notes || undefined,
+        })),
+        overallAssessment: analysisData.causalInference.bradfordHillCriteria.overallAssessment || '',
+        criteriaMet: analysisData.causalInference.bradfordHillCriteria.criteriaMet || 0,
+        criteriaTotal: analysisData.causalInference.bradfordHillCriteria.criteriaTotal || 9,
+      } : undefined,
     } : undefined;
 
     return {
