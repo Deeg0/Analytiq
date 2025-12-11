@@ -4,7 +4,7 @@ import { createClient } from '@/lib/supabase/server'
 // DELETE - Delete a saved analysis
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -17,7 +17,7 @@ export async function DELETE(
       )
     }
 
-    const { id } = params
+    const { id } = await params
 
     // First verify the analysis belongs to the user
     const { data: existing, error: fetchError } = await supabase
@@ -61,7 +61,7 @@ export async function DELETE(
 // PUT - Update a saved analysis (e.g., update title)
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const supabase = await createClient()
@@ -74,7 +74,7 @@ export async function PUT(
       )
     }
 
-    const { id } = params
+    const { id } = await params
     const body = await request.json()
     const { title } = body
 
