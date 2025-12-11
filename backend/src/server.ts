@@ -19,48 +19,70 @@ app.set('trust proxy', true);
 const allowedOrigins = [
   'http://localhost:3000',
   'http://localhost:8080',
+  'https://analytiq-app.com',
+  'https://www.analytiq-app.com',
+  'http://analytiq-app.com',
+  'http://www.analytiq-app.com',
   process.env.FRONTEND_URL,
   process.env.NETLIFY_URL,
 ].filter(Boolean);
 
 app.use(cors({
   origin: (origin, callback) => {
+    // Log the origin for debugging
+    console.log('CORS check - Origin:', origin);
+    
     // Allow requests with no origin (like mobile apps, curl, Postman)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      console.log('CORS: Allowing request with no origin');
+      return callback(null, true);
+    }
     
     // Allow Netlify domains
     if (origin.includes('.netlify.app') || origin.includes('netlify.com')) {
+      console.log('CORS: Allowing Netlify domain');
       return callback(null, true);
     }
     
     // Allow Railway domains
     if (origin.includes('.railway.app') || origin.includes('railway.app')) {
+      console.log('CORS: Allowing Railway domain');
       return callback(null, true);
     }
     
     // Allow Vercel domains
     if (origin.includes('.vercel.app') || origin.includes('vercel.app')) {
+      console.log('CORS: Allowing Vercel domain');
       return callback(null, true);
     }
     
     // Allow custom domain analytiq-app.com (with or without www, http or https)
-    if (origin.includes('analytiq-app.com') || origin.includes('www.analytiq-app.com')) {
+    if (origin.includes('analytiq-app.com')) {
+      console.log('CORS: Allowing analytiq-app.com domain');
       return callback(null, true);
     }
     
-    // Check against allowed origins
+    // Check against allowed origins (exact match)
     if (allowedOrigins.includes(origin)) {
+      console.log('CORS: Allowing exact match from allowedOrigins');
       return callback(null, true);
     }
     
     // In development, allow all origins
     if (process.env.NODE_ENV !== 'production') {
+      console.log('CORS: Development mode - allowing all origins');
       return callback(null, true);
     }
     
-    callback(new Error('Not allowed by CORS'));
+    console.log('CORS: Rejecting origin:', origin);
+    console.log('CORS: Allowed origins:', allowedOrigins);
+    callback(new Error(`Not allowed by CORS. Origin: ${origin}`));
   },
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  exposedHeaders: ['Content-Type'],
+  optionsSuccessStatus: 200 // Some legacy browsers choke on 204
 }));
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));

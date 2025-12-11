@@ -4,6 +4,8 @@ import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import Link from 'next/link'
+import { Home } from 'lucide-react'
+import { usePathname } from 'next/navigation'
 
 interface HeaderProps {
   user?: any
@@ -13,6 +15,8 @@ interface HeaderProps {
 
 export default function Header({ user, onSignInClick, onSignUpClick }: HeaderProps) {
   const supabase = createClient()
+  const pathname = usePathname()
+  const isHomePage = pathname === '/'
 
   const handleSignOut = async () => {
     if (confirm('Are you sure you want to sign out?')) {
@@ -40,6 +44,14 @@ export default function Header({ user, onSignInClick, onSignUpClick }: HeaderPro
             </h1>
           </Link>
           <div className="flex items-center gap-2 sm:gap-3">
+            {!isHomePage && (
+              <Link href="/">
+                <Button variant="ghost" className="gap-2">
+                  <Home className="h-4 w-4" />
+                  <span className="hidden sm:inline">Home</span>
+                </Button>
+              </Link>
+            )}
             {user && (
               <>
                 <Link href="/saved">
