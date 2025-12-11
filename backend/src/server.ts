@@ -65,11 +65,9 @@ app.use(cors({
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
-// Serve static files from frontend
-app.use(express.static(path.join(__dirname, '../../frontend/public')));
-
-// Root route
+// Root route - must be before static files
 app.get('/', (req, res) => {
+  console.log('Root route hit:', req.method, req.url);
   res.json({
     status: 'ok',
     message: 'analytIQ Backend API',
@@ -80,6 +78,9 @@ app.get('/', (req, res) => {
     }
   });
 });
+
+// Serve static files from frontend (after root route)
+app.use(express.static(path.join(__dirname, '../../frontend/public')));
 
 // Routes
 app.use('/api/health', healthRoutes);
