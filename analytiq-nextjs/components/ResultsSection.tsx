@@ -50,7 +50,7 @@ function formatTitle(text: string): string {
 }
 
 export default function ResultsSection() {
-  const { results, error, saveAnalysis, saving } = useAnalysis()
+  const { results, error, saveAnalysis, saving, isSavedAnalysis } = useAnalysis()
   const [highlightedSection, setHighlightedSection] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<string>('simple')
   const [saved, setSaved] = useState(false)
@@ -123,8 +123,8 @@ export default function ResultsSection() {
 
   return (
     <div className="space-y-4 sm:space-y-6 md:space-y-8">
-      {/* Save Button */}
-      {results && (
+      {/* Save Button - Only show if not viewing a saved analysis */}
+      {results && !isSavedAnalysis && (
         <div className="flex items-center justify-between">
           <div className="flex-1" />
           <div className="flex items-center gap-2">

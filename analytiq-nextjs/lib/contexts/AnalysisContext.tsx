@@ -11,6 +11,7 @@ interface AnalysisContextType {
   analyzeText: (text: string) => Promise<void>
   saveAnalysis: (title?: string) => Promise<{ success: boolean; error?: string }>
   saving: boolean
+  isSavedAnalysis?: boolean // Flag to indicate if viewing a saved analysis
 }
 
 export const AnalysisContext = createContext<AnalysisContextType | undefined>(undefined)
@@ -148,7 +149,7 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
   }
 
   return (
-    <AnalysisContext.Provider value={{ loading, results, error, analyzeUrl, analyzeText, saveAnalysis, saving }}>
+    <AnalysisContext.Provider value={{ loading, results, error, analyzeUrl, analyzeText, saveAnalysis, saving, isSavedAnalysis: false }}>
       {children}
     </AnalysisContext.Provider>
   )

@@ -374,6 +374,7 @@ export default function SavedAnalysesPage() {
                 analyzeText: async () => {},
                 saveAnalysis: async () => ({ success: false, error: 'Cannot save from saved view' }),
                 saving: false,
+                isSavedAnalysis: true, // Flag to hide save button
               }}>
                 <ResultsSection />
               </AnalysisContext.Provider>
