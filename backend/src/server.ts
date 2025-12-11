@@ -9,7 +9,7 @@ import analysisRoutes from './routes/analysis';
 import healthRoutes from './routes/health';
 
 const app = express();
-const PORT = parseInt(process.env.PORT || '3000', 10);
+const PORT = process.env.PORT || 3000;
 
 // Trust proxy - required for Railway and rate limiting
 app.set('trust proxy', true);
@@ -30,6 +30,16 @@ app.use(cors({
     
     // Allow Netlify domains
     if (origin.includes('.netlify.app') || origin.includes('netlify.com')) {
+      return callback(null, true);
+    }
+    
+    // Allow Railway domains
+    if (origin.includes('.railway.app') || origin.includes('railway.app')) {
+      return callback(null, true);
+    }
+    
+    // Allow Vercel domains
+    if (origin.includes('.vercel.app') || origin.includes('vercel.app')) {
       return callback(null, true);
     }
     
@@ -57,6 +67,19 @@ app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files from frontend
 app.use(express.static(path.join(__dirname, '../../frontend/public')));
+
+// Root route
+app.get('/', (req, res) => {
+  res.json({
+    status: 'ok',
+    message: 'analytIQ Backend API',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      analyze: '/api/analyze'
+    }
+  });
+});
 
 // Routes
 app.use('/api/health', healthRoutes);
