@@ -29,15 +29,15 @@ interface OnboardingStep {
 const steps: OnboardingStep[] = [
   {
     title: 'Welcome to AnalytIQ',
-    description: 'Your AI-powered scientific study analyzer. Get instant credibility scores, bias detection, and comprehensive analysis of research papers in seconds.',
+    description: 'Your AI-powered scientific study analyzer. Get credibility scores, bias detection, and comprehensive analysis of research papers.',
     icon: <Sparkles className="h-12 w-12 text-primary" />,
     highlight: 'AI-Powered Analysis'
   },
   {
     title: 'Multiple Input Methods',
-    description: 'Analyze studies from URLs, paste text or abstracts, upload PDFs, or use DOI numbers. We support all common research formats for maximum flexibility.',
+    description: 'Analyze studies by pasting a URL or entering text/abstracts directly. Choose the method that works best for your research.',
     icon: <FileText className="h-12 w-12 text-primary" />,
-    highlight: 'URL • Text • PDF • DOI'
+    highlight: 'URL • Text/Abstract'
   },
   {
     title: 'Comprehensive Scoring',

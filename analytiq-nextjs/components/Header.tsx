@@ -61,12 +61,12 @@ export default function Header({ user, onSignInClick, onSignUpClick }: HeaderPro
             {isHomePage && (
               <Button 
                 variant="ghost" 
-                className="gap-2 hidden sm:flex"
+                size="icon"
+                className="h-9 w-9"
                 onClick={handleShowOnboarding}
                 title="Show onboarding tour"
               >
                 <HelpCircle className="h-4 w-4" />
-                <span className="hidden md:inline">Tour</span>
               </Button>
             )}
             {user && (
