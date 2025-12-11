@@ -15,7 +15,8 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup'>('signin')
-  const { showOnboarding, isLoading: onboardingLoading, completeOnboarding } = useOnboarding(user)
+  const [forceShowOnboarding, setForceShowOnboarding] = useState(false)
+  const { showOnboarding, isLoading: onboardingLoading, completeOnboarding } = useOnboarding(user, forceShowOnboarding)
 
   useEffect(() => {
     // Only initialize Supabase on client side
@@ -93,6 +94,7 @@ export default function Home() {
           user={user} 
           onSignInClick={handleSignInClick}
           onSignUpClick={handleSignUpClick}
+          onShowOnboarding={() => setForceShowOnboarding(true)}
         />
         <main className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 max-w-4xl">
           <Hero />
@@ -104,7 +106,14 @@ export default function Home() {
           onOpenChange={setAuthModalOpen}
           defaultTab={authModalTab}
         />
-        {showOnboarding && <Onboarding onComplete={completeOnboarding} />}
+        {(showOnboarding || forceShowOnboarding) && (
+          <Onboarding 
+            onComplete={() => {
+              completeOnboarding()
+              setForceShowOnboarding(false)
+            }} 
+          />
+        )}
       </div>
     </AnalysisProvider>
   )

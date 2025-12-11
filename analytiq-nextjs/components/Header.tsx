@@ -12,9 +12,10 @@ interface HeaderProps {
   user?: any
   onSignInClick?: () => void
   onSignUpClick?: () => void
+  onShowOnboarding?: () => void
 }
 
-export default function Header({ user, onSignInClick, onSignUpClick }: HeaderProps) {
+export default function Header({ user, onSignInClick, onSignUpClick, onShowOnboarding }: HeaderProps) {
   const supabase = createClient()
   const pathname = usePathname()
   const isHomePage = pathname === '/'
@@ -26,16 +27,17 @@ export default function Header({ user, onSignInClick, onSignUpClick }: HeaderPro
   }
 
   const handleShowOnboarding = () => {
-    // Remove onboarding completion for current user
+    // Remove onboarding completion for current user so they can see it again
     if (user?.id) {
       localStorage.removeItem(`analytiq-onboarding-completed-${user.id}`)
     } else {
       // For anonymous users, remove global completion flag
       localStorage.removeItem('analytiq-onboarding-completed')
     }
-    // Set manual trigger flag to show onboarding (use localStorage so it persists across reload)
-    localStorage.setItem('analytiq-show-onboarding', 'true')
-    window.location.reload()
+    // Trigger onboarding to show directly without reload
+    if (onShowOnboarding) {
+      onShowOnboarding()
+    }
   }
 
   return (

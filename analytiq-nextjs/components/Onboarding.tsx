@@ -205,7 +205,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 }
 
 // Hook to check if onboarding should be shown
-export function useOnboarding(user: any) {
+export function useOnboarding(user: any, forceShow?: boolean) {
   const [showOnboarding, setShowOnboarding] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
 
@@ -215,14 +215,8 @@ export function useOnboarding(user: any) {
       return
     }
 
-    // Check if user manually triggered onboarding (via question mark button)
-    const manualTrigger = localStorage.getItem('analytiq-show-onboarding') === 'true'
-    
-    if (manualTrigger) {
-      // Clear the manual trigger flag
-      localStorage.removeItem('analytiq-show-onboarding')
-      
-      // Always show onboarding when manually triggered (completion flag already cleared in Header)
+    // If forced to show (via question mark button), show it immediately
+    if (forceShow) {
       setShowOnboarding(true)
       setIsLoading(false)
       return
