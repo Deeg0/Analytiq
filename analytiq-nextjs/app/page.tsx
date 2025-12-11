@@ -9,6 +9,7 @@ import InputSection from '@/components/InputSection'
 import ResultsSection from '@/components/ResultsSection'
 import AuthModal from '@/components/AuthModal'
 import Onboarding, { useOnboarding } from '@/components/Onboarding'
+import Footer from '@/components/Footer'
 
 export default function Home() {
   const [user, setUser] = useState<any>(null)
@@ -89,18 +90,19 @@ export default function Home() {
 
   return (
     <AnalysisProvider user={user} onAuthRequired={() => setAuthModalOpen(true)}>
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/20 flex flex-col">
         <Header 
           user={user} 
           onSignInClick={handleSignInClick}
           onSignUpClick={handleSignUpClick}
           onShowOnboarding={() => setForceShowOnboarding(true)}
         />
-        <main className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 max-w-4xl">
+        <main className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 max-w-4xl flex-1">
           <Hero />
           <InputSection />
           <ResultsSection />
         </main>
+        <Footer />
         <AuthModal 
           open={authModalOpen} 
           onOpenChange={setAuthModalOpen}
