@@ -216,23 +216,14 @@ export function useOnboarding(user: any) {
     }
 
     // Check if user manually triggered onboarding (via question mark button)
-    const manualTrigger = sessionStorage.getItem('analytiq-show-onboarding') === 'true'
+    const manualTrigger = localStorage.getItem('analytiq-show-onboarding') === 'true'
     
     if (manualTrigger) {
       // Clear the manual trigger flag
-      sessionStorage.removeItem('analytiq-show-onboarding')
+      localStorage.removeItem('analytiq-show-onboarding')
       
-      // Check if onboarding was already completed
-      let completed = false
-      if (user?.id) {
-        const completedKey = `analytiq-onboarding-completed-${user.id}`
-        completed = localStorage.getItem(completedKey) === 'true'
-      } else {
-        completed = localStorage.getItem('analytiq-onboarding-completed') === 'true'
-      }
-      
-      // Show onboarding if not completed (or if completed, we already cleared it)
-      setShowOnboarding(!completed)
+      // Always show onboarding when manually triggered (completion flag already cleared in Header)
+      setShowOnboarding(true)
       setIsLoading(false)
       return
     }
