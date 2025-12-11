@@ -43,13 +43,8 @@ app.use(cors({
       return callback(null, true);
     }
     
-    // Allow custom domain analytiq-app.com (http and https)
-    if (origin.includes('analytiq-app.com')) {
-      return callback(null, true);
-    }
-    
-    // Allow www.analytiq-app.com
-    if (origin.includes('www.analytiq-app.com')) {
+    // Allow custom domain analytiq-app.com (with or without www, http or https)
+    if (origin.includes('analytiq-app.com') || origin.includes('www.analytiq-app.com')) {
       return callback(null, true);
     }
     
