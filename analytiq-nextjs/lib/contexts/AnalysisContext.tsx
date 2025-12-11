@@ -7,15 +7,13 @@ interface AnalysisContextType {
   loading: boolean
   results: AnalysisResult | null
   error: string | null
-  user: any
-  inputType: 'url' | 'text' | null
-  inputContent: string | null
   analyzeUrl: (url: string) => Promise<void>
   analyzeText: (text: string) => Promise<void>
-  setResults: (results: AnalysisResult | null, inputType?: 'url' | 'text', inputContent?: string) => void
+  saveAnalysis: (title?: string) => Promise<{ success: boolean; error?: string }>
+  saving: boolean
 }
 
-const AnalysisContext = createContext<AnalysisContextType | undefined>(undefined)
+export const AnalysisContext = createContext<AnalysisContextType | undefined>(undefined)
 
 interface AnalysisProviderProps {
   children: ReactNode
@@ -27,8 +25,7 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
   const [loading, setLoading] = useState(false)
   const [results, setResults] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [inputType, setInputType] = useState<'url' | 'text' | null>(null)
-  const [inputContent, setInputContent] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
 
   // Determine which API endpoint to use
   const getApiUrl = () => {
@@ -50,8 +47,6 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
 
     setLoading(true)
     setError(null)
-    setInputType('url')
-    setInputContent(url)
     try {
       const response = await fetch(getApiUrl(), {
         method: 'POST',
@@ -89,8 +84,6 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
 
     setLoading(true)
     setError(null)
-    setInputType('text')
-    setInputContent(text)
     try {
       const response = await fetch(getApiUrl(), {
         method: 'POST',
@@ -118,15 +111,44 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
     }
   }
 
-  const setResultsDirectly = (newResults: AnalysisResult | null, newInputType?: 'url' | 'text', newInputContent?: string) => {
-    setResults(newResults)
-    if (newInputType) setInputType(newInputType)
-    if (newInputContent) setInputContent(newInputContent)
-    setError(null)
+  const saveAnalysis = async (title?: string): Promise<{ success: boolean; error?: string }> => {
+    if (!user) {
+      if (onAuthRequired) {
+        onAuthRequired()
+      }
+      return { success: false, error: 'You must be signed in to save analyses' }
+    }
+
+    if (!results) {
+      return { success: false, error: 'No analysis results to save' }
+    }
+
+    setSaving(true)
+    try {
+      const response = await fetch('/api/saved-analyses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title,
+          analysisData: results,
+        }),
+      })
+
+      const data = await response.json()
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to save analysis')
+      }
+
+      return { success: true }
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Failed to save analysis' }
+    } finally {
+      setSaving(false)
+    }
   }
 
   return (
-    <AnalysisContext.Provider value={{ loading, results, error, user, inputType, inputContent, analyzeUrl, analyzeText, setResults: setResultsDirectly }}>
+    <AnalysisContext.Provider value={{ loading, results, error, analyzeUrl, analyzeText, saveAnalysis, saving }}>
       {children}
     </AnalysisContext.Provider>
   )

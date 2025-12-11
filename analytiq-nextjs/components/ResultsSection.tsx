@@ -3,13 +3,12 @@
 import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Separator } from '@/components/ui/separator'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Button } from '@/components/ui/button'
 import { useAnalysis } from '@/lib/contexts/AnalysisContext'
-import { saveStudy } from '@/app/actions/studies'
-import { Bookmark, BookmarkCheck } from 'lucide-react'
+import { Save, Check } from 'lucide-react'
 
 // Helper function to get color based on score percentage
 function getScoreColor(percentage: number): string {
@@ -51,10 +50,9 @@ function formatTitle(text: string): string {
 }
 
 export default function ResultsSection() {
-  const { results, error, user, inputType, inputContent } = useAnalysis()
+  const { results, error, saveAnalysis, saving } = useAnalysis()
   const [highlightedSection, setHighlightedSection] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<string>('simple')
-  const [saving, setSaving] = useState(false)
   const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
 
@@ -84,32 +82,21 @@ export default function ResultsSection() {
     }
   }, [highlightedSection])
 
-  const handleSaveStudy = async () => {
-    if (!user) {
-      setSaveError('Please sign in to save studies')
-      return
-    }
-
-    if (!results || !inputType || !inputContent) {
-      setSaveError('Missing study data')
-      return
-    }
-
-    setSaving(true)
+  // Reset saved state when results change
+  useEffect(() => {
+    setSaved(false)
     setSaveError(null)
-    
-    try {
-      const title = results.metadata.title || 
-                   results.metadata.doi || 
-                   (inputType === 'url' ? inputContent : 'Text Analysis')
-      
-      await saveStudy(title, inputType, inputContent, results)
+  }, [results])
+
+  const handleSave = async () => {
+    setSaveError(null)
+    const title = results?.metadata?.title || undefined
+    const result = await saveAnalysis(title)
+    if (result.success) {
       setSaved(true)
       setTimeout(() => setSaved(false), 3000)
-    } catch (err: any) {
-      setSaveError(err.message || 'Failed to save study')
-    } finally {
-      setSaving(false)
+    } else {
+      setSaveError(result.error || 'Failed to save analysis')
     }
   }
 
@@ -136,43 +123,42 @@ export default function ResultsSection() {
 
   return (
     <div className="space-y-4 sm:space-y-6 md:space-y-8">
+      {/* Save Button */}
+      {results && (
+        <div className="flex items-center justify-between">
+          <div className="flex-1" />
+          <div className="flex items-center gap-2">
+            {saveError && (
+              <Alert variant="destructive" className="py-2 px-4">
+                <AlertDescription className="text-sm">{saveError}</AlertDescription>
+              </Alert>
+            )}
+            <Button
+              onClick={handleSave}
+              disabled={saving || saved}
+              variant={saved ? "default" : "outline"}
+              className="gap-2"
+            >
+              {saved ? (
+                <>
+                  <Check className="h-4 w-4" />
+                  Saved!
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4" />
+                  {saving ? 'Saving...' : 'Save Analysis'}
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Score Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle>Overview</CardTitle>
-            {user && (
-              <Button
-                onClick={handleSaveStudy}
-                disabled={saving || saved}
-                variant={saved ? "default" : "outline"}
-                size="sm"
-                className="gap-2"
-              >
-                {saving ? (
-                  <>
-                    <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                    Saving...
-                  </>
-                ) : saved ? (
-                  <>
-                    <BookmarkCheck className="w-4 h-4" />
-                    Saved
-                  </>
-                ) : (
-                  <>
-                    <Bookmark className="w-4 h-4" />
-                    Save Study
-                  </>
-                )}
-              </Button>
-            )}
-          </div>
-          {saveError && (
-            <Alert variant="destructive" className="mt-2">
-              <AlertDescription>{saveError}</AlertDescription>
-            </Alert>
-          )}
+          <CardTitle>Overview</CardTitle>
         </CardHeader>
         <CardContent>
           <div className={`bg-gradient-to-br ${getScoreRatingColor(overallPercentage)} rounded-2xl p-6 sm:p-8 md:p-10 text-white mb-6 sm:mb-8`}>

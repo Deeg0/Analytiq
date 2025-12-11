@@ -44,7 +44,7 @@ export default function Header({ user, onSignInClick, onSignUpClick }: HeaderPro
               <>
                 <Link href="/saved">
                   <Button variant="ghost" className="hidden sm:flex">
-                    Saved Studies
+                    Saved Analyses
                   </Button>
                 </Link>
                 <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">
