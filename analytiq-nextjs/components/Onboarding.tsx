@@ -244,7 +244,7 @@ export function useOnboarding(user: any, forceShow?: boolean) {
     if (justSignedUp) {
       sessionStorage.removeItem('analytiq-just-signed-up')
     }
-  }, [user])
+  }, [user, forceShow])
 
   const completeOnboarding = () => {
     if (user?.id) {
