@@ -66,13 +66,23 @@ export default function AuthModal({ open, onOpenChange, defaultTab = 'signin' }:
         sessionStorage.setItem('analytiq-just-signed-up', 'true')
       }
       
-      setError('Check your email to confirm your account!')
-      setTimeout(() => {
+      // If session exists, user is automatically signed in (email confirmation disabled)
+      if (data.session) {
+        // User is signed in automatically - close modal and clear form
         onOpenChange(false)
         setEmail('')
         setPassword('')
         setError(null)
-      }, 2000)
+      } else {
+        // Email confirmation required
+        setError('Check your email to confirm your account!')
+        setTimeout(() => {
+          onOpenChange(false)
+          setEmail('')
+          setPassword('')
+          setError(null)
+        }, 2000)
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to sign up')
     } finally {
