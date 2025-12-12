@@ -198,9 +198,9 @@ export default function SavedAnalysesPage() {
       <Header user={user} />
       <main className="container mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-4 sm:py-6 md:py-8 max-w-6xl flex-1">
         {/* Header Section */}
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold mb-2">Saved Analyses</h1>
-          <p className="text-muted-foreground">View and manage your saved study analyses</p>
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-1 sm:mb-2">Saved Analyses</h1>
+          <p className="text-sm sm:text-base text-muted-foreground">View and manage your saved study analyses</p>
         </div>
 
         {error && (
@@ -225,41 +225,41 @@ export default function SavedAnalysesPage() {
         ) : (
           <>
             {/* Search and Filter Bar */}
-            <Card className="mb-6">
-              <CardContent className="pt-6">
-                <div className="flex flex-col sm:flex-row gap-4">
+            <Card className="mb-4 sm:mb-6">
+              <CardContent className="pt-4 sm:pt-6 px-4 sm:px-6">
+                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
                   <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Search className="absolute left-2.5 sm:left-3 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
                     <Input
                       placeholder="Search by title, authors, or journal..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
+                      className="pl-9 sm:pl-10 text-sm sm:text-base h-9 sm:h-10"
                     />
                   </div>
                   <div className="flex gap-2">
                     <Button
                       variant={sortBy === 'date' ? 'default' : 'outline'}
                       onClick={() => setSortBy('date')}
-                      className="gap-2"
+                      className="gap-1.5 sm:gap-2 flex-1 sm:flex-initial"
                       size="sm"
                     >
-                      <Calendar className="h-4 w-4" />
-                      Date
+                      <Calendar className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="text-xs sm:text-sm">Date</span>
                     </Button>
                     <Button
                       variant={sortBy === 'score' ? 'default' : 'outline'}
                       onClick={() => setSortBy('score')}
-                      className="gap-2"
+                      className="gap-1.5 sm:gap-2 flex-1 sm:flex-initial"
                       size="sm"
                     >
-                      <TrendingUp className="h-4 w-4" />
-                      Score
+                      <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                      <span className="text-xs sm:text-sm">Score</span>
                     </Button>
                   </div>
                 </div>
                 {searchQuery && (
-                  <p className="text-sm text-muted-foreground mt-3">
+                  <p className="text-xs sm:text-sm text-muted-foreground mt-2 sm:mt-3">
                     Found {filteredAnalyses.length} {filteredAnalyses.length === 1 ? 'analysis' : 'analyses'}
                   </p>
                 )}
@@ -269,12 +269,12 @@ export default function SavedAnalysesPage() {
             {/* Analyses Grid */}
             {filteredAnalyses.length === 0 ? (
               <Card>
-                <CardContent className="py-12 text-center">
-                  <p className="text-muted-foreground">No analyses match your search.</p>
+                <CardContent className="py-8 sm:py-12 text-center">
+                  <p className="text-sm sm:text-base text-muted-foreground">No analyses match your search.</p>
                 </CardContent>
               </Card>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 {filteredAnalyses.map((saved) => {
                   const score = saved.analysis_data?.trustScore?.overall || 0
                   return (
@@ -283,19 +283,19 @@ export default function SavedAnalysesPage() {
                       className={`hover:shadow-lg transition-all cursor-pointer border-2 ${getScoreColor(score)}`}
                       onClick={() => handleViewAnalysis(saved.analysis_data)}
                     >
-                      <CardHeader>
-                        <div className="flex items-start justify-between gap-4">
+                      <CardHeader className="p-4 sm:p-6">
+                        <div className="flex items-start justify-between gap-3 sm:gap-4">
                           <div className="flex-1 min-w-0">
-                            <CardTitle className="mb-2 line-clamp-2">{saved.title}</CardTitle>
-                            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
-                              <Calendar className="h-3 w-3" />
-                              <span>{formatDate(saved.created_at)}</span>
+                            <CardTitle className="mb-2 line-clamp-2 text-sm sm:text-base">{saved.title}</CardTitle>
+                            <div className="flex items-center gap-1.5 sm:gap-2 text-xs text-muted-foreground mb-2 sm:mb-3">
+                              <Calendar className="h-3 w-3 shrink-0" />
+                              <span className="truncate">{formatDate(saved.created_at)}</span>
                             </div>
                           </div>
                           {score > 0 && (
-                            <div className={`flex flex-col items-center justify-center p-3 rounded-lg ${getScoreBgColor(score)} border ${getScoreColor(score)} min-w-[60px]`}>
-                              <span className="text-2xl font-bold">{score}</span>
-                              <span className="text-xs">/100</span>
+                            <div className={`flex flex-col items-center justify-center p-2 sm:p-3 rounded-lg ${getScoreBgColor(score)} border ${getScoreColor(score)} min-w-[50px] sm:min-w-[60px] shrink-0`}>
+                              <span className="text-xl sm:text-2xl font-bold">{score}</span>
+                              <span className="text-[10px] sm:text-xs">/100</span>
                             </div>
                           )}
                         </div>
@@ -334,8 +334,8 @@ export default function SavedAnalysesPage() {
                           </div>
                         </CardContent>
                       )}
-                      <CardContent className="pt-0 pb-4">
-                        <div className="flex items-center justify-between">
+                      <CardContent className="pt-0 pb-3 sm:pb-4 px-4 sm:px-6">
+                        <div className="flex items-center justify-between gap-2">
                           <Button
                             onClick={(e) => {
                               e.stopPropagation()
@@ -343,10 +343,11 @@ export default function SavedAnalysesPage() {
                             }}
                             variant="outline"
                             size="sm"
-                            className="gap-2"
+                            className="gap-1.5 sm:gap-2 flex-1 text-xs sm:text-sm"
                           >
-                            <ExternalLink className="h-4 w-4" />
-                            View Details
+                            <ExternalLink className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            <span className="hidden sm:inline">View Details</span>
+                            <span className="sm:hidden">View</span>
                           </Button>
                           <Button
                             onClick={(e) => {
@@ -355,9 +356,10 @@ export default function SavedAnalysesPage() {
                             }}
                             variant="outline"
                             size="sm"
-                            className="gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            className="gap-1.5 sm:gap-2 text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                            <span className="hidden sm:inline">Delete</span>
                           </Button>
                         </div>
                       </CardContent>
@@ -372,7 +374,7 @@ export default function SavedAnalysesPage() {
 
       {/* Analysis Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-        <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+        <DialogContent className="max-w-5xl w-[95vw] sm:w-full max-h-[95vh] sm:max-h-[90vh] overflow-hidden flex flex-col p-0">
           <DialogHeader className="px-6 pt-6 pb-4 border-b">
             <DialogTitle className="line-clamp-2">
               {selectedAnalysis?.metadata?.title || 'Analysis Details'}

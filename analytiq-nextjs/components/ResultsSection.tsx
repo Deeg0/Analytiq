@@ -125,33 +125,31 @@ export default function ResultsSection() {
     <div className="space-y-4 sm:space-y-6 md:space-y-8">
       {/* Save Button - Only show if not viewing a saved analysis */}
       {results && !isSavedAnalysis && (
-        <div className="flex items-center justify-between">
-          <div className="flex-1" />
-          <div className="flex items-center gap-2">
-            {saveError && (
-              <Alert variant="destructive" className="py-2 px-4">
-                <AlertDescription className="text-sm">{saveError}</AlertDescription>
-              </Alert>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-end gap-2">
+          {saveError && (
+            <Alert variant="destructive" className="py-2 px-3 sm:px-4">
+              <AlertDescription className="text-xs sm:text-sm">{saveError}</AlertDescription>
+            </Alert>
+          )}
+          <Button
+            onClick={handleSave}
+            disabled={saving || saved}
+            variant={saved ? "default" : "outline"}
+            className="gap-2 w-full sm:w-auto"
+            size="sm"
+          >
+            {saved ? (
+              <>
+                <Check className="h-4 w-4" />
+                <span className="text-xs sm:text-sm">Saved!</span>
+              </>
+            ) : (
+              <>
+                <Save className="h-4 w-4" />
+                <span className="text-xs sm:text-sm">{saving ? 'Saving...' : 'Save Analysis'}</span>
+              </>
             )}
-            <Button
-              onClick={handleSave}
-              disabled={saving || saved}
-              variant={saved ? "default" : "outline"}
-              className="gap-2"
-            >
-              {saved ? (
-                <>
-                  <Check className="h-4 w-4" />
-                  Saved!
-                </>
-              ) : (
-                <>
-                  <Save className="h-4 w-4" />
-                  {saving ? 'Saving...' : 'Save Analysis'}
-                </>
-              )}
-            </Button>
-          </div>
+          </Button>
         </div>
       )}
 
@@ -161,17 +159,17 @@ export default function ResultsSection() {
           <CardTitle>Overview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className={`bg-gradient-to-br ${getScoreRatingColor(overallPercentage)} rounded-2xl p-6 sm:p-8 md:p-10 text-white mb-6 sm:mb-8`}>
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 md:gap-8">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full bg-white/25 backdrop-blur-md border-4 border-white/40 flex flex-col items-center justify-center">
-                <span className="text-3xl sm:text-4xl font-bold">{results.trustScore.overall}</span>
-                <span className="text-xs uppercase tracking-wider opacity-90 font-semibold">Score</span>
+          <div className={`bg-gradient-to-br ${getScoreRatingColor(overallPercentage)} rounded-xl sm:rounded-2xl p-4 sm:p-6 md:p-8 lg:p-10 text-white mb-4 sm:mb-6 md:mb-8`}>
+            <div className="flex flex-col sm:flex-row items-center gap-3 sm:gap-4 md:gap-6 lg:gap-8">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 lg:w-32 lg:h-32 rounded-full bg-white/25 backdrop-blur-md border-2 sm:border-4 border-white/40 flex flex-col items-center justify-center shrink-0">
+                <span className="text-2xl sm:text-3xl md:text-4xl font-bold">{results.trustScore.overall}</span>
+                <span className="text-[10px] sm:text-xs uppercase tracking-wider opacity-90 font-semibold">Score</span>
               </div>
               <div className="text-center sm:text-left">
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3">
+                <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold mb-1 sm:mb-2 md:mb-3">
                   {results.trustScore.rating}
                 </h3>
-                <p className="opacity-95 text-sm sm:text-base md:text-lg">
+                <p className="opacity-95 text-xs sm:text-sm md:text-base lg:text-lg">
                   Analysis complete
                 </p>
               </div>
@@ -179,7 +177,7 @@ export default function ResultsSection() {
           </div>
 
           {/* Category Breakdown */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 sm:gap-3 md:gap-4">
             {Object.entries(results.trustScore.breakdown).map(([key, data]: [string, any]) => {
               const percentage = Math.round((data.score / data.maxScore) * 100)
               const colorClass = getScoreColor(percentage)
@@ -189,27 +187,27 @@ export default function ResultsSection() {
               return (
                 <Card 
                   key={key} 
-                  className="cursor-pointer hover:bg-muted/70 transition-all hover:shadow-md"
+                  className="cursor-pointer hover:bg-muted/70 transition-all hover:shadow-md active:scale-[0.98]"
                   onClick={() => scrollToSection(sectionId)}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">{categoryNames[key] || key.replace(/([A-Z])/g, ' $1').trim()}</h4>
-                      <Badge variant="outline" className={colorClass}>
+                  <CardContent className="p-3 sm:p-4">
+                    <div className="flex items-center justify-between mb-2 gap-2">
+                      <h4 className="font-semibold text-sm sm:text-base leading-tight">{categoryNames[key] || key.replace(/([A-Z])/g, ' $1').trim()}</h4>
+                      <Badge variant="outline" className={`${colorClass} text-xs shrink-0`}>
                         {percentage}%
                       </Badge>
                     </div>
-                    <div className={`text-2xl font-bold mb-2 ${colorClass}`}>
+                    <div className={`text-xl sm:text-2xl font-bold mb-2 ${colorClass}`}>
                       {data.score}/{data.maxScore}
                     </div>
-                    <div className="bg-muted relative h-2 w-full overflow-hidden rounded-full">
+                    <div className="bg-muted relative h-1.5 sm:h-2 w-full overflow-hidden rounded-full">
                       <div 
                         className={`h-full transition-all ${bgColorClass}`}
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
-                    <div className="mt-2 text-xs text-muted-foreground">
-                      Click to view details →
+                    <div className="mt-1.5 sm:mt-2 text-[10px] sm:text-xs text-muted-foreground">
+                      Tap to view details →
                     </div>
                   </CardContent>
                 </Card>
@@ -226,10 +224,19 @@ export default function ResultsSection() {
         </CardHeader>
         <CardContent>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3">
-              <TabsTrigger value="simple">Simple Summary</TabsTrigger>
-              <TabsTrigger value="technical">Technical Critique</TabsTrigger>
-              <TabsTrigger value="bias">Bias Report</TabsTrigger>
+            <TabsList className="grid w-full grid-cols-3 h-auto">
+              <TabsTrigger value="simple" className="text-xs sm:text-sm py-2 px-2 sm:px-4">
+                <span className="hidden sm:inline">Simple Summary</span>
+                <span className="sm:hidden">Simple</span>
+              </TabsTrigger>
+              <TabsTrigger value="technical" className="text-xs sm:text-sm py-2 px-2 sm:px-4">
+                <span className="hidden sm:inline">Technical Critique</span>
+                <span className="sm:hidden">Technical</span>
+              </TabsTrigger>
+              <TabsTrigger value="bias" className="text-xs sm:text-sm py-2 px-2 sm:px-4">
+                <span className="hidden sm:inline">Bias Report</span>
+                <span className="sm:hidden">Bias</span>
+              </TabsTrigger>
             </TabsList>
             <TabsContent value="simple" className="mt-4">
               <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{results.simpleSummary}</p>

@@ -15,45 +15,52 @@ export default function InputSection() {
   const { analyzeUrl, analyzeText, loading } = useAnalysis()
 
   return (
-    <Card className="mb-6 sm:mb-8">
-      <CardHeader>
+    <Card className="mb-4 sm:mb-6 md:mb-8">
+      <CardHeader className="p-4 sm:p-6">
         <Tabs defaultValue="url" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="url">URL</TabsTrigger>
-            <TabsTrigger value="text">Text/Abstract</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 h-auto">
+            <TabsTrigger value="url" className="text-xs sm:text-sm py-2 px-3 sm:px-4">
+              URL
+            </TabsTrigger>
+            <TabsTrigger value="text" className="text-xs sm:text-sm py-2 px-3 sm:px-4">
+              <span className="hidden sm:inline">Text/Abstract</span>
+              <span className="sm:hidden">Text</span>
+            </TabsTrigger>
           </TabsList>
-          <TabsContent value="url" className="space-y-4">
+          <TabsContent value="url" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
             <div className="space-y-2">
-              <Label htmlFor="url-input">Enter Study URL</Label>
+              <Label htmlFor="url-input" className="text-sm sm:text-base">Enter Study URL</Label>
               <Input
                 id="url-input"
                 type="url"
                 placeholder="https://example.com/research-study"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
+                className="text-sm sm:text-base h-10 sm:h-11"
               />
             </div>
             <Button 
-              className="w-full" 
+              className="w-full text-sm sm:text-base h-10 sm:h-11" 
               onClick={() => analyzeUrl(url)}
               disabled={loading || !url}
             >
               {loading ? 'Analyzing...' : 'Analyze Study'}
             </Button>
           </TabsContent>
-          <TabsContent value="text" className="space-y-4">
+          <TabsContent value="text" className="space-y-3 sm:space-y-4 mt-3 sm:mt-4">
             <div className="space-y-2">
-              <Label htmlFor="text-input">Paste Study Text or Abstract</Label>
+              <Label htmlFor="text-input" className="text-sm sm:text-base">Paste Study Text or Abstract</Label>
               <Textarea
                 id="text-input"
                 placeholder="Paste the study text, abstract, or full content here..."
-                rows={8}
+                rows={6}
+                className="text-sm sm:text-base min-h-[120px] sm:min-h-[160px] resize-y"
                 value={text}
                 onChange={(e) => setText(e.target.value)}
               />
             </div>
             <Button 
-              className="w-full" 
+              className="w-full text-sm sm:text-base h-10 sm:h-11" 
               onClick={() => analyzeText(text)}
               disabled={loading || text.length < 100}
             >
