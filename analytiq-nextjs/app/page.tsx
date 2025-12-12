@@ -37,6 +37,7 @@ export default function Home() {
     
     // Handle email confirmation
     const emailConfirmed = urlParams.get('email_confirmed')
+    const emailConfirmation = urlParams.get('email_confirmation')
     const message = urlParams.get('message')
     
     try {
@@ -54,10 +55,15 @@ export default function Home() {
           
           if (emailConfirmed === 'success') {
             if (session?.user) {
-              // User is automatically signed in - show success (onboarding will handle it)
+              // User is automatically signed in after email confirmation
+              // Always show onboarding for email confirmations (new users)
               sessionStorage.setItem('analytiq-just-signed-up', 'true')
             } else {
-              // User needs to sign in - open login modal with message
+              // User needs to sign in after email confirmation
+              // Mark that they just confirmed email - this will trigger onboarding after sign in
+              if (emailConfirmation === 'true') {
+                sessionStorage.setItem('analytiq-email-just-confirmed', 'true')
+              }
               setAuthModalTab('signin')
               setAuthModalMessage(message || 'Email confirmed! Please sign in to continue.')
               setAuthModalOpen(true)
@@ -77,15 +83,24 @@ export default function Home() {
       } = supabase.auth.onAuthStateChange((event, session) => {
         // Track new signups - check if user was just created
         if (event === 'SIGNED_IN' && session?.user) {
-          // Check if this is a new user (created_at equals updated_at indicates new account)
-          const userCreatedAt = new Date(session.user.created_at).getTime()
-          const userUpdatedAt = new Date(session.user.updated_at || session.user.created_at).getTime()
-          // If created very recently (within last 5 seconds), treat as new signup
-          const isNewUser = Math.abs(userCreatedAt - userUpdatedAt) < 5000 && 
-                            Date.now() - userCreatedAt < 10000
+          // Check if email was just confirmed (user signed in after email confirmation)
+          const emailJustConfirmed = sessionStorage.getItem('analytiq-email-just-confirmed') === 'true'
           
-          if (isNewUser) {
+          if (emailJustConfirmed) {
+            // User just confirmed email and signed in - show onboarding
+            sessionStorage.removeItem('analytiq-email-just-confirmed')
             sessionStorage.setItem('analytiq-just-signed-up', 'true')
+          } else {
+            // Check if this is a new user (created_at equals updated_at indicates new account)
+            const userCreatedAt = new Date(session.user.created_at).getTime()
+            const userUpdatedAt = new Date(session.user.updated_at || session.user.created_at).getTime()
+            // If created very recently (within last 5 seconds), treat as new signup
+            const isNewUser = Math.abs(userCreatedAt - userUpdatedAt) < 5000 && 
+                              Date.now() - userCreatedAt < 10000
+            
+            if (isNewUser) {
+              sessionStorage.setItem('analytiq-just-signed-up', 'true')
+            }
           }
         }
         setUser(session?.user ?? null)

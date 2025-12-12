@@ -26,10 +26,15 @@ export async function GET(request: NextRequest) {
     // If session exists, user is automatically signed in
     if (data.session) {
       // If this was a signup or email confirmation, add flag to redirect URL
+      // Email confirmation always means it's a new user who should see onboarding
       if (signup === 'true' || isEmailConfirmation || (data.user && data.user.created_at === data.user.updated_at)) {
         const redirectUrl = new URL('/', requestUrl.origin)
         redirectUrl.searchParams.set('email_confirmed', 'success')
         redirectUrl.searchParams.set('new_signup', 'true')
+        // Also add a flag specifically for email confirmation
+        if (isEmailConfirmation) {
+          redirectUrl.searchParams.set('email_confirmation', 'true')
+        }
         return NextResponse.redirect(redirectUrl)
       }
       
@@ -37,8 +42,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.redirect(new URL('/', requestUrl.origin))
     } else {
       // No session created - redirect to login with message
+      // This happens when email confirmation doesn't auto-sign-in
       const redirectUrl = new URL('/', requestUrl.origin)
       redirectUrl.searchParams.set('email_confirmed', 'success')
+      redirectUrl.searchParams.set('email_confirmation', 'true')
       redirectUrl.searchParams.set('message', 'Email confirmed! Please sign in to continue.')
       return NextResponse.redirect(redirectUrl)
     }

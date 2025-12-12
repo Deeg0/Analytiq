@@ -245,13 +245,18 @@ export function useOnboarding(user: any, forceShow?: boolean) {
     // Check if this is a new signup (user just signed up)
     const justSignedUp = sessionStorage.getItem('analytiq-just-signed-up') === 'true'
     
-    // Also check if user was created very recently (within last 30 seconds) as a fallback
-    // This helps catch cases where the flag might not be set
+    // Also check if user was created very recently (within last 5 minutes) as a fallback
+    // This helps catch cases where the flag might not be set, including email confirmations
     const userCreatedAt = user.created_at ? new Date(user.created_at).getTime() : 0
-    const isVeryNewUser = userCreatedAt > 0 && (Date.now() - userCreatedAt < 30000) // 30 seconds
+    const userUpdatedAt = user.updated_at ? new Date(user.updated_at).getTime() : userCreatedAt
+    // Check if user was created recently OR if created_at and updated_at are very close (new account)
+    const isVeryNewUser = userCreatedAt > 0 && (
+      (Date.now() - userCreatedAt < 300000) || // Created within last 5 minutes
+      (Math.abs(userCreatedAt - userUpdatedAt) < 10000) // Created and updated within 10 seconds (new account)
+    )
 
     // Show onboarding if user just signed up (flag set) OR if they're a very new user
-    // This ensures first-time signups always see onboarding
+    // This ensures first-time signups and email confirmations always see onboarding
     const shouldShow = (justSignedUp || isVeryNewUser) && !completed
     
     setShowOnboarding(shouldShow)
