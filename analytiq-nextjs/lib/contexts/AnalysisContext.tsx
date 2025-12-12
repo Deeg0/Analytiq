@@ -39,9 +39,8 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
   }
 
   const analyzeUrl = async (url: string) => {
-    // Check if user is authenticated (only for Next.js API route)
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
-    if (!backendUrl && !user && onAuthRequired) {
+    // Check if user is authenticated - always require sign in
+    if (!user && onAuthRequired) {
       onAuthRequired()
       return
     }
@@ -76,9 +75,8 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
   }
 
   const analyzeText = async (text: string) => {
-    // Check if user is authenticated (only for Next.js API route)
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
-    if (!backendUrl && !user && onAuthRequired) {
+    // Check if user is authenticated - always require sign in
+    if (!user && onAuthRequired) {
       onAuthRequired()
       return
     }
