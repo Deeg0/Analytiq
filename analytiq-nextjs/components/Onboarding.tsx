@@ -97,7 +97,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
   return (
     <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-2xl w-[95vw] sm:w-full p-0 overflow-hidden max-h-[95vh] sm:max-h-[90vh] flex flex-col" showCloseButton={false}>
+      <DialogContent className="max-w-2xl p-0 overflow-hidden" showCloseButton={false}>
         {/* Progress Bar */}
         <div className="px-6 pt-6 pb-4 border-b bg-gradient-to-r from-primary/5 to-transparent">
           <div className="flex items-center justify-between mb-3">
@@ -117,17 +117,17 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         </div>
 
         {/* Content */}
-        <div className="px-4 sm:px-6 py-6 sm:py-8 pb-4 sm:pb-6 overflow-y-auto flex-1">
+        <div className="px-6 py-8 pb-6">
           {/* Icon and Highlight */}
-          <div className="flex flex-col items-center mb-6 sm:mb-8 animate-in fade-in-0 duration-500">
-            <div className="mb-4 sm:mb-5 p-4 sm:p-5 rounded-xl sm:rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 shadow-lg">
+          <div className="flex flex-col items-center mb-8 animate-in fade-in-0 duration-500">
+            <div className="mb-5 p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 shadow-lg">
               <div className="animate-in zoom-in-95 duration-500">
                 {currentStepData.icon}
               </div>
             </div>
             {currentStepData.highlight && (
-              <div className="px-4 sm:px-5 py-1.5 sm:py-2 rounded-full bg-primary/10 border border-primary/20 animate-in slide-in-from-bottom-2 duration-500">
-                <span className="text-xs sm:text-sm font-semibold text-primary">
+              <div className="px-5 py-2 rounded-full bg-primary/10 border border-primary/20 animate-in slide-in-from-bottom-2 duration-500">
+                <span className="text-sm font-semibold text-primary">
                   {currentStepData.highlight}
                 </span>
               </div>
@@ -135,11 +135,11 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           </div>
 
           {/* Title and Description */}
-          <div className="text-center mb-6 sm:mb-10 animate-in fade-in-0 slide-in-from-bottom-4 duration-700">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 sm:mb-4 bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent px-2">
+          <div className="text-center mb-10 animate-in fade-in-0 slide-in-from-bottom-4 duration-700">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent">
               {currentStepData.title}
             </h2>
-            <p className="text-sm sm:text-base md:text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto px-2">
+            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto">
               {currentStepData.description}
             </p>
           </div>
@@ -163,34 +163,31 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
           </div>
 
           {/* Navigation Buttons */}
-          <div className="flex items-center justify-between gap-2 sm:gap-4">
+          <div className="flex items-center justify-between gap-4">
             <Button
               variant="outline"
               onClick={handlePrevious}
               disabled={currentStep === 0}
-              className="gap-1.5 sm:gap-2 min-w-[80px] sm:min-w-[100px] text-xs sm:text-sm"
-              size="sm"
+              className="gap-2 min-w-[100px]"
             >
-              <ArrowLeft className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
-              <span className="hidden sm:inline">Previous</span>
-              <span className="sm:hidden">Prev</span>
+              <ArrowLeft className="h-4 w-4" />
+              Previous
             </Button>
 
             <Button
               onClick={handleNext}
-              className="gap-1.5 sm:gap-2 flex-1 max-w-xs text-xs sm:text-sm"
-              size="sm"
+              className="gap-2 flex-1 max-w-xs"
+              size="lg"
             >
               {currentStep === steps.length - 1 ? (
                 <>
-                  <span className="hidden sm:inline">Get Started</span>
-                  <span className="sm:hidden">Start</span>
-                  <CheckCircle2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  Get Started
+                  <CheckCircle2 className="h-4 w-4" />
                 </>
               ) : (
                 <>
                   Next
-                  <ArrowRight className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                  <ArrowRight className="h-4 w-4" />
                 </>
               )}
             </Button>

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Home, HelpCircle, BookOpen } from 'lucide-react'
+import { Home, HelpCircle } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
@@ -55,14 +55,14 @@ export default function Header({ user, onSignInClick, onSignUpClick, onShowOnboa
                 className="h-10 sm:h-14 md:h-16 w-auto drop-shadow-lg relative z-10"
               />
             </div>
-            <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight leading-tight bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-tight bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent">
               Analyt<span className="text-primary">IQ</span>
             </h1>
           </Link>
-          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {!isHomePage && (
               <Link href="/">
-                <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-auto sm:px-3">
+                <Button variant="ghost" className="gap-2">
                   <Home className="h-4 w-4" />
                   <span className="hidden sm:inline">Home</span>
                 </Button>
@@ -82,30 +82,26 @@ export default function Header({ user, onSignInClick, onSignUpClick, onShowOnboa
             {user && (
               <>
                 <Link href="/saved">
-                  <Button variant="ghost" size="icon" className="h-9 w-9 sm:h-10 sm:w-auto sm:px-3">
-                    <BookOpen className="h-4 w-4 sm:hidden" />
-                    <span className="hidden sm:inline">Saved</span>
+                  <Button variant="ghost" className="hidden sm:flex">
+                    Saved Analyses
                   </Button>
                 </Link>
-                <span className="text-xs text-muted-foreground hidden md:inline max-w-[120px] truncate">
+                <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">
                   {user.email}
                 </span>
               </>
             )}
             {user ? (
-              <Button onClick={handleSignOut} variant="outline" size="sm" className="text-xs sm:text-sm">
-                <span className="hidden sm:inline">Sign Out</span>
-                <span className="sm:hidden">Out</span>
+              <Button onClick={handleSignOut} variant="outline">
+                Sign Out
               </Button>
             ) : (
               <>
-                <Button onClick={onSignInClick} variant="outline" size="sm" className="text-xs sm:text-sm">
-                  <span className="hidden sm:inline">Sign In</span>
-                  <span className="sm:hidden">In</span>
+                <Button onClick={onSignInClick} variant="outline">
+                  Sign In
                 </Button>
-                <Button onClick={onSignUpClick} size="sm" className="text-xs sm:text-sm">
-                  <span className="hidden sm:inline">Sign Up</span>
-                  <span className="sm:hidden">Up</span>
+                <Button onClick={onSignUpClick}>
+                  Sign Up
                 </Button>
               </>
             )}
