@@ -56,7 +56,7 @@ export default function Header({ user, onSignInClick, onSignUpClick, onShowOnboa
               />
             </div>
             <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold tracking-tight leading-tight bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent">
-              <span className="hidden xs:inline">Analyt</span><span className="xs:hidden">A</span><span className="text-primary">IQ</span>
+              Analyt<span className="text-primary">IQ</span>
             </h1>
           </Link>
           <div className="flex items-center gap-1.5 sm:gap-2 md:gap-3">
