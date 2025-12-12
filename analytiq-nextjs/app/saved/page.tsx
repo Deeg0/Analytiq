@@ -152,23 +152,43 @@ export default function SavedAnalysesPage() {
   const handleViewAnalysis = (analysis: AnalysisResult) => {
     setSelectedAnalysis(analysis)
     setIsDialogOpen(true)
+    // Reset scroll position immediately
+    if (dialogScrollRef.current) {
+      dialogScrollRef.current.scrollTop = 0
+    }
   }
 
   // Reset scroll position when dialog opens
   useEffect(() => {
     if (isDialogOpen && dialogScrollRef.current) {
-      // Small delay to ensure content is rendered
-      setTimeout(() => {
+      // Reset immediately
+      dialogScrollRef.current.scrollTop = 0
+      
+      // Also reset after a short delay to ensure content is rendered
+      const timeoutId = setTimeout(() => {
         if (dialogScrollRef.current) {
           dialogScrollRef.current.scrollTop = 0
         }
-      }, 50)
+      }, 100)
+      
+      // Use requestAnimationFrame for better timing
+      requestAnimationFrame(() => {
+        if (dialogScrollRef.current) {
+          dialogScrollRef.current.scrollTop = 0
+        }
+      })
+      
+      return () => clearTimeout(timeoutId)
     }
   }, [isDialogOpen, selectedAnalysis])
 
   const handleCloseDialog = () => {
     setIsDialogOpen(false)
     setSelectedAnalysis(null)
+    // Reset scroll position when closing
+    if (dialogScrollRef.current) {
+      dialogScrollRef.current.scrollTop = 0
+    }
   }
 
   const getScoreColor = (score: number) => {
