@@ -89,7 +89,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
   const handleComplete = () => {
     setIsOpen(false)
-    localStorage.setItem('analytiq-onboarding-completed', 'true')
+    // onComplete callback will handle setting the completion flag
     onComplete()
   }
 
@@ -222,27 +222,46 @@ export function useOnboarding(user: any, forceShow?: boolean) {
       return
     }
 
-    // Only show onboarding for signed-in users who just signed up
+    // Only show onboarding for signed-in users
     if (!user) {
       setShowOnboarding(false)
       setIsLoading(false)
       return
     }
 
-    // Check if this is a new signup (user just signed up)
-    const justSignedUp = sessionStorage.getItem('analytiq-just-signed-up') === 'true'
-    
     // Check if onboarding was already completed for this user
     const completedKey = `analytiq-onboarding-completed-${user.id}`
     const completed = localStorage.getItem(completedKey) === 'true'
 
-    // Show onboarding if user just signed up and hasn't completed it
-    setShowOnboarding(justSignedUp && !completed)
+    // If already completed, don't show onboarding
+    if (completed) {
+      setShowOnboarding(false)
+      setIsLoading(false)
+      // Clear any signup flags since onboarding is already done
+      sessionStorage.removeItem('analytiq-just-signed-up')
+      return
+    }
+
+    // Check if this is a new signup (user just signed up)
+    const justSignedUp = sessionStorage.getItem('analytiq-just-signed-up') === 'true'
+    
+    // Also check if user was created very recently (within last 30 seconds) as a fallback
+    // This helps catch cases where the flag might not be set
+    const userCreatedAt = user.created_at ? new Date(user.created_at).getTime() : 0
+    const isVeryNewUser = userCreatedAt > 0 && (Date.now() - userCreatedAt < 30000) // 30 seconds
+
+    // Show onboarding if user just signed up (flag set) OR if they're a very new user
+    // This ensures first-time signups always see onboarding
+    const shouldShow = (justSignedUp || isVeryNewUser) && !completed
+    
+    setShowOnboarding(shouldShow)
     setIsLoading(false)
 
-    // Clear the signup flag after checking
-    if (justSignedUp) {
-      sessionStorage.removeItem('analytiq-just-signed-up')
+    // Clear the signup flag after checking (but only if we're showing onboarding)
+    // This prevents it from showing again on page refresh
+    if (justSignedUp && shouldShow) {
+      // Don't remove immediately - wait until onboarding is completed
+      // This allows the flag to persist if user refreshes during onboarding
     }
   }, [user, forceShow])
 
@@ -250,6 +269,8 @@ export function useOnboarding(user: any, forceShow?: boolean) {
     if (user?.id) {
       const completedKey = `analytiq-onboarding-completed-${user.id}`
       localStorage.setItem(completedKey, 'true')
+      // Clear the signup flag once onboarding is completed
+      sessionStorage.removeItem('analytiq-just-signed-up')
     } else {
       localStorage.setItem('analytiq-onboarding-completed', 'true')
     }

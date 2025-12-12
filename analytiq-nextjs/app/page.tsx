@@ -16,6 +16,7 @@ export default function Home() {
   const [loading, setLoading] = useState(true)
   const [authModalOpen, setAuthModalOpen] = useState(false)
   const [authModalTab, setAuthModalTab] = useState<'signin' | 'signup'>('signin')
+  const [authModalMessage, setAuthModalMessage] = useState<string | null>(null)
   const [forceShowOnboarding, setForceShowOnboarding] = useState(false)
   const { showOnboarding, isLoading: onboardingLoading, completeOnboarding } = useOnboarding(user, forceShowOnboarding)
 
@@ -26,14 +27,18 @@ export default function Home() {
       return
     }
 
-    // Check if redirected from OAuth signup
+    // Check if redirected from OAuth signup or email confirmation
     const urlParams = new URLSearchParams(window.location.search)
     if (urlParams.get('new_signup') === 'true') {
       sessionStorage.setItem('analytiq-just-signed-up', 'true')
       // Clean up URL
       window.history.replaceState({}, '', window.location.pathname)
     }
-
+    
+    // Handle email confirmation
+    const emailConfirmed = urlParams.get('email_confirmed')
+    const message = urlParams.get('message')
+    
     try {
       const supabase = createClient()
       
@@ -41,6 +46,29 @@ export default function Home() {
       supabase.auth.getSession().then(({ data: { session } }) => {
         setUser(session?.user ?? null)
         setLoading(false)
+        
+        // Handle email confirmation after checking session
+        if (emailConfirmed) {
+          // Clean up URL
+          window.history.replaceState({}, '', window.location.pathname)
+          
+          if (emailConfirmed === 'success') {
+            if (session?.user) {
+              // User is automatically signed in - show success (onboarding will handle it)
+              sessionStorage.setItem('analytiq-just-signed-up', 'true')
+            } else {
+              // User needs to sign in - open login modal with message
+              setAuthModalTab('signin')
+              setAuthModalMessage(message || 'Email confirmed! Please sign in to continue.')
+              setAuthModalOpen(true)
+            }
+          } else if (emailConfirmed === 'error') {
+            // Show error message in login modal
+            setAuthModalTab('signin')
+            setAuthModalMessage(message || 'There was an issue confirming your email. Please try signing in.')
+            setAuthModalOpen(true)
+          }
+        }
       })
 
       // Listen for auth changes
@@ -110,8 +138,14 @@ export default function Home() {
         <Footer />
         <AuthModal 
           open={authModalOpen} 
-          onOpenChange={setAuthModalOpen}
+          onOpenChange={(open) => {
+            setAuthModalOpen(open)
+            if (!open) {
+              setAuthModalMessage(null) // Clear message when modal closes
+            }
+          }}
           defaultTab={authModalTab}
+          initialMessage={authModalMessage}
         />
         {(showOnboarding || forceShowOnboarding) && (
           <Onboarding 

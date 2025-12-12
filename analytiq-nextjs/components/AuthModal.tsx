@@ -7,24 +7,37 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { Alert, AlertDescription } from '@/components/ui/alert'
 import { createClient } from '@/lib/supabase/client'
-import { Eye, EyeOff } from 'lucide-react'
+import { Eye, EyeOff, CheckCircle2, Mail } from 'lucide-react'
 
 interface AuthModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   defaultTab?: 'signin' | 'signup'
+  initialMessage?: string | null
 }
 
-export default function AuthModal({ open, onOpenChange, defaultTab = 'signin' }: AuthModalProps) {
+export default function AuthModal({ open, onOpenChange, defaultTab = 'signin', initialMessage }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>(defaultTab)
   
   // Update active tab when defaultTab changes or modal opens
   useEffect(() => {
     if (open) {
       setActiveTab(defaultTab)
+      // Set initial message if provided
+      if (initialMessage) {
+        // Check if it's a success message (contains "confirmed" or "success")
+        if (initialMessage.toLowerCase().includes('confirmed') || initialMessage.toLowerCase().includes('success')) {
+          setSuccessMessage(initialMessage)
+          setError(null)
+        } else {
+          setError(initialMessage)
+          setSuccessMessage(null)
+        }
+      }
     }
-  }, [open, defaultTab])
+  }, [open, defaultTab, initialMessage])
   
   // Clear form fields and error when modal closes
   useEffect(() => {
@@ -32,6 +45,7 @@ export default function AuthModal({ open, onOpenChange, defaultTab = 'signin' }:
       setEmail('')
       setPassword('')
       setError(null)
+      setSuccessMessage(null)
       setLoading(false)
     }
   }, [open])
@@ -41,6 +55,7 @@ export default function AuthModal({ open, onOpenChange, defaultTab = 'signin' }:
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const supabase = createClient()
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -70,6 +85,7 @@ export default function AuthModal({ open, onOpenChange, defaultTab = 'signin' }:
     e.preventDefault()
     setLoading(true)
     setError(null)
+    setSuccessMessage(null)
 
     try {
       const { data, error } = await supabase.auth.signUp({
@@ -91,15 +107,11 @@ export default function AuthModal({ open, onOpenChange, defaultTab = 'signin' }:
         setEmail('')
         setPassword('')
         setError(null)
+        setSuccessMessage(null)
       } else {
-        // Email confirmation required
-        setError('Check your email to confirm your account!')
-        setTimeout(() => {
-          onOpenChange(false)
-          setEmail('')
-          setPassword('')
-          setError(null)
-        }, 2000)
+        // Email confirmation required - show success message
+        setSuccessMessage('Please check your email to confirm your account before signing in.')
+        setError(null)
       }
     } catch (err: any) {
       setError(err.message || 'Failed to sign up')
@@ -187,6 +199,14 @@ export default function AuthModal({ open, onOpenChange, defaultTab = 'signin' }:
               {error && (
                 <div className="text-sm text-destructive">{error}</div>
               )}
+              {successMessage && (
+                <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+                  <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <AlertDescription className="text-green-800 dark:text-green-200 font-medium">
+                    {successMessage}
+                  </AlertDescription>
+                </Alert>
+              )}
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? 'Signing in...' : 'Sign In'}
               </Button>
@@ -265,6 +285,14 @@ export default function AuthModal({ open, onOpenChange, defaultTab = 'signin' }:
               </div>
               {error && (
                 <div className="text-sm text-destructive">{error}</div>
+              )}
+              {successMessage && (
+                <Alert className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-950">
+                  <Mail className="h-4 w-4 text-green-600 dark:text-green-400" />
+                  <AlertDescription className="text-green-800 dark:text-green-200 font-medium">
+                    {successMessage}
+                  </AlertDescription>
+                </Alert>
               )}
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? 'Signing up...' : 'Sign Up'}
