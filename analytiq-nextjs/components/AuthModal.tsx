@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
@@ -18,6 +18,24 @@ interface AuthModalProps {
 
 export default function AuthModal({ open, onOpenChange, defaultTab = 'signin' }: AuthModalProps) {
   const [activeTab, setActiveTab] = useState<'signin' | 'signup'>(defaultTab)
+  
+  // Update active tab when defaultTab changes or modal opens
+  useEffect(() => {
+    if (open) {
+      setActiveTab(defaultTab)
+    }
+  }, [open, defaultTab])
+  
+  // Clear form fields and error when modal closes
+  useEffect(() => {
+    if (!open) {
+      setEmail('')
+      setPassword('')
+      setError(null)
+      setLoading(false)
+    }
+  }, [open])
+  
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
