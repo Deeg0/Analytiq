@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { AnalysisResult } from '@/lib/types/analysis'
 
 interface AnalysisContextType {
@@ -27,6 +27,13 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
   const [results, setResults] = useState<AnalysisResult | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [saving, setSaving] = useState(false)
+
+  // Clear analysis results on page load/reload
+  useEffect(() => {
+    setResults(null)
+    setError(null)
+    setLoading(false)
+  }, []) // Empty dependency array means this runs once on mount
 
   // Determine which API endpoint to use
   const getApiUrl = () => {
