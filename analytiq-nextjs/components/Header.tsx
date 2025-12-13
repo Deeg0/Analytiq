@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { createClient } from '@/lib/supabase/client'
 import Image from 'next/image'
 import Link from 'next/link'
-import { Home, HelpCircle } from 'lucide-react'
+import { Home, HelpCircle, Settings } from 'lucide-react'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
@@ -84,6 +84,11 @@ export default function Header({ user, onSignInClick, onSignUpClick, onShowOnboa
                 <Link href="/saved">
                   <Button variant="ghost" className="hidden sm:flex">
                     Saved Analyses
+                  </Button>
+                </Link>
+                <Link href="/settings">
+                  <Button variant="ghost" size="icon" className="h-9 w-9" title="Settings">
+                    <Settings className="h-4 w-4" />
                   </Button>
                 </Link>
                 <span className="text-xs sm:text-sm text-muted-foreground hidden sm:inline">
