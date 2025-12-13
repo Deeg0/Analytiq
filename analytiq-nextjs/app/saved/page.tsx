@@ -150,47 +150,45 @@ export default function SavedAnalysesPage() {
   }
 
   const handleViewAnalysis = (analysis: AnalysisResult) => {
-    // Reset scroll position before opening
+    setSelectedAnalysis(analysis)
+    setIsDialogOpen(true)
+    // Reset scroll position immediately
     if (dialogScrollRef.current) {
       dialogScrollRef.current.scrollTop = 0
     }
-    setSelectedAnalysis(analysis)
-    setIsDialogOpen(true)
   }
 
-  // Reset scroll position when dialog opens or analysis changes
+  // Reset scroll position when dialog opens
   useEffect(() => {
     if (isDialogOpen && dialogScrollRef.current) {
       // Reset immediately
       dialogScrollRef.current.scrollTop = 0
       
-      // Reset after multiple delays to catch different render timings
+      // Reset after multiple delays to ensure content is fully rendered
       const timeout1 = setTimeout(() => {
-        if (dialogScrollRef.current) {
-          dialogScrollRef.current.scrollTop = 0
-        }
-      }, 0)
-      
-      const timeout2 = setTimeout(() => {
         if (dialogScrollRef.current) {
           dialogScrollRef.current.scrollTop = 0
         }
       }, 50)
       
-      const timeout3 = setTimeout(() => {
+      const timeout2 = setTimeout(() => {
         if (dialogScrollRef.current) {
           dialogScrollRef.current.scrollTop = 0
         }
       }, 150)
       
-      // Use requestAnimationFrame for better timing
-      const raf1 = requestAnimationFrame(() => {
+      const timeout3 = setTimeout(() => {
         if (dialogScrollRef.current) {
           dialogScrollRef.current.scrollTop = 0
         }
-      })
+      }, 300)
       
-      const raf2 = requestAnimationFrame(() => {
+      // Use requestAnimationFrame for better timing
+      requestAnimationFrame(() => {
+        if (dialogScrollRef.current) {
+          dialogScrollRef.current.scrollTop = 0
+        }
+        // Double RAF for better reliability
         requestAnimationFrame(() => {
           if (dialogScrollRef.current) {
             dialogScrollRef.current.scrollTop = 0
@@ -202,8 +200,6 @@ export default function SavedAnalysesPage() {
         clearTimeout(timeout1)
         clearTimeout(timeout2)
         clearTimeout(timeout3)
-        cancelAnimationFrame(raf1)
-        cancelAnimationFrame(raf2)
       }
     }
   }, [isDialogOpen, selectedAnalysis])
@@ -419,15 +415,16 @@ export default function SavedAnalysesPage() {
       {/* Analysis Dialog */}
       <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
         <DialogContent className="max-w-5xl max-h-[90vh] overflow-hidden flex flex-col p-0">
-          <DialogHeader className="px-6 pt-6 pb-4 border-b">
+          <DialogHeader className="px-6 pt-6 pb-4 border-b flex-shrink-0">
             <DialogTitle className="line-clamp-2">
               {selectedAnalysis?.metadata?.title || 'Analysis Details'}
             </DialogTitle>
           </DialogHeader>
           <div 
-            key={selectedAnalysis?.metadata?.title || 'default'} 
+            key={selectedAnalysis?.metadata?.title || 'empty'}
             ref={dialogScrollRef} 
             className="flex-1 overflow-y-auto px-6 py-4"
+            style={{ scrollBehavior: 'auto' }}
           >
             {selectedAnalysis && (
               <AnalysisContext.Provider value={{
