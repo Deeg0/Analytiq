@@ -45,8 +45,10 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
       return
     }
 
-    setLoading(true)
+    // Clear old results immediately when starting new analysis
+    setResults(null)
     setError(null)
+    setLoading(true)
     try {
       const response = await fetch(getApiUrl(), {
         method: 'POST',
@@ -81,8 +83,10 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
       return
     }
 
-    setLoading(true)
+    // Clear old results immediately when starting new analysis
+    setResults(null)
     setError(null)
+    setLoading(true)
     try {
       const response = await fetch(getApiUrl(), {
         method: 'POST',
