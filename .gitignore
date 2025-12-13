@@ -44,3 +44,6 @@ backend/.env.*.local
 # Frontend specific (if using build tools)
 frontend/dist/
 frontend/build/
+
+# All md files
+*.md
