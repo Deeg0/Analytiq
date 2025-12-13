@@ -2,7 +2,7 @@ import { AnalysisRequest, AnalysisResult, ExtractedContent } from '@/lib/types/a
 import { scrapeUrl } from './urlScraper';
 import { parsePdf } from './pdfParser';
 import { resolveDoi } from './doiResolver';
-import { extractMetadata } from './metadataExtractor';
+import { extractMetadata, validateAndCrossCheckMetadata } from './metadataExtractor';
 import { analyzeWithAI } from './openaiService';
 import { calculateTrustScore } from './scorer';
 import { summarizeJournal, summarizeMetadataField } from './summarizer';
@@ -89,9 +89,12 @@ export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisRe
     }
 
     // Step 2: Extract metadata
-    const metadata = extractMetadata(extractedContent);
+    let metadata = extractMetadata(extractedContent);
 
-    // Step 2.5: Summarize metadata fields if needed
+    // Step 2.5: Double-check and validate study info
+    metadata = validateAndCrossCheckMetadata(metadata, extractedContent.text);
+
+    // Step 2.6: Summarize metadata fields if needed
     // Journal: summarize if > 100 words
     if (metadata.journal && typeof metadata.journal === 'string') {
       metadata.journal = await summarizeJournal(metadata.journal);

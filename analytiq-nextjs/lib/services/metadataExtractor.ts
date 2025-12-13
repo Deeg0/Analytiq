@@ -228,3 +228,181 @@ function extractSampleSize(text: string): number | undefined {
   return undefined;
 }
 
+/**
+ * Double-check and validate extracted metadata by cross-referencing with the full text
+ * This ensures accuracy and catches any extraction errors
+ */
+export function validateAndCrossCheckMetadata(metadata: StudyMetadata, fullText: string): StudyMetadata {
+  const validated: StudyMetadata = { ...metadata };
+  const lowerText = fullText.toLowerCase();
+
+  // Double-check title - verify it appears in the text
+  if (validated.title) {
+    const titleLower = validated.title.toLowerCase();
+    // Check if title appears in first 2000 characters (abstract/intro area)
+    const textStart = fullText.substring(0, 2000).toLowerCase();
+    if (!textStart.includes(titleLower.substring(0, Math.min(50, titleLower.length)))) {
+      // Title might be incorrect, try to find a better match
+      const titlePattern = /(?:title|study|paper|article)[:\s]+(.{10,200}?)(?:\n|abstract|introduction|$)/i;
+      const match = fullText.match(titlePattern);
+      if (match && match[1]) {
+        const candidateTitle = match[1].trim().split('\n')[0].trim();
+        if (candidateTitle.length > 10 && candidateTitle.length < 300) {
+          validated.title = candidateTitle;
+        }
+      }
+    }
+  }
+
+  // Double-check authors - verify they appear in the text
+  if (validated.authors && validated.authors.length > 0) {
+    const verifiedAuthors: string[] = [];
+    for (const author of validated.authors) {
+      const authorLower = author.toLowerCase();
+      // Check if author name appears in text (allowing for variations)
+      const authorParts = authorLower.split(/\s+/).filter(p => p.length > 2);
+      if (authorParts.length >= 2) {
+        // Check if at least first and last name appear
+        const firstName = authorParts[0];
+        const lastName = authorParts[authorParts.length - 1];
+        if (lowerText.includes(firstName) && lowerText.includes(lastName)) {
+          verifiedAuthors.push(author);
+        }
+      } else {
+        // Single name or initials - include if it appears
+        if (lowerText.includes(authorLower)) {
+          verifiedAuthors.push(author);
+        }
+      }
+    }
+    // Keep verified authors, or keep original if verification failed (might be in metadata only)
+    if (verifiedAuthors.length > 0) {
+      validated.authors = verifiedAuthors;
+    }
+  }
+
+  // Double-check journal - verify it appears in the text
+  if (validated.journal) {
+    const journalLower = validated.journal.toLowerCase();
+    // Check if journal name appears in text
+    if (!lowerText.includes(journalLower.substring(0, Math.min(30, journalLower.length)))) {
+      // Try to find journal in text
+      const journalPatterns = [
+        /(?:published in|journal|periodical)[:\s]+([A-Z][^.\n]{5,100}?)(?:\n|\.|$)/i,
+        /([A-Z][a-z]+(?:\s+[A-Z][a-z]+)*\s+(?:Journal|Review|Annals|Proceedings|Magazine|Quarterly))[^a-z]/i,
+      ];
+      for (const pattern of journalPatterns) {
+        const match = fullText.match(pattern);
+        if (match && match[1]) {
+          const candidateJournal = match[1].trim();
+          if (candidateJournal.length > 5 && candidateJournal.length < 150) {
+            validated.journal = candidateJournal;
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  // Double-check DOI - verify format and presence
+  if (validated.doi) {
+    // Validate DOI format (should be like 10.1234/example)
+    if (!/^10\.\d{4,}\/.+/.test(validated.doi)) {
+      // Try to find DOI in text
+      const doiPattern = /(?:doi|digital object identifier)[:\s]*10\.\d{4,}\/[^\s\n]+/i;
+      const match = fullText.match(doiPattern);
+      if (match) {
+        validated.doi = match[0].replace(/^(?:doi|digital object identifier)[:\s]*/i, '').trim();
+      } else {
+        // Invalid DOI format, remove it
+        validated.doi = undefined;
+      }
+    } else {
+      // Verify DOI appears in text
+      if (!lowerText.includes(validated.doi.toLowerCase())) {
+        // DOI might be in metadata but not text, keep it but log
+        console.log('DOI found in metadata but not in text:', validated.doi);
+      }
+    }
+  }
+
+  // Double-check publication date - verify format
+  if (validated.publicationDate) {
+    // Validate date format (should be YYYY-MM-DD or YYYY)
+    const dateStr = validated.publicationDate.trim();
+    if (!/^\d{4}(-\d{2}(-\d{2})?)?$/.test(dateStr) && !/^\d{4}$/.test(dateStr)) {
+      // Try to extract year from text
+      const yearPattern = /(?:published|publication|date)[:\s]+.*?(\d{4})/i;
+      const match = fullText.match(yearPattern);
+      if (match && match[1]) {
+        const year = parseInt(match[1], 10);
+        if (year >= 1900 && year <= new Date().getFullYear() + 1) {
+          validated.publicationDate = match[1];
+        } else {
+          validated.publicationDate = undefined;
+        }
+      } else {
+        validated.publicationDate = undefined;
+      }
+    }
+  }
+
+  // Double-check sample size - verify it's reasonable
+  if (validated.sampleSize !== undefined) {
+    if (validated.sampleSize < 1 || validated.sampleSize > 100000000) {
+      // Sample size seems invalid, try to re-extract
+      const samplePattern = /(?:sample size|n\s*[=:]|participants?[:\s]+|subjects?[:\s]+)(?:n\s*[=:]?\s*)?(\d+(?:\s*,\s*\d{3})*)/i;
+      const match = fullText.match(samplePattern);
+      if (match && match[1]) {
+        const numStr = match[1].replace(/,/g, '');
+        const num = parseInt(numStr, 10);
+        if (num > 0 && num < 100000000) {
+          validated.sampleSize = num;
+        } else {
+          validated.sampleSize = undefined;
+        }
+      } else {
+        validated.sampleSize = undefined;
+      }
+    }
+  }
+
+  // Double-check study type - verify it matches content
+  if (validated.studyType) {
+    const studyTypeLower = validated.studyType.toLowerCase();
+    // Check if study type keywords appear in text
+    const typeKeywords: { [key: string]: string[] } = {
+      'meta-analysis': ['meta-analysis', 'systematic review', 'meta analysis'],
+      'randomized controlled trial': ['randomized', 'rct', 'randomised', 'random assignment'],
+      'cohort study': ['cohort', 'prospective', 'follow-up'],
+      'case-control study': ['case-control', 'case control'],
+      'cross-sectional study': ['cross-sectional', 'cross sectional', 'survey'],
+      'observational study': ['observational'],
+    };
+
+    let foundMatch = false;
+    for (const [type, keywords] of Object.entries(typeKeywords)) {
+      if (studyTypeLower.includes(type) || type.includes(studyTypeLower)) {
+        // Check if keywords appear in text
+        for (const keyword of keywords) {
+          if (lowerText.includes(keyword)) {
+            foundMatch = true;
+            break;
+          }
+        }
+        if (foundMatch) break;
+      }
+    }
+
+    // If study type doesn't match content, try to re-extract
+    if (!foundMatch) {
+      const extractedType = extractStudyType(fullText);
+      if (extractedType) {
+        validated.studyType = extractedType;
+      }
+    }
+  }
+
+  return validated;
+}
+
