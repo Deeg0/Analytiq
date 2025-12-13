@@ -8,7 +8,8 @@ import Footer from '@/components/Footer'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
-import { Loader2, User, Mail, Calendar } from 'lucide-react'
+import { Loader2, User, Mail, Calendar, BookOpen, LogOut } from 'lucide-react'
+import Link from 'next/link'
 
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null)
@@ -49,6 +50,14 @@ export default function SettingsPage() {
     })
   }
 
+  const handleSignOut = async () => {
+    if (confirm('Are you sure you want to sign out?')) {
+      const supabase = createClient()
+      await supabase.auth.signOut()
+      router.push('/')
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -66,36 +75,77 @@ export default function SettingsPage() {
           <p className="text-muted-foreground">Manage your account settings and preferences</p>
         </div>
 
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <User className="h-5 w-5" />
-              Account Information
-            </CardTitle>
-            <CardDescription>
-              View your account details
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-start gap-4">
-              <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-muted-foreground">Email Address</p>
-                <p className="text-base">{user?.email || 'Not available'}</p>
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <User className="h-5 w-5" />
+                Account Information
+              </CardTitle>
+              <CardDescription>
+                View your account details
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-start gap-4">
+                <Mail className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">Email Address</p>
+                  <p className="text-base">{user?.email || 'Not available'}</p>
+                </div>
               </div>
-            </div>
-            <Separator />
-            <div className="flex items-start gap-4">
-              <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
-              <div className="flex-1">
-                <p className="text-sm font-medium text-muted-foreground">Account Created</p>
-                <p className="text-base">
-                  {user?.created_at ? formatDate(user.created_at) : 'Not available'}
-                </p>
+              <Separator />
+              <div className="flex items-start gap-4">
+                <Calendar className="h-5 w-5 text-muted-foreground mt-0.5" />
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-muted-foreground">Account Created</p>
+                  <p className="text-base">
+                    {user?.created_at ? formatDate(user.created_at) : 'Not available'}
+                  </p>
+                </div>
               </div>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BookOpen className="h-5 w-5" />
+                Saved Studies
+              </CardTitle>
+              <CardDescription>
+                View and manage your saved study analyses
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link href="/saved">
+                <Button variant="outline" className="w-full gap-2">
+                  <BookOpen className="h-4 w-4" />
+                  View Saved Analyses
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Sign Out</CardTitle>
+              <CardDescription>
+                Sign out of your account
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Button 
+                onClick={handleSignOut} 
+                variant="destructive" 
+                className="w-full gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                Sign Out
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
       </main>
       <Footer />
     </div>

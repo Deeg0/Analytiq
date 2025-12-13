@@ -20,12 +20,6 @@ export default function Header({ user, onSignInClick, onSignUpClick, onShowOnboa
   const pathname = usePathname()
   const isHomePage = pathname === '/'
 
-  const handleSignOut = async () => {
-    if (confirm('Are you sure you want to sign out?')) {
-      await supabase.auth.signOut()
-    }
-  }
-
   const handleShowOnboarding = () => {
     // Remove onboarding completion for current user so they can see it again
     if (user?.id) {
@@ -86,11 +80,7 @@ export default function Header({ user, onSignInClick, onSignUpClick, onShowOnboa
                 </Button>
               </Link>
             )}
-            {user ? (
-              <Button onClick={handleSignOut} variant="outline">
-                Sign Out
-              </Button>
-            ) : (
+            {!user && (
               <>
                 <Button onClick={onSignInClick} variant="outline">
                   Sign In
