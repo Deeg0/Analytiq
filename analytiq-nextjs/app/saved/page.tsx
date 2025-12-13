@@ -37,6 +37,31 @@ export default function SavedAnalysesPage() {
   const [sortBy, setSortBy] = useState<'date' | 'score'>('date')
   const router = useRouter()
   const dialogScrollRef = useRef<HTMLDivElement>(null)
+  
+  // Callback ref to reset scroll when element is mounted
+  const setDialogScrollRef = (element: HTMLDivElement | null) => {
+    dialogScrollRef.current = element
+    if (element && isDialogOpen) {
+      // Reset scroll immediately when element is set
+      element.scrollTop = 0
+      // Also reset after multiple microtasks to ensure it sticks
+      setTimeout(() => {
+        if (element) {
+          element.scrollTop = 0
+        }
+      }, 0)
+      setTimeout(() => {
+        if (element) {
+          element.scrollTop = 0
+        }
+      }, 10)
+      setTimeout(() => {
+        if (element) {
+          element.scrollTop = 0
+        }
+      }, 50)
+    }
+  }
 
   useEffect(() => {
     const supabase = createClient()
@@ -166,56 +191,71 @@ export default function SavedAnalysesPage() {
       // Reset page scroll
       window.scrollTo({ top: 0, behavior: 'instant' })
       
-      // Reset dialog scroll immediately
-      dialogScrollRef.current.scrollTop = 0
+      const resetScroll = () => {
+        if (dialogScrollRef.current) {
+          dialogScrollRef.current.scrollTop = 0
+        }
+      }
+      
+      // Reset immediately
+      resetScroll()
       
       // Reset after multiple delays to ensure content is rendered
-      const timeout1 = setTimeout(() => {
-        if (dialogScrollRef.current) {
-          dialogScrollRef.current.scrollTop = 0
-        }
-      }, 0)
+      const timeouts = [
+        setTimeout(resetScroll, 0),
+        setTimeout(resetScroll, 10),
+        setTimeout(resetScroll, 50),
+        setTimeout(resetScroll, 100),
+        setTimeout(resetScroll, 200),
+        setTimeout(resetScroll, 400),
+      ]
       
-      const timeout2 = setTimeout(() => {
-        if (dialogScrollRef.current) {
-          dialogScrollRef.current.scrollTop = 0
-        }
-      }, 50)
+      // Use requestAnimationFrame multiple times
+      const rafs = [
+        requestAnimationFrame(resetScroll),
+        requestAnimationFrame(() => {
+          requestAnimationFrame(resetScroll)
+        }),
+        requestAnimationFrame(() => {
+          setTimeout(resetScroll, 0)
+        }),
+      ]
       
-      const timeout3 = setTimeout(() => {
-        if (dialogScrollRef.current) {
-          dialogScrollRef.current.scrollTop = 0
-        }
-      }, 150)
-      
-      const timeout4 = setTimeout(() => {
-        if (dialogScrollRef.current) {
-          dialogScrollRef.current.scrollTop = 0
-        }
-      }, 300)
-      
-      // Use requestAnimationFrame for better timing
-      const raf1 = requestAnimationFrame(() => {
-        if (dialogScrollRef.current) {
-          dialogScrollRef.current.scrollTop = 0
+      // Use MutationObserver to reset scroll when content changes
+      const observer = new MutationObserver(() => {
+        resetScroll()
+        // Also try to scroll the first element into view
+        const firstElement = dialogScrollRef.current?.querySelector('#dialog-content-start')
+        if (firstElement) {
+          firstElement.scrollIntoView({ block: 'start', behavior: 'instant' })
         }
       })
       
-      const raf2 = requestAnimationFrame(() => {
-        setTimeout(() => {
-          if (dialogScrollRef.current) {
-            dialogScrollRef.current.scrollTop = 0
-          }
-        }, 0)
-      })
+      if (dialogScrollRef.current) {
+        observer.observe(dialogScrollRef.current, {
+          childList: true,
+          subtree: true,
+          attributes: true,
+        })
+      }
+      
+      // Also try scrolling the first element into view
+      const scrollToStart = () => {
+        const firstElement = dialogScrollRef.current?.querySelector('#dialog-content-start')
+        if (firstElement && dialogScrollRef.current) {
+          firstElement.scrollIntoView({ block: 'start', behavior: 'instant' })
+          dialogScrollRef.current.scrollTop = 0
+        }
+      }
+      
+      setTimeout(scrollToStart, 0)
+      setTimeout(scrollToStart, 100)
+      setTimeout(scrollToStart, 300)
       
       return () => {
-        clearTimeout(timeout1)
-        clearTimeout(timeout2)
-        clearTimeout(timeout3)
-        clearTimeout(timeout4)
-        cancelAnimationFrame(raf1)
-        cancelAnimationFrame(raf2)
+        timeouts.forEach(clearTimeout)
+        rafs.forEach(cancelAnimationFrame)
+        observer.disconnect()
       }
     }
   }, [isDialogOpen, selectedAnalysis])
@@ -440,23 +480,37 @@ export default function SavedAnalysesPage() {
             </DialogTitle>
           </DialogHeader>
           <div 
-            ref={dialogScrollRef} 
+            ref={setDialogScrollRef} 
             className="flex-1 overflow-y-auto px-6 py-4"
             style={{ scrollBehavior: 'auto' }}
+            onScroll={(e) => {
+              // Prevent any programmatic scrolling that might happen
+              if (e.currentTarget.scrollTop > 0 && isDialogOpen) {
+                // If somehow scrolled, reset it
+                const target = e.currentTarget
+                requestAnimationFrame(() => {
+                  if (target.scrollTop > 0) {
+                    target.scrollTop = 0
+                  }
+                })
+              }
+            }}
           >
             {selectedAnalysis && (
-              <AnalysisContext.Provider value={{
-                loading: false,
-                results: selectedAnalysis,
-                error: null,
-                analyzeUrl: async () => {},
-                analyzeText: async () => {},
-                saveAnalysis: async () => ({ success: false, error: 'Cannot save from saved view' }),
-                saving: false,
-                isSavedAnalysis: true, // Flag to hide save button
-              }}>
-                <ResultsSection />
-              </AnalysisContext.Provider>
+              <div id="dialog-content-start" style={{ scrollMarginTop: 0 }}>
+                <AnalysisContext.Provider value={{
+                  loading: false,
+                  results: selectedAnalysis,
+                  error: null,
+                  analyzeUrl: async () => {},
+                  analyzeText: async () => {},
+                  saveAnalysis: async () => ({ success: false, error: 'Cannot save from saved view' }),
+                  saving: false,
+                  isSavedAnalysis: true, // Flag to hide save button
+                }}>
+                  <ResultsSection />
+                </AnalysisContext.Provider>
+              </div>
             )}
           </div>
         </DialogContent>
