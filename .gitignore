@@ -35,15 +35,9 @@ logs/
 tmp/
 temp/
 
-# Backend specific
-backend/dist/
-backend/.env
-backend/.env.local
-backend/.env.*.local
-
-# Frontend specific (if using build tools)
-frontend/dist/
-frontend/build/
-
-# All md files
-*.md
+# Build outputs
+.next/
+out/
+dist/
+build/
+*.tsbuildinfo

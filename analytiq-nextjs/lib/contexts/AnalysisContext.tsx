@@ -70,7 +70,7 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
     // Check if user is authenticated - always require sign in
     if (!user) {
       if (onAuthRequired) {
-        onAuthRequired()
+      onAuthRequired()
       }
       return
     }
@@ -133,7 +133,7 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
     } finally {
       // Only update loading state if this request wasn't aborted
       if (!abortController.signal.aborted) {
-        setLoading(false)
+      setLoading(false)
       }
       if (abortControllerRef.current === abortController) {
         abortControllerRef.current = null
@@ -145,7 +145,7 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
     // Check if user is authenticated - always require sign in
     if (!user) {
       if (onAuthRequired) {
-        onAuthRequired()
+      onAuthRequired()
       }
       return
     }
@@ -208,7 +208,7 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
     } finally {
       // Only update loading state if this request wasn't aborted
       if (!abortController.signal.aborted) {
-        setLoading(false)
+      setLoading(false)
       }
       if (abortControllerRef.current === abortController) {
         abortControllerRef.current = null

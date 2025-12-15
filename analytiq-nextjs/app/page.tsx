@@ -39,7 +39,7 @@ export default function Home() {
     const emailConfirmed = urlParams.get('email_confirmed')
     const emailConfirmation = urlParams.get('email_confirmation')
     const message = urlParams.get('message')
-    
+
     try {
       const supabase = createClient()
       
@@ -168,7 +168,7 @@ export default function Home() {
               completeOnboarding()
               setForceShowOnboarding(false)
             }} 
-          />
+        />
         )}
       </div>
     </AnalysisProvider>
