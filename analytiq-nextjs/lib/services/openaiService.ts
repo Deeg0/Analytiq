@@ -40,8 +40,9 @@ export async function analyzeWithAI(
         },
       ],
       temperature: 0.3,
-      max_tokens: 4000, // Increased to allow for more quotes and detailed debunking from all sections
+      max_tokens: 3000, // Reduced to improve response time and avoid timeouts
       response_format: { type: 'json_object' },
+      timeout: 20000, // 20 second timeout for the API call itself
     });
 
     const analysisText = response.choices[0]?.message?.content;

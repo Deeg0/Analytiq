@@ -4,6 +4,8 @@ import { analyzeStudy } from '@/lib/services/analysisService'
 import { AnalysisRequest } from '@/lib/types/analysis'
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now()
+  
   try {
     // Check environment variables first
     if (!process.env.OPENAI_API_KEY) {
@@ -44,8 +46,12 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Call your existing analysis service
+    // Call your existing analysis service with timeout awareness
+    // Note: Netlify free tier has 10s timeout, Pro tier has 26s
     const result = await analyzeStudy({ inputType, content })
+    
+    const duration = Date.now() - startTime
+    console.log(`Analysis completed in ${duration}ms`)
 
     return NextResponse.json(result, {
       headers: {

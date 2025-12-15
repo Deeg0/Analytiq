@@ -5,7 +5,6 @@ import { resolveDoi } from './doiResolver';
 import { extractMetadata, validateAndCrossCheckMetadata } from './metadataExtractor';
 import { analyzeWithAI } from './openaiService';
 import { calculateTrustScore } from './scorer';
-import { summarizeJournal, summarizeMetadataField } from './summarizer';
 
 export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisResult> {
   try {
@@ -94,41 +93,9 @@ export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisRe
     // Step 2.5: Double-check and validate study info
     metadata = validateAndCrossCheckMetadata(metadata, extractedContent.text);
 
-    // Step 2.6: Summarize metadata fields if needed
-    // Journal: summarize if > 100 words
-    if (metadata.journal && typeof metadata.journal === 'string') {
-      metadata.journal = await summarizeJournal(metadata.journal);
-    }
-    
-    // Other fields: summarize if > 500 words
-    if (metadata.title && typeof metadata.title === 'string') {
-      metadata.title = await summarizeMetadataField(metadata.title);
-    }
-    
-    // Summarize other text fields that might be long
-    if (metadata.publicationDate && typeof metadata.publicationDate === 'string') {
-      metadata.publicationDate = await summarizeMetadataField(metadata.publicationDate);
-    }
-    
-    // Summarize funding sources if any are too long
-    if (metadata.funding && Array.isArray(metadata.funding)) {
-      const summarized = await Promise.all(
-        metadata.funding.map(async fund => 
-          typeof fund === 'string' ? (await summarizeMetadataField(fund)) || fund : fund
-        )
-      );
-      metadata.funding = summarized.filter((f): f is string => typeof f === 'string');
-    }
-    
-    // Summarize affiliations if any are too long
-    if (metadata.affiliations && Array.isArray(metadata.affiliations)) {
-      const summarized = await Promise.all(
-        metadata.affiliations.map(async aff => 
-          typeof aff === 'string' ? (await summarizeMetadataField(aff)) || aff : aff
-        )
-      );
-      metadata.affiliations = summarized.filter((a): a is string => typeof a === 'string');
-    }
+    // Skip summarization to reduce API calls and improve performance
+    // This helps avoid Netlify timeout issues (10s free tier, 26s pro tier)
+    // Metadata fields are kept as-is - they're usually short enough
 
     // Step 3: Perform AI analysis with timeout protection
     let aiAnalysis;
