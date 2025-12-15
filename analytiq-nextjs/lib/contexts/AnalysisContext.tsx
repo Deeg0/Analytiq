@@ -56,15 +56,8 @@ export function AnalysisProvider({ children, user, onAuthRequired }: AnalysisPro
     }
   }, [user, loading])
 
-  // Determine which API endpoint to use
-  const getApiUrl = () => {
-    // Use Railway backend if configured, otherwise use Next.js API route
-    const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL
-    if (backendUrl) {
-      return `${backendUrl}/api/analyze`
-    }
-    return '/api/analyze'
-  }
+  // Use Next.js API route
+  const getApiUrl = () => '/api/analyze'
 
   const analyzeUrl = async (url: string) => {
     // Check if user is authenticated - always require sign in
