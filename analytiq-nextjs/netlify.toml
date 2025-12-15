@@ -11,3 +11,7 @@
 # OPENAI_API_KEY
 # NEXT_PUBLIC_SITE_URL
 
+# Note: Function timeout is configured in Netlify dashboard:
+# Site settings > Functions > Function timeout
+# Free tier: 10 seconds max
+# Pro tier: 26 seconds max

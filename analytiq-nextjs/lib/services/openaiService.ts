@@ -9,7 +9,7 @@ function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      throw new Error('OPENAI_API_KEY environment variable is not set. Please check your .env file in the backend directory.');
+      throw new Error('OPENAI_API_KEY environment variable is not set. Please set it in your Netlify environment variables.');
     }
     openaiClient = new OpenAI({
       apiKey: apiKey,

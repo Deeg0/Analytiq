@@ -5,6 +5,15 @@ import { AnalysisRequest } from '@/lib/types/analysis'
 
 export async function POST(request: NextRequest) {
   try {
+    // Check environment variables first
+    if (!process.env.OPENAI_API_KEY) {
+      console.error('OPENAI_API_KEY is missing')
+      return NextResponse.json(
+        { error: 'Server configuration error: OpenAI API key not set' },
+        { status: 500 }
+      )
+    }
+
     // Check authentication
     const supabase = await createClient()
     const { data: { session } } = await supabase.auth.getSession()
