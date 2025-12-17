@@ -9,11 +9,11 @@ function getOpenAIClient(): OpenAI {
   if (!openaiClient) {
     const apiKey = process.env.OPENAI_API_KEY;
     if (!apiKey) {
-      throw new Error('OPENAI_API_KEY environment variable is not set. Please set it in your Netlify environment variables.');
+      throw new Error('OPENAI_API_KEY environment variable is not set. Please check your .env file in the backend directory.');
     }
     openaiClient = new OpenAI({
       apiKey: apiKey,
-      timeout: 20000, // 20 second timeout for API calls
+      timeout: 240000, // 4 minutes timeout (240 seconds) - leave 1 minute buffer for Railway
     });
   }
   return openaiClient;
@@ -41,8 +41,10 @@ export async function analyzeWithAI(
         },
       ],
       temperature: 0.3,
-      max_tokens: 3000, // Reduced to improve response time and avoid timeouts
+      max_tokens: 4000, // Increased to allow for more quotes and detailed debunking from all sections
       response_format: { type: 'json_object' },
+    }, {
+      timeout: 240000, // 4 minutes timeout
     });
 
     const analysisText = response.choices[0]?.message?.content;

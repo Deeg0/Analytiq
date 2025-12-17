@@ -3,19 +3,12 @@ import { createClient } from '@/lib/supabase/server'
 import { analyzeStudy } from '@/lib/services/analysisService'
 import { AnalysisRequest } from '@/lib/types/analysis'
 
-export async function POST(request: NextRequest) {
-  const startTime = Date.now()
-  
-  try {
-    // Check environment variables first
-    if (!process.env.OPENAI_API_KEY) {
-      console.error('OPENAI_API_KEY is missing')
-      return NextResponse.json(
-        { error: 'Server configuration error: OpenAI API key not set' },
-        { status: 500 }
-      )
-    }
+// Increase timeout for long-running AI analysis (Railway allows up to 5 minutes)
+export const maxDuration = 300 // 5 minutes in seconds
+export const runtime = 'nodejs'
 
+export async function POST(request: NextRequest) {
+  try {
     // Check authentication
     const supabase = await createClient()
     const { data: { session } } = await supabase.auth.getSession()
@@ -46,12 +39,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Call your existing analysis service with timeout awareness
-    // Note: Netlify free tier has 10s timeout, Pro tier has 26s
+    // Call your existing analysis service
     const result = await analyzeStudy({ inputType, content })
-    
-    const duration = Date.now() - startTime
-    console.log(`Analysis completed in ${duration}ms`)
 
     return NextResponse.json(result, {
       headers: {
@@ -60,9 +49,21 @@ export async function POST(request: NextRequest) {
     })
   } catch (error: any) {
     console.error('Analysis error:', error)
+    console.error('Error stack:', error.stack)
+    console.error('Error details:', {
+      message: error.message,
+      name: error.name,
+      code: error.code,
+    })
     // Ensure we always return JSON, even on errors
     return NextResponse.json(
-      { error: error.message || 'Analysis failed' },
+      { 
+        error: error.message || 'Analysis failed',
+        ...(process.env.NODE_ENV === 'development' && { 
+          details: error.stack,
+          code: error.code 
+        })
+      },
       { 
         status: 500,
         headers: {
