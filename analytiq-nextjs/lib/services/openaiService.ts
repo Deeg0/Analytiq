@@ -389,8 +389,8 @@ export async function analyzeWithAI(
     
     // Merge results from both phases
     const mergedResults: AIAnalysisResult = {
-      ...phase1Results,
-      ...phase2Results,
+      ...(phase1Results as AIAnalysisResult),
+      ...(phase2Results as AIAnalysisResult),
       // Merge flaw detection arrays
       flawDetection: {
         fallacies: [
