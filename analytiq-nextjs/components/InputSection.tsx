@@ -31,10 +31,28 @@ export default function InputSection() {
               <Input
                 id="url-input"
                 type="url"
-                placeholder="https://example.com/research-study"
+                placeholder="https://example.com/research-study or https://example.com/study.pdf"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
               />
+              <div className="text-xs text-muted-foreground space-y-1 pt-1 bg-muted/50 p-3 rounded-md border">
+                <p className="font-semibold mb-2">Supported URL types:</p>
+                <ul className="list-disc list-inside space-y-1 ml-2">
+                  <li><strong>Web pages:</strong> HTML articles, research paper pages, journal websites</li>
+                  <li><strong>PDF files:</strong> Direct links ending in <code className="text-xs bg-background px-1 rounded">.pdf</code> (e.g., <code className="text-xs bg-background px-1 rounded">https://example.com/study.pdf</code>)</li>
+                  <li><strong>DOI links:</strong> DOI resolver URLs (e.g., <code className="text-xs bg-background px-1 rounded">https://doi.org/10.1234/example</code>)</li>
+                  <li><strong>Journal pages:</strong> PubMed, arXiv, bioRxiv, ResearchGate, Academia.edu, etc.</li>
+                </ul>
+                <div className="pt-2 mt-2 border-t text-xs text-muted-foreground/80">
+                  <p className="font-semibold mb-1">⚠️ Important notes:</p>
+                  <ul className="list-disc list-inside space-y-0.5 ml-2">
+                    <li>PDFs must be publicly accessible (no password protection)</li>
+                    <li>Paywalled content may not be accessible</li>
+                    <li>Large PDFs (over 10MB) are not supported</li>
+                    <li>URLs must start with <code className="text-xs bg-background px-1 rounded">http://</code> or <code className="text-xs bg-background px-1 rounded">https://</code></li>
+                  </ul>
+                </div>
+              </div>
             </div>
             <Button 
               className="w-full" 

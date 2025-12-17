@@ -118,16 +118,32 @@ export async function scrapeUrl(url: string): Promise<ExtractedContent> {
     // Extract study identifiers from URL path
     const urlStudyIdentifiers = extractStudyIdentifiersFromUrl(url);
     
+    // Check if URL points to a PDF file
+    const isPdfUrl = url.toLowerCase().endsWith('.pdf') || url.toLowerCase().includes('.pdf?');
+    
     const response = await axios.get(url, {
       headers: {
         'User-Agent': USER_AGENT,
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+        'Accept': isPdfUrl 
+          ? 'application/pdf,*/*'
+          : 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
       },
       timeout: 30000,
       maxRedirects: 5,
+      responseType: isPdfUrl ? 'arraybuffer' : 'text',
     });
 
-    const $ = cheerio.load(response.data);
+    // Handle PDF URLs
+    if (isPdfUrl || response.headers['content-type']?.includes('application/pdf')) {
+      const pdfBuffer = Buffer.isBuffer(response.data) 
+        ? response.data 
+        : Buffer.from(response.data as ArrayBuffer);
+      // Dynamically import pdfParser to avoid build issues
+      const { parsePdf } = await import('./pdfParser');
+      return await parsePdf(pdfBuffer);
+    }
+
+    const $ = cheerio.load(response.data as string);
     
     // Remove script and style elements
     $('script, style, nav, footer, header, aside').remove();
