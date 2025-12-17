@@ -196,6 +196,9 @@ export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisRe
         citationQuality: citationQuality.quality,
         citationScore: citationQuality.score,
         citationIssues: citationQuality.issues,
+        // Add credibility info from AI analysis
+        authorCredibility: aiAnalysis.metadata?.authorCredibility,
+        journalCredibility: aiAnalysis.metadata?.journalCredibility,
       },
       trustScore,
       evidenceHierarchy: aiAnalysis.evidenceHierarchy,
@@ -210,6 +213,9 @@ export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisRe
       technicalCritique: aiAnalysis.technicalCritique || 'Analysis completed, but technical critique could not be generated.',
       biasReport: aiAnalysis.biasReport || 'Analysis completed, but bias report could not be generated.',
       recommendations: aiAnalysis.recommendations || [],
+      keyTakeaways: aiAnalysis.keyTakeaways || [],
+      studyLimitations: aiAnalysis.studyLimitations || [],
+      replicationInfo: aiAnalysis.replicationInfo,
     };
 
     return result;

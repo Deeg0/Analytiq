@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import React, { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -50,11 +50,13 @@ function formatTitle(text: string): string {
 }
 
 export default function ResultsSection() {
-  const { results, error, saveAnalysis, saving, isSavedAnalysis } = useAnalysis()
+  const { results, error, saveAnalysis, saving, isSavedAnalysis, loading } = useAnalysis()
   const [highlightedSection, setHighlightedSection] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState<string>('simple')
   const [saved, setSaved] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
+  const resultsRef = React.useRef<HTMLDivElement>(null)
+  const [hasScrolled, setHasScrolled] = useState(false)
 
   const scrollToSection = (id: string) => {
     // Switch to technical tab first
@@ -87,6 +89,25 @@ export default function ResultsSection() {
     setSaved(false)
     setSaveError(null)
   }, [results])
+
+  // Auto-scroll to results when analysis finishes
+  useEffect(() => {
+    if (results && !loading && !hasScrolled && resultsRef.current) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ 
+          behavior: 'smooth', 
+          block: 'start',
+          inline: 'nearest'
+        })
+        setHasScrolled(true)
+      }, 300)
+    }
+    // Reset scroll flag when results change
+    if (!results) {
+      setHasScrolled(false)
+    }
+  }, [results, loading, hasScrolled])
 
   const handleSave = async () => {
     setSaveError(null)
@@ -122,7 +143,7 @@ export default function ResultsSection() {
   }
 
   return (
-    <div className="space-y-4 sm:space-y-6 md:space-y-8">
+    <div ref={resultsRef} id="analysis-results" className="space-y-4 sm:space-y-6 md:space-y-8">
       {/* Save Button - Only show if not viewing a saved analysis */}
       {results && !isSavedAnalysis && (
         <div className="flex items-center justify-between">
@@ -155,31 +176,31 @@ export default function ResultsSection() {
         </div>
       )}
 
-      {/* Score Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Overview</CardTitle>
+      {/* Score Card - Cleaner Design */}
+      <Card className="border-2 shadow-lg">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-2xl font-bold">Trust Score</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className={`bg-gradient-to-br ${getScoreRatingColor(overallPercentage)} rounded-2xl p-6 sm:p-8 md:p-10 text-white mb-6 sm:mb-8`}>
-            <div className="flex flex-col sm:flex-row items-center gap-4 sm:gap-6 md:gap-8">
-              <div className="w-24 h-24 sm:w-28 sm:h-28 md:w-32 md:h-32 rounded-full bg-white/25 backdrop-blur-md border-4 border-white/40 flex flex-col items-center justify-center">
+          <div className={`bg-gradient-to-br ${getScoreRatingColor(overallPercentage)} rounded-xl p-6 sm:p-8 text-white mb-6`}>
+            <div className="flex flex-col sm:flex-row items-center gap-6">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-white/20 backdrop-blur-sm border-3 border-white/30 flex flex-col items-center justify-center shadow-lg">
                 <span className="text-3xl sm:text-4xl font-bold">{results.trustScore.overall}</span>
-                <span className="text-xs uppercase tracking-wider opacity-90 font-semibold">Score</span>
+                <span className="text-[10px] uppercase tracking-wider opacity-90 font-semibold">/100</span>
               </div>
-              <div className="text-center sm:text-left">
-                <h3 className="text-xl sm:text-2xl md:text-3xl font-bold mb-2 sm:mb-3">
+              <div className="text-center sm:text-left flex-1">
+                <h3 className="text-xl sm:text-2xl font-bold mb-1">
                   {results.trustScore.rating}
                 </h3>
-                <p className="opacity-95 text-sm sm:text-base md:text-lg">
-                  Analysis complete
+                <p className="opacity-90 text-sm">
+                  Overall Study Reliability
                 </p>
               </div>
             </div>
           </div>
 
-          {/* Category Breakdown */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          {/* Category Breakdown - Cleaner Design */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {Object.entries(results.trustScore.breakdown).map(([key, data]: [string, any]) => {
               const percentage = Math.round((data.score / data.maxScore) * 100)
               const colorClass = getScoreColor(percentage)
@@ -189,27 +210,27 @@ export default function ResultsSection() {
               return (
                 <Card 
                   key={key} 
-                  className="cursor-pointer hover:bg-muted/70 transition-all hover:shadow-md"
+                  className="cursor-pointer hover:bg-muted/50 transition-all hover:shadow-md border"
                   onClick={() => scrollToSection(sectionId)}
                 >
-                  <CardContent className="p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-semibold">{categoryNames[key] || key.replace(/([A-Z])/g, ' $1').trim()}</h4>
-                      <Badge variant="outline" className={colorClass}>
+                  <CardContent className="p-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="font-semibold text-base">{categoryNames[key] || key.replace(/([A-Z])/g, ' $1').trim()}</h4>
+                      <Badge variant="outline" className={`${colorClass} font-semibold`}>
                         {percentage}%
                       </Badge>
                     </div>
-                    <div className={`text-2xl font-bold mb-2 ${colorClass}`}>
-                      {data.score}/{data.maxScore}
+                    <div className={`text-3xl font-bold mb-3 ${colorClass}`}>
+                      {data.score}<span className="text-lg text-muted-foreground">/{data.maxScore}</span>
                     </div>
-                    <div className="bg-muted relative h-2 w-full overflow-hidden rounded-full">
+                    <div className="bg-muted/50 relative h-2.5 w-full overflow-hidden rounded-full">
                       <div 
-                        className={`h-full transition-all ${bgColorClass}`}
+                        className={`h-full transition-all duration-300 ${bgColorClass}`}
                         style={{ width: `${percentage}%` }}
                       />
                     </div>
-                    <div className="mt-2 text-xs text-muted-foreground">
-                      Click to view details →
+                    <div className="mt-3 text-xs text-muted-foreground font-medium">
+                      Click for details →
                     </div>
                   </CardContent>
                 </Card>
@@ -218,6 +239,264 @@ export default function ResultsSection() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Key Takeaways */}
+      {results.keyTakeaways && results.keyTakeaways.length > 0 && (
+        <Card className="border-l-4 border-l-blue-500">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+              <span className="text-2xl">🔑</span>
+              Key Takeaways
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {results.keyTakeaways.map((takeaway, idx) => (
+                <div key={idx} className="flex gap-3 p-3 rounded-lg bg-muted/50">
+                  <div className="flex-shrink-0 w-6 h-6 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold">
+                    {idx + 1}
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium leading-relaxed">{takeaway.point}</p>
+                    <div className="flex items-center gap-2 mt-1">
+                      <Badge variant="outline" className="text-xs">
+                        {takeaway.category}
+                      </Badge>
+                      {takeaway.importance === 'high' && (
+                        <Badge variant="outline" className="text-xs text-orange-600 border-orange-600">
+                          High Priority
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Study Limitations */}
+      {results.studyLimitations && results.studyLimitations.length > 0 && (
+        <Card className="border-l-4 border-l-orange-500">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+              <span className="text-2xl">⚠️</span>
+              Study Limitations
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {results.studyLimitations.map((limitation, idx) => (
+                <div key={idx} className={`p-4 rounded-lg border ${
+                  limitation.severity === 'high' ? 'bg-red-50 dark:bg-red-950/20 border-red-200' :
+                  limitation.severity === 'medium' ? 'bg-orange-50 dark:bg-orange-950/20 border-orange-200' :
+                  'bg-yellow-50 dark:bg-yellow-950/20 border-yellow-200'
+                }`}>
+                  <div className="flex items-start gap-3">
+                    <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${
+                      limitation.severity === 'high' ? 'bg-red-500 text-white' :
+                      limitation.severity === 'medium' ? 'bg-orange-500 text-white' :
+                      'bg-yellow-500 text-white'
+                    }`}>
+                      {limitation.severity === 'high' ? '!' : limitation.severity === 'medium' ? '~' : '•'}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold mb-1">{limitation.limitation}</p>
+                      <p className="text-sm text-muted-foreground mb-2">{limitation.impact}</p>
+                      {limitation.affectsConclusion && (
+                        <Badge variant="outline" className="text-xs text-red-600 border-red-600">
+                          Affects Conclusions
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Author & Journal Credibility */}
+      {(results.metadata.authorCredibility || results.metadata.journalCredibility) && (
+        <Card className="border-l-4 border-l-purple-500">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+              <span className="text-2xl">📚</span>
+              Credibility Assessment
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {results.metadata.authorCredibility && (
+                <div className="p-4 rounded-lg bg-muted/50">
+                  <h4 className="font-semibold mb-3">Author Credibility</h4>
+                  <div className="space-y-2 text-sm">
+                    {results.metadata.authorCredibility.credibilityScore !== undefined && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Credibility Score:</span>
+                        <Badge variant="outline" className={
+                          results.metadata.authorCredibility.credibilityScore >= 80 ? 'text-green-600 border-green-600' :
+                          results.metadata.authorCredibility.credibilityScore >= 60 ? 'text-yellow-600 border-yellow-600' :
+                          'text-red-600 border-red-600'
+                        }>
+                          {results.metadata.authorCredibility.credibilityScore}/100
+                        </Badge>
+                      </div>
+                    )}
+                    {results.metadata.authorCredibility.hIndex !== undefined && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">H-Index:</span>
+                        <span className="font-medium">{results.metadata.authorCredibility.hIndex}</span>
+                      </div>
+                    )}
+                    {results.metadata.authorCredibility.publicationCount !== undefined && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Publications:</span>
+                        <span className="font-medium">{results.metadata.authorCredibility.publicationCount}</span>
+                      </div>
+                    )}
+                    {results.metadata.authorCredibility.conflictHistory && results.metadata.authorCredibility.conflictHistory.length > 0 && (
+                      <div className="mt-2 pt-2 border-t">
+                        <p className="text-xs text-muted-foreground mb-1">Conflict History:</p>
+                        <ul className="text-xs space-y-1">
+                          {results.metadata.authorCredibility.conflictHistory.map((conflict, idx) => (
+                            <li key={idx} className="text-orange-600">• {conflict}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+              {results.metadata.journalCredibility && (
+                <div className="p-4 rounded-lg bg-muted/50">
+                  <h4 className="font-semibold mb-3">Journal Credibility</h4>
+                  <div className="space-y-2 text-sm">
+                    {results.metadata.journalCredibility.impactFactor !== undefined && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Impact Factor:</span>
+                        <span className="font-medium">{results.metadata.journalCredibility.impactFactor}</span>
+                      </div>
+                    )}
+                    {results.metadata.journalCredibility.reputationScore !== undefined && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Reputation:</span>
+                        <Badge variant="outline" className={
+                          results.metadata.journalCredibility.reputationScore >= 80 ? 'text-green-600 border-green-600' :
+                          results.metadata.journalCredibility.reputationScore >= 60 ? 'text-yellow-600 border-yellow-600' :
+                          'text-red-600 border-red-600'
+                        }>
+                          {results.metadata.journalCredibility.reputationScore}/100
+                        </Badge>
+                      </div>
+                    )}
+                    {results.metadata.journalCredibility.quartile && (
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Quartile:</span>
+                        <Badge variant="outline" className={
+                          results.metadata.journalCredibility.quartile === 'Q1' ? 'text-green-600 border-green-600' :
+                          results.metadata.journalCredibility.quartile === 'Q2' ? 'text-yellow-600 border-yellow-600' :
+                          results.metadata.journalCredibility.quartile === 'Q3' ? 'text-orange-600 border-orange-600' :
+                          'text-red-600 border-red-600'
+                        }>
+                          {results.metadata.journalCredibility.quartile}
+                        </Badge>
+                      </div>
+                    )}
+                    {results.metadata.journalCredibility.isPredatory && (
+                      <div className="mt-2 pt-2 border-t">
+                        <Badge variant="destructive" className="text-xs">
+                          ⚠️ Potential Predatory Journal
+                        </Badge>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Replication & Follow-up */}
+      {results.replicationInfo && (
+        <Card className="border-l-4 border-l-green-500">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold flex items-center gap-2">
+              <span className="text-2xl">🔄</span>
+              Replication & Follow-up
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {results.replicationInfo.replicationAttempts && results.replicationInfo.replicationAttempts.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-3">Replication Attempts</h4>
+                  <div className="space-y-2">
+                    {results.replicationInfo.replicationAttempts.map((attempt, idx) => (
+                      <div key={idx} className="p-3 rounded-lg bg-muted/50 flex items-start gap-3">
+                        <Badge variant="outline" className={
+                          attempt.outcome === 'confirmed' ? 'text-green-600 border-green-600' :
+                          attempt.outcome === 'failed' ? 'text-red-600 border-red-600' :
+                          attempt.outcome === 'partial' ? 'text-yellow-600 border-yellow-600' :
+                          'text-gray-600 border-gray-600'
+                        }>
+                          {attempt.outcome === 'confirmed' ? '✓ Confirmed' :
+                           attempt.outcome === 'failed' ? '✗ Failed' :
+                           attempt.outcome === 'partial' ? '~ Partial' : '? Unknown'}
+                        </Badge>
+                        <div className="flex-1">
+                          <p className="text-sm font-medium">{attempt.study}</p>
+                          {attempt.notes && (
+                            <p className="text-xs text-muted-foreground mt-1">{attempt.notes}</p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {results.replicationInfo.followUpStudies && results.replicationInfo.followUpStudies.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-2">Follow-up Studies</h4>
+                  <ul className="space-y-1 text-sm">
+                    {results.replicationInfo.followUpStudies.map((study, idx) => (
+                      <li key={idx} className="flex items-start gap-2">
+                        <span className="text-muted-foreground">•</span>
+                        <span>{study}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {results.replicationInfo.updates && results.replicationInfo.updates.length > 0 && (
+                <div>
+                  <h4 className="font-semibold mb-2">Updates & Corrections</h4>
+                  <div className="space-y-2">
+                    {results.replicationInfo.updates.map((update, idx) => (
+                      <div key={idx} className="p-2 rounded bg-muted/50 text-sm">
+                        <div className="flex items-center gap-2 mb-1">
+                          <Badge variant="outline" className="text-xs">
+                            {update.type === 'retraction' ? '🚫 Retraction' :
+                             update.type === 'correction' ? '✏️ Correction' :
+                             update.type === 'erratum' ? '📝 Erratum' : '🔄 Update'}
+                          </Badge>
+                          {update.date && (
+                            <span className="text-xs text-muted-foreground">{update.date}</span>
+                          )}
+                        </div>
+                        <p className="text-muted-foreground">{update.description}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Detailed Analysis */}
       <Card>
@@ -232,11 +511,13 @@ export default function ResultsSection() {
               <TabsTrigger value="bias">Bias Report</TabsTrigger>
             </TabsList>
             <TabsContent value="simple" className="mt-4">
-              <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{results.simpleSummary}</p>
+              <div className="prose prose-sm max-w-none dark:prose-invert">
+                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed text-base">{results.simpleSummary}</p>
+              </div>
             </TabsContent>
             <TabsContent value="technical" className="mt-4 space-y-6">
-              <div>
-                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed mb-6">{results.technicalCritique}</p>
+              <div className="prose prose-sm max-w-none dark:prose-invert">
+                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed mb-6 text-base">{results.technicalCritique}</p>
                 <Separator className="my-6" />
                 
                 {/* Category Details */}
@@ -802,7 +1083,9 @@ export default function ResultsSection() {
               </div>
             </TabsContent>
             <TabsContent value="bias" className="mt-4">
-              <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed">{results.biasReport}</p>
+              <div className="prose prose-sm max-w-none dark:prose-invert">
+                <p className="text-muted-foreground whitespace-pre-wrap leading-relaxed text-base">{results.biasReport}</p>
+              </div>
             </TabsContent>
           </Tabs>
         </CardContent>

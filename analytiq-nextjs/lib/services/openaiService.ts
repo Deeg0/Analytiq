@@ -1,5 +1,5 @@
 import OpenAI from 'openai';
-import { ExtractedContent, StudyMetadata, AnalysisResult, CategoryScore, FlawDetection, ExpertContext, EvidenceHierarchy } from '@/lib/types/analysis';
+import { ExtractedContent, StudyMetadata, AnalysisResult, CategoryScore, FlawDetection, ExpertContext, EvidenceHierarchy, KeyTakeaway, StudyLimitation, ReplicationInfo } from '@/lib/types/analysis';
 import { createAnalysisPrompt } from '@/lib/utils/prompts';
 
 // Configuration - Optimized for cost (~2 cents per analysis) and speed
@@ -323,6 +323,45 @@ function parseAnalysisResponse(analysisText: string): Partial<AnalysisResult> {
     technicalCritique: analysisData.technicalCritique || '',
     biasReport: analysisData.biasReport || '',
     recommendations: analysisData.recommendations || [],
+    keyTakeaways: (analysisData.keyTakeaways || []).map((kt: any) => ({
+      point: kt.point || '',
+      importance: (kt.importance || 'medium') as 'high' | 'medium' | 'low',
+      category: kt.category || 'general',
+    })),
+    studyLimitations: (analysisData.studyLimitations || []).map((sl: any) => ({
+      limitation: sl.limitation || '',
+      impact: sl.impact || '',
+      severity: (sl.severity || 'medium') as 'high' | 'medium' | 'low',
+      affectsConclusion: sl.affectsConclusion || false,
+    })),
+    replicationInfo: analysisData.replicationInfo ? {
+      replicationAttempts: (analysisData.replicationInfo.replicationAttempts || []).map((ra: any) => ({
+        study: ra.study || '',
+        outcome: (ra.outcome || 'unknown') as 'confirmed' | 'failed' | 'partial' | 'unknown',
+        notes: ra.notes || undefined,
+      })),
+      followUpStudies: analysisData.replicationInfo.followUpStudies || [],
+      metaAnalyses: analysisData.replicationInfo.metaAnalyses || [],
+      updates: (analysisData.replicationInfo.updates || []).map((u: any) => ({
+        type: (u.type || 'update') as 'correction' | 'retraction' | 'erratum' | 'update',
+        date: u.date || undefined,
+        description: u.description || '',
+      })),
+    } : undefined,
+    metadata: {
+      authorCredibility: analysisData.authorCredibility ? {
+        hIndex: analysisData.authorCredibility.hIndex,
+        publicationCount: analysisData.authorCredibility.publicationCount,
+        credibilityScore: analysisData.authorCredibility.credibilityScore,
+        conflictHistory: analysisData.authorCredibility.conflictHistory || [],
+      } : undefined,
+      journalCredibility: analysisData.journalCredibility ? {
+        impactFactor: analysisData.journalCredibility.impactFactor,
+        reputationScore: analysisData.journalCredibility.reputationScore,
+        quartile: analysisData.journalCredibility.quartile as 'Q1' | 'Q2' | 'Q3' | 'Q4' | undefined,
+        isPredatory: analysisData.journalCredibility.isPredatory || false,
+      } : undefined,
+    },
   };
 }
 
@@ -395,6 +434,16 @@ export async function analyzeWithAI(
         ...(phase1Results.recommendations || []),
         ...(phase2Results.recommendations || []),
       ],
+      // Merge new sections (prefer phase 2 for bias/context related, phase 1 for methodology)
+      keyTakeaways: [
+        ...(phase1Results.keyTakeaways || []),
+        ...(phase2Results.keyTakeaways || []),
+      ],
+      studyLimitations: [
+        ...(phase1Results.studyLimitations || []),
+        ...(phase2Results.studyLimitations || []),
+      ],
+      replicationInfo: phase2Results.replicationInfo || phase1Results.replicationInfo,
     };
     
     console.log('Parallel 2-phase analysis completed');

@@ -492,7 +492,38 @@ REMEMBER: Maintain complete objectivity. Evaluate the study's scientific quality
   "simpleSummary": "2-3 paragraph non-technical summary - maintain complete objectivity, describe findings neutrally",
   "technicalCritique": "2-3 paragraph technical analysis - focus on methodology and evidence quality with zero bias",
   "biasReport": "3-4 paragraph EXTREMELY COMPREHENSIVE bias analysis. MUST include: (1) Deep investigation of funding sources - who owns/controls them, what else they own, their business interests, parent companies, board members, track record of funding research that aligns with their interests; (2) Deep investigation of ALL authors - current/past employment, stock holdings, patents, board positions, speaking fees, business ownership, family interests, previous work patterns, known affiliations; (3) Analysis of whether study conclusions align suspiciously with funder/author interests; (4) Identification of hidden or indirect connections; (5) Assessment of potential influence on study design, analysis, or conclusions. Be EXTREMELY thorough and suspicious - investigate ownership chains, parent companies, and all possible connections. Evaluate objectively but be comprehensive.",
-  "recommendations": ["rec1", "rec2"]
+  "recommendations": ["rec1", "rec2"],
+  "keyTakeaways": [
+    {"point": "Most important finding or insight (1 sentence)", "importance": "high|medium|low", "category": "methodology|findings|limitations|implications"},
+    {"point": "Second key point", "importance": "high|medium|low", "category": "category"},
+    {"point": "Third key point", "importance": "high|medium|low", "category": "category"}
+  ],
+  "studyLimitations": [
+    {"limitation": "Major limitation (e.g., small sample size, lack of controls)", "impact": "How this limitation affects the study's conclusions", "severity": "high|medium|low", "affectsConclusion": true|false},
+    {"limitation": "Another limitation", "impact": "Impact description", "severity": "high|medium|low", "affectsConclusion": true|false}
+  ],
+  "authorCredibility": {
+    "hIndex": 0-100,
+    "publicationCount": 0-1000,
+    "credibilityScore": 0-100,
+    "conflictHistory": ["conflict 1", "conflict 2"]
+  },
+  "journalCredibility": {
+    "impactFactor": 0-100,
+    "reputationScore": 0-100,
+    "quartile": "Q1|Q2|Q3|Q4",
+    "isPredatory": true|false
+  },
+  "replicationInfo": {
+    "replicationAttempts": [
+      {"study": "Study name or DOI", "outcome": "confirmed|failed|partial|unknown", "notes": "Brief notes"}
+    ],
+    "followUpStudies": ["Study 1", "Study 2"],
+    "metaAnalyses": ["Meta-analysis 1"],
+    "updates": [
+      {"type": "correction|retraction|erratum|update", "date": "YYYY-MM-DD", "description": "What changed"}
+    ]
+  }
 }
 
 Return ONLY valid JSON.`;

@@ -12,6 +12,18 @@ export interface StudyMetadata {
   citationQuality?: 'high' | 'medium' | 'low';
   citationScore?: number;
   citationIssues?: string[];
+  authorCredibility?: {
+    hIndex?: number;
+    publicationCount?: number;
+    credibilityScore?: number;
+    conflictHistory?: string[];
+  };
+  journalCredibility?: {
+    impactFactor?: number;
+    reputationScore?: number;
+    quartile?: 'Q1' | 'Q2' | 'Q3' | 'Q4';
+    isPredatory?: boolean;
+  };
 }
 
 export interface CategoryScore {
@@ -119,6 +131,34 @@ export interface CausalInference {
   };
 }
 
+export interface KeyTakeaway {
+  point: string;
+  importance: 'high' | 'medium' | 'low';
+  category: string;
+}
+
+export interface StudyLimitation {
+  limitation: string;
+  impact: string;
+  severity: 'high' | 'medium' | 'low';
+  affectsConclusion: boolean;
+}
+
+export interface ReplicationInfo {
+  replicationAttempts?: Array<{
+    study: string;
+    outcome: 'confirmed' | 'failed' | 'partial' | 'unknown';
+    notes?: string;
+  }>;
+  followUpStudies?: string[];
+  metaAnalyses?: string[];
+  updates?: Array<{
+    type: 'correction' | 'retraction' | 'erratum' | 'update';
+    date?: string;
+    description: string;
+  }>;
+}
+
 export interface AnalysisResult {
   metadata: StudyMetadata;
   trustScore: TrustScore;
@@ -130,6 +170,9 @@ export interface AnalysisResult {
   technicalCritique: string;
   biasReport: string;
   recommendations: string[];
+  keyTakeaways?: KeyTakeaway[];
+  studyLimitations?: StudyLimitation[];
+  replicationInfo?: ReplicationInfo;
 }
 
 export interface AnalysisRequest {
