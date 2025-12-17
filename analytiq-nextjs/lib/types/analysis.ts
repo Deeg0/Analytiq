@@ -9,6 +9,9 @@ export interface StudyMetadata {
   studyType?: string;
   sampleSize?: number;
   impactFactor?: number;
+  citationQuality?: 'high' | 'medium' | 'low';
+  citationScore?: number;
+  citationIssues?: string[];
 }
 
 export interface CategoryScore {

@@ -5,6 +5,9 @@ import { resolveDoi } from './doiResolver';
 import { extractMetadata, validateAndCrossCheckMetadata } from './metadataExtractor';
 import { analyzeWithAI } from './openaiService';
 import { calculateTrustScore } from './scorer';
+import { summarizeJournal, summarizeMetadataField } from './summarizer';
+import { generateCacheKey, getCachedAnalysis, setCachedAnalysis } from './cacheService';
+import { extractCitations, verifyCitations, analyzeCitationQuality } from './citationVerifier';
 
 export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisResult> {
   try {
@@ -93,25 +96,83 @@ export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisRe
     // Step 2.5: Double-check and validate study info
     metadata = validateAndCrossCheckMetadata(metadata, extractedContent.text);
 
-    // Skip summarization to reduce API calls and improve performance
-    // This helps avoid Netlify timeout issues (10s free tier, 26s pro tier)
-    // Metadata fields are kept as-is - they're usually short enough
-
-    // Step 3: Perform AI analysis with timeout protection
-    let aiAnalysis;
-    try {
-      aiAnalysis = await analyzeWithAI(extractedContent, metadata, sourceUrl);
-    } catch (error: any) {
-      if (error.message?.includes('API key') || error.message?.includes('authentication')) {
-        throw new Error('OpenAI API authentication failed. Please check your API key.');
-      }
-      if (error.message?.includes('timeout') || error.message?.includes('rate limit')) {
-        throw new Error('AI analysis service is temporarily unavailable. Please try again in a moment.');
-      }
-      throw new Error(`AI analysis failed: ${error.message || 'Unknown error occurred'}`);
+    // Step 2.6: Summarize metadata fields if needed
+    // Journal: summarize if > 100 words
+    if (metadata.journal && typeof metadata.journal === 'string') {
+      metadata.journal = await summarizeJournal(metadata.journal);
+    }
+    
+    // Other fields: summarize if > 500 words
+    if (metadata.title && typeof metadata.title === 'string') {
+      metadata.title = await summarizeMetadataField(metadata.title);
+    }
+    
+    // Summarize other text fields that might be long
+    if (metadata.publicationDate && typeof metadata.publicationDate === 'string') {
+      metadata.publicationDate = await summarizeMetadataField(metadata.publicationDate);
+    }
+    
+    // Summarize funding sources if any are too long
+    if (metadata.funding && Array.isArray(metadata.funding)) {
+      const summarized = await Promise.all(
+        metadata.funding.map(async fund => 
+          typeof fund === 'string' ? (await summarizeMetadataField(fund)) || fund : fund
+        )
+      );
+      metadata.funding = summarized.filter((f): f is string => typeof f === 'string');
+    }
+    
+    // Summarize affiliations if any are too long
+    if (metadata.affiliations && Array.isArray(metadata.affiliations)) {
+      const summarized = await Promise.all(
+        metadata.affiliations.map(async aff => 
+          typeof aff === 'string' ? (await summarizeMetadataField(aff)) || aff : aff
+        )
+      );
+      metadata.affiliations = summarized.filter((a): a is string => typeof a === 'string');
     }
 
-    // Step 4: Calculate trust score
+    // Step 3: Perform citation verification (always do this, not cached)
+    console.log('Verifying citations...');
+    const citations = extractCitations(extractedContent, metadata);
+    const citationVerification = await verifyCitations(citations, extractedContent, metadata);
+    const citationQuality = analyzeCitationQuality(citationVerification, extractedContent);
+    
+    // Step 4: Check cache first
+    const cacheKey = generateCacheKey(request.inputType, request.content, metadata);
+    let aiAnalysis = getCachedAnalysis<Partial<AnalysisResult>>(cacheKey);
+    
+    if (!aiAnalysis) {
+      // Step 4.1: Perform AI analysis with timeout protection
+      try {
+        aiAnalysis = await analyzeWithAI(extractedContent, metadata, sourceUrl);
+        
+        // Add citation verification results to analysis
+        if (aiAnalysis.trustScore?.breakdown) {
+          // Adjust bias score based on citation quality
+          if (citationQuality.quality === 'low') {
+            aiAnalysis.trustScore.breakdown.bias.score = Math.max(0, 
+              aiAnalysis.trustScore.breakdown.bias.score - 2
+            );
+          }
+        }
+        
+        // Cache the result
+        setCachedAnalysis(cacheKey, aiAnalysis);
+      } catch (error: any) {
+        if (error.message?.includes('API key') || error.message?.includes('authentication')) {
+          throw new Error('OpenAI API authentication failed. Please check your API key.');
+        }
+        if (error.message?.includes('timeout') || error.message?.includes('rate limit')) {
+          throw new Error('AI analysis service is temporarily unavailable. Please try again in a moment.');
+        }
+        throw new Error(`AI analysis failed: ${error.message || 'Unknown error occurred'}`);
+      }
+    } else {
+      console.log('Using cached analysis result');
+    }
+
+    // Step 5: Calculate trust score
     if (!aiAnalysis.trustScore?.breakdown) {
       throw new Error('AI analysis did not return valid breakdown. Please try again.');
     }
@@ -127,9 +188,15 @@ export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisRe
       aiAnalysis.evidenceHierarchy
     );
 
-    // Step 5: Build final result
+    // Step 6: Build final result (citation verification already done in Step 3)
     const result: AnalysisResult = {
-      metadata,
+      metadata: {
+        ...metadata,
+        // Add citation quality info to metadata
+        citationQuality: citationQuality.quality,
+        citationScore: citationQuality.score,
+        citationIssues: citationQuality.issues,
+      },
       trustScore,
       evidenceHierarchy: aiAnalysis.evidenceHierarchy,
       flawDetection,
