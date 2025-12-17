@@ -27,6 +27,9 @@ export default function Home() {
       return
     }
 
+    // Scroll to top on page load/reload
+    window.scrollTo({ top: 0, behavior: 'instant' })
+
     // Check if redirected from OAuth signup or email confirmation
     const urlParams = new URLSearchParams(window.location.search)
     if (urlParams.get('new_signup') === 'true') {
