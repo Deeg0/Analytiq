@@ -449,8 +449,8 @@ export async function analyzeWithAI(
       ],
       replicationInfo: phase2Results.replicationInfo || phase1Results.replicationInfo,
       // Merge credibility info (prefer phase 2 for bias/context related)
-      authorCredibility: phase2Results.authorCredibility || phase1Results.authorCredibility,
-      journalCredibility: phase2Results.journalCredibility || phase1Results.journalCredibility,
+      authorCredibility: (phase2Results as AIAnalysisResult).authorCredibility || (phase1Results as AIAnalysisResult).authorCredibility,
+      journalCredibility: (phase2Results as AIAnalysisResult).journalCredibility || (phase1Results as AIAnalysisResult).journalCredibility,
     };
     
     console.log('Parallel 2-phase analysis completed');
