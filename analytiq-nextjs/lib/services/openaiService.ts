@@ -83,8 +83,8 @@ async function analyzePhase1(
   const openai = getOpenAIClient();
   const model = DEFAULT_MODEL;
 
-  const response = await retryWithBackoff(() =>
-    openai.chat.completions.create({
+  const response = await retryWithBackoff(
+    () => openai.chat.completions.create({
       model,
       messages: [
         {
@@ -99,7 +99,8 @@ async function analyzePhase1(
       temperature: 0.3,
       max_tokens: Math.floor(MAX_TOKENS * 0.4), // 40% of tokens for phase 1
       response_format: { type: 'json_object' },
-    }, MAX_RETRIES)
+    }),
+    MAX_RETRIES
   );
 
   return parseAnalysisResponse(response.choices[0]?.message?.content || '');
@@ -118,8 +119,8 @@ async function analyzePhase2(
   const openai = getOpenAIClient();
   const model = DEFAULT_MODEL;
 
-  const response = await retryWithBackoff(() =>
-    openai.chat.completions.create({
+  const response = await retryWithBackoff(
+    () => openai.chat.completions.create({
       model,
       messages: [
         {
@@ -134,7 +135,8 @@ async function analyzePhase2(
       temperature: 0.3,
       max_tokens: Math.floor(MAX_TOKENS * 0.35), // 35% of tokens for phase 2
       response_format: { type: 'json_object' },
-    }, MAX_RETRIES)
+    }),
+    MAX_RETRIES
   );
 
   return parseAnalysisResponse(response.choices[0]?.message?.content || '');
@@ -154,8 +156,8 @@ async function analyzePhase3(
   const openai = getOpenAIClient();
   const model = DEFAULT_MODEL;
 
-  const response = await retryWithBackoff(() =>
-    openai.chat.completions.create({
+  const response = await retryWithBackoff(
+    () => openai.chat.completions.create({
       model,
       messages: [
         {
@@ -170,7 +172,8 @@ async function analyzePhase3(
       temperature: 0.3,
       max_tokens: Math.floor(MAX_TOKENS * 0.25), // 25% of tokens for phase 3
       response_format: { type: 'json_object' },
-    }, MAX_RETRIES)
+    }),
+    MAX_RETRIES
   );
 
   return parseAnalysisResponse(response.choices[0]?.message?.content || '');
