@@ -393,6 +393,64 @@ export interface TokenUsage {
   totalTokens: number;
 }
 
+/**
+ * Deduplicate array items based on a key function
+ */
+function deduplicate<T>(array: T[], getKey: (item: T) => string): T[] {
+  const seen = new Set<string>();
+  const result: T[] = [];
+  
+  for (const item of array) {
+    const key = getKey(item);
+    if (!seen.has(key)) {
+      seen.add(key);
+      result.push(item);
+    }
+  }
+  
+  return result;
+}
+
+/**
+ * Get a unique key for a fallacy (type + quote or description)
+ */
+function getFallacyKey(fallacy: any): string {
+  const type = (fallacy.type || 'unknown').toLowerCase().trim();
+  const quote = (fallacy.quote || '').toLowerCase().trim().substring(0, 100); // First 100 chars
+  const description = (fallacy.description || '').toLowerCase().trim().substring(0, 100);
+  return `${type}:${quote || description}`;
+}
+
+/**
+ * Get a unique key for a confounder (factor + quote or description)
+ */
+function getConfounderKey(confounder: any): string {
+  const factor = (confounder.factor || 'unknown').toLowerCase().trim();
+  const quote = (confounder.quote || '').toLowerCase().trim().substring(0, 100);
+  const description = (confounder.description || '').toLowerCase().trim().substring(0, 100);
+  return `${factor}:${quote || description}`;
+}
+
+/**
+ * Get a unique key for a validity threat (threat + quote or description)
+ */
+function getValidityThreatKey(threat: any): string {
+  const threatType = (threat.threat || 'unknown').toLowerCase().trim();
+  const quote = (threat.quote || '').toLowerCase().trim().substring(0, 100);
+  const description = (threat.description || '').toLowerCase().trim().substring(0, 100);
+  return `${threatType}:${quote || description}`;
+}
+
+/**
+ * Get a unique key for an issue (category + quote or description)
+ */
+function getIssueKey(issue: any): string {
+  const category = (issue.category || 'unknown').toLowerCase().trim();
+  const quote = (issue.quote || '').toLowerCase().trim().substring(0, 100);
+  const description = (issue.description || '').toLowerCase().trim().substring(0, 100);
+  return `${category}:${quote || description}`;
+}
+
 export async function analyzeWithAI(
   content: ExtractedContent,
   metadata: StudyMetadata,
@@ -422,62 +480,105 @@ export async function analyzeWithAI(
     const mergedResults: AIAnalysisResult = {
       ...(phase1Results as AIAnalysisResult),
       ...(phase2Results as AIAnalysisResult),
-      // Merge flaw detection arrays
+      // Merge flaw detection arrays with deduplication
       flawDetection: {
-        fallacies: [
-          ...(phase1Results.flawDetection?.fallacies || []),
-          ...(phase2Results.flawDetection?.fallacies || []),
-        ],
-        confounders: [
-          ...(phase1Results.flawDetection?.confounders || []),
-          ...(phase2Results.flawDetection?.confounders || []),
-        ],
-        validityThreats: [
-          ...(phase1Results.flawDetection?.validityThreats || []),
-          ...(phase2Results.flawDetection?.validityThreats || []),
-        ],
-        otherConfoundingFactors: [
-          ...(phase1Results.flawDetection?.otherConfoundingFactors || []),
-          ...(phase2Results.flawDetection?.otherConfoundingFactors || []),
-        ],
-        issues: [
-          ...(phase1Results.flawDetection?.issues || []),
-          ...(phase2Results.flawDetection?.issues || []),
-        ],
+        fallacies: deduplicate(
+          [
+            ...(phase1Results.flawDetection?.fallacies || []),
+            ...(phase2Results.flawDetection?.fallacies || []),
+          ],
+          getFallacyKey
+        ),
+        confounders: deduplicate(
+          [
+            ...(phase1Results.flawDetection?.confounders || []),
+            ...(phase2Results.flawDetection?.confounders || []),
+          ],
+          getConfounderKey
+        ),
+        validityThreats: deduplicate(
+          [
+            ...(phase1Results.flawDetection?.validityThreats || []),
+            ...(phase2Results.flawDetection?.validityThreats || []),
+          ],
+          getValidityThreatKey
+        ),
+        otherConfoundingFactors: deduplicate(
+          [
+            ...(phase1Results.flawDetection?.otherConfoundingFactors || []),
+            ...(phase2Results.flawDetection?.otherConfoundingFactors || []),
+          ],
+          (item: any) => {
+            const factor = (item.factor || 'unknown').toLowerCase().trim();
+            const description = (item.description || '').toLowerCase().trim().substring(0, 100);
+            return `${factor}:${description}`;
+          }
+        ),
+        issues: deduplicate(
+          [
+            ...(phase1Results.flawDetection?.issues || []),
+            ...(phase2Results.flawDetection?.issues || []),
+          ],
+          getIssueKey
+        ),
       },
-      // Merge expert context
+      // Merge expert context with deduplication
       expertContext: {
         consensus: phase2Results.expertContext?.consensus || phase1Results.expertContext?.consensus || '',
-        controversies: [
-          ...(phase1Results.expertContext?.controversies || []),
-          ...(phase2Results.expertContext?.controversies || []),
-        ],
-        recentUpdates: [
-          ...(phase1Results.expertContext?.recentUpdates || []),
-          ...(phase2Results.expertContext?.recentUpdates || []),
-        ],
-        relatedStudies: [
-          ...(phase1Results.expertContext?.relatedStudies || []),
-          ...(phase2Results.expertContext?.relatedStudies || []),
-        ],
+        controversies: deduplicate(
+          [
+            ...(phase1Results.expertContext?.controversies || []),
+            ...(phase2Results.expertContext?.controversies || []),
+          ],
+          (item: string) => item.toLowerCase().trim()
+        ),
+        recentUpdates: deduplicate(
+          [
+            ...(phase1Results.expertContext?.recentUpdates || []),
+            ...(phase2Results.expertContext?.recentUpdates || []),
+          ],
+          (item: string) => item.toLowerCase().trim()
+        ),
+        relatedStudies: deduplicate(
+          [
+            ...(phase1Results.expertContext?.relatedStudies || []),
+            ...(phase2Results.expertContext?.relatedStudies || []),
+          ],
+          (item: string) => item.toLowerCase().trim()
+        ),
       },
       // Use best summaries from either phase
       simpleSummary: phase1Results.simpleSummary || phase2Results.simpleSummary || '',
       technicalCritique: phase1Results.technicalCritique || phase2Results.technicalCritique || '',
       biasReport: phase2Results.biasReport || phase1Results.biasReport || '',
-      recommendations: [
-        ...(phase1Results.recommendations || []),
-        ...(phase2Results.recommendations || []),
-      ],
-      // Merge new sections (prefer phase 2 for bias/context related, phase 1 for methodology)
-      keyTakeaways: [
-        ...(phase1Results.keyTakeaways || []),
-        ...(phase2Results.keyTakeaways || []),
-      ],
-      studyLimitations: [
-        ...(phase1Results.studyLimitations || []),
-        ...(phase2Results.studyLimitations || []),
-      ],
+      recommendations: deduplicate(
+        [
+          ...(phase1Results.recommendations || []),
+          ...(phase2Results.recommendations || []),
+        ],
+        (item: string) => item.toLowerCase().trim()
+      ),
+      // Merge new sections with deduplication (prefer phase 2 for bias/context related, phase 1 for methodology)
+      keyTakeaways: deduplicate(
+        [
+          ...(phase1Results.keyTakeaways || []),
+          ...(phase2Results.keyTakeaways || []),
+        ],
+        (item: any) => {
+          const point = (item.point || '').toLowerCase().trim().substring(0, 150);
+          return point;
+        }
+      ),
+      studyLimitations: deduplicate(
+        [
+          ...(phase1Results.studyLimitations || []),
+          ...(phase2Results.studyLimitations || []),
+        ],
+        (item: any) => {
+          const limitation = (item.limitation || '').toLowerCase().trim().substring(0, 150);
+          return limitation;
+        }
+      ),
       replicationInfo: phase2Results.replicationInfo || phase1Results.replicationInfo,
       // Merge credibility info (prefer phase 2 for bias/context related)
       authorCredibility: (phase2Results as AIAnalysisResult).authorCredibility || (phase1Results as AIAnalysisResult).authorCredibility,
