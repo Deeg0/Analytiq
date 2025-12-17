@@ -113,7 +113,7 @@ async function analyzePhase2(
   content: ExtractedContent,
   metadata: StudyMetadata,
   sourceUrl?: string
-): Promise<Partial<AnalysisResult>> {
+): Promise<AIAnalysisResult> {
   const prompt = createAnalysisPrompt(content, metadata, sourceUrl);
   const openai = getOpenAIClient();
   const model = DEFAULT_MODEL;
@@ -144,7 +144,7 @@ async function analyzePhase2(
 /**
  * Parse and transform AI response to our structure
  */
-function parseAnalysisResponse(analysisText: string): Partial<AnalysisResult> {
+function parseAnalysisResponse(analysisText: string): AIAnalysisResult {
   if (!analysisText) {
     throw new Error('No response from OpenAI API');
   }
@@ -367,11 +367,16 @@ function parseAnalysisResponse(analysisText: string): Partial<AnalysisResult> {
 /**
  * Main analysis function - optimized for speed and cost (2 phases in parallel)
  */
+export interface AIAnalysisResult extends Partial<AnalysisResult> {
+  authorCredibility?: StudyMetadata['authorCredibility'];
+  journalCredibility?: StudyMetadata['journalCredibility'];
+}
+
 export async function analyzeWithAI(
   content: ExtractedContent,
   metadata: StudyMetadata,
   sourceUrl?: string
-): Promise<Partial<AnalysisResult>> {
+): Promise<AIAnalysisResult> {
   try {
     console.log(`Starting optimized 2-phase parallel analysis with model: ${DEFAULT_MODEL}`);
     
@@ -383,7 +388,7 @@ export async function analyzeWithAI(
     ]);
     
     // Merge results from both phases
-    const mergedResults: Partial<AnalysisResult> = {
+    const mergedResults: AIAnalysisResult = {
       ...phase1Results,
       ...phase2Results,
       // Merge flaw detection arrays

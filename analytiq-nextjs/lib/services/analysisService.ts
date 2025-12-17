@@ -197,8 +197,8 @@ export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisRe
         citationScore: citationQuality.score,
         citationIssues: citationQuality.issues,
         // Add credibility info from AI analysis
-        authorCredibility: aiAnalysis.metadata?.authorCredibility,
-        journalCredibility: aiAnalysis.metadata?.journalCredibility,
+        authorCredibility: (aiAnalysis as any).authorCredibility || undefined,
+        journalCredibility: (aiAnalysis as any).journalCredibility || undefined,
       },
       trustScore,
       evidenceHierarchy: aiAnalysis.evidenceHierarchy,
