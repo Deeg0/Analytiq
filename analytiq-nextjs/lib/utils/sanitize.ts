@@ -4,7 +4,20 @@
  */
 
 import validator from 'validator'
-import DOMPurify from 'isomorphic-dompurify'
+
+// Simple HTML tag stripper for server-side (no DOM needed)
+function stripHtmlTags(html: string): string {
+  return html.replace(/<[^>]*>/g, '').replace(/&[^;]+;/g, '')
+}
+
+// Simple XSS prevention - remove potentially dangerous characters
+function sanitizeString(str: string): string {
+  return str
+    .replace(/[<>]/g, '') // Remove angle brackets
+    .replace(/javascript:/gi, '') // Remove javascript: protocol
+    .replace(/on\w+\s*=/gi, '') // Remove event handlers
+    .trim()
+}
 
 // Maximum input sizes
 export const MAX_INPUT_SIZES = {
@@ -34,7 +47,7 @@ export function sanitizeUrl(url: string): { valid: boolean; sanitized: string; e
   }
 
   // Sanitize URL (remove any potential XSS)
-  const sanitized = DOMPurify.sanitize(trimmed)
+  const sanitized = sanitizeString(trimmed)
 
   return { valid: true, sanitized }
 }
@@ -58,7 +71,7 @@ export function sanitizeText(text: string): { valid: boolean; sanitized: string;
   }
 
   // Sanitize HTML but preserve text content
-  const sanitized = DOMPurify.sanitize(trimmed, { ALLOWED_TAGS: [] })
+  const sanitized = stripHtmlTags(trimmed)
 
   return { valid: true, sanitized }
 }
@@ -83,7 +96,7 @@ export function sanitizeDoi(doi: string): { valid: boolean; sanitized: string; e
     return { valid: false, sanitized: '', error: 'Invalid DOI format' }
   }
 
-  const sanitized = DOMPurify.sanitize(trimmed, { ALLOWED_TAGS: [] })
+  const sanitized = sanitizeString(trimmed)
 
   return { valid: true, sanitized }
 }
