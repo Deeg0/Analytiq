@@ -348,20 +348,19 @@ function parseAnalysisResponse(analysisText: string): Partial<AnalysisResult> {
         description: u.description || '',
       })),
     } : undefined,
-    metadata: {
-      authorCredibility: analysisData.authorCredibility ? {
-        hIndex: analysisData.authorCredibility.hIndex,
-        publicationCount: analysisData.authorCredibility.publicationCount,
-        credibilityScore: analysisData.authorCredibility.credibilityScore,
-        conflictHistory: analysisData.authorCredibility.conflictHistory || [],
-      } : undefined,
-      journalCredibility: analysisData.journalCredibility ? {
-        impactFactor: analysisData.journalCredibility.impactFactor,
-        reputationScore: analysisData.journalCredibility.reputationScore,
-        quartile: analysisData.journalCredibility.quartile as 'Q1' | 'Q2' | 'Q3' | 'Q4' | undefined,
-        isPredatory: analysisData.journalCredibility.isPredatory || false,
-      } : undefined,
-    },
+    // Return credibility info separately (will be merged into metadata in analysisService)
+    authorCredibility: analysisData.authorCredibility ? {
+      hIndex: analysisData.authorCredibility.hIndex,
+      publicationCount: analysisData.authorCredibility.publicationCount,
+      credibilityScore: analysisData.authorCredibility.credibilityScore,
+      conflictHistory: analysisData.authorCredibility.conflictHistory || [],
+    } : undefined,
+    journalCredibility: analysisData.journalCredibility ? {
+      impactFactor: analysisData.journalCredibility.impactFactor,
+      reputationScore: analysisData.journalCredibility.reputationScore,
+      quartile: analysisData.journalCredibility.quartile as 'Q1' | 'Q2' | 'Q3' | 'Q4' | undefined,
+      isPredatory: analysisData.journalCredibility.isPredatory || false,
+    } : undefined,
   };
 }
 
@@ -444,6 +443,9 @@ export async function analyzeWithAI(
         ...(phase2Results.studyLimitations || []),
       ],
       replicationInfo: phase2Results.replicationInfo || phase1Results.replicationInfo,
+      // Merge credibility info (prefer phase 2 for bias/context related)
+      authorCredibility: phase2Results.authorCredibility || phase1Results.authorCredibility,
+      journalCredibility: phase2Results.journalCredibility || phase1Results.journalCredibility,
     };
     
     console.log('Parallel 2-phase analysis completed');
