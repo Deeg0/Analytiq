@@ -26,31 +26,44 @@ export default function InputSection() {
             <TabsTrigger value="text">Text/Abstract</TabsTrigger>
           </TabsList>
           <TabsContent value="url" className="space-y-4 mt-0">
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="url-input">Enter Study URL</Label>
               <Input
                 id="url-input"
                 type="url"
-                placeholder="https://example.com/research-study or https://example.com/study.pdf"
+                placeholder="https://example.com/study or https://example.com/study.pdf"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
               />
-              <div className="text-xs text-muted-foreground space-y-1 pt-1 bg-muted/50 p-3 rounded-md border">
-                <p className="font-semibold mb-2">Supported URL types:</p>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li><strong>Web pages:</strong> HTML articles, research paper pages, journal websites</li>
-                  <li><strong>PDF files:</strong> Direct links ending in <code className="text-xs bg-background px-1 rounded">.pdf</code> (e.g., <code className="text-xs bg-background px-1 rounded">https://example.com/study.pdf</code>)</li>
-                  <li><strong>DOI links:</strong> DOI resolver URLs (e.g., <code className="text-xs bg-background px-1 rounded">https://doi.org/10.1234/example</code>)</li>
-                  <li><strong>Journal pages:</strong> PubMed, arXiv, bioRxiv, ResearchGate, Academia.edu, etc.</li>
-                </ul>
-                <div className="pt-2 mt-2 border-t text-xs text-muted-foreground/80">
-                  <p className="font-semibold mb-1">⚠️ Important notes:</p>
-                  <ul className="list-disc list-inside space-y-0.5 ml-2">
-                    <li>PDFs must be publicly accessible (no password protection)</li>
-                    <li>Paywalled content may not be accessible</li>
-                    <li>Large PDFs (over 10MB) are not supported</li>
-                    <li>URLs must start with <code className="text-xs bg-background px-1 rounded">http://</code> or <code className="text-xs bg-background px-1 rounded">https://</code></li>
-                  </ul>
+              <div className="text-xs text-muted-foreground bg-muted/30 p-3 rounded-lg border space-y-2">
+                <div>
+                  <p className="font-medium mb-1.5 text-foreground/90">Supported formats:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 ml-1">
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-muted-foreground/60">•</span>
+                      <span>Web pages (HTML articles, journals)</span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-muted-foreground/60">•</span>
+                      <span>PDF files <span className="text-muted-foreground/70">(.pdf)</span></span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-muted-foreground/60">•</span>
+                      <span>DOI links <span className="text-muted-foreground/70">(doi.org)</span></span>
+                    </div>
+                    <div className="flex items-start gap-1.5">
+                      <span className="text-muted-foreground/60">•</span>
+                      <span>Journal sites <span className="text-muted-foreground/70">(PubMed, arXiv, etc.)</span></span>
+                    </div>
+                  </div>
+                </div>
+                <div className="pt-2 border-t border-border/50">
+                  <p className="font-medium mb-1 text-foreground/90">Requirements:</p>
+                  <div className="space-y-0.5 ml-1 text-muted-foreground/80">
+                    <p>• Publicly accessible content</p>
+                    <p>• PDFs under 10MB</p>
+                    <p>• Must use http:// or https://</p>
+                  </div>
                 </div>
               </div>
             </div>
