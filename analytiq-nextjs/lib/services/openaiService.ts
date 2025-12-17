@@ -2,11 +2,11 @@ import OpenAI from 'openai';
 import { ExtractedContent, StudyMetadata, AnalysisResult, CategoryScore, FlawDetection, ExpertContext, EvidenceHierarchy } from '@/lib/types/analysis';
 import { createAnalysisPrompt } from '@/lib/utils/prompts';
 
-// Configuration
-const DEFAULT_MODEL = process.env.OPENAI_MODEL || 'gpt-4o'; // Default to gpt-4o for better analysis
-const MAX_TOKENS = parseInt(process.env.OPENAI_MAX_TOKENS || '16000', 10); // Increased to 16000
-const MAX_RETRIES = 3;
-const INITIAL_RETRY_DELAY = 1000; // 1 second
+// Configuration - Optimized for cost (~2 cents per analysis) and speed
+const DEFAULT_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini'; // Use mini for cost efficiency
+const MAX_TOKENS = parseInt(process.env.OPENAI_MAX_TOKENS || '8000', 10); // Reduced to 8000 for cost control
+const MAX_RETRIES = 2; // Reduced retries for speed
+const INITIAL_RETRY_DELAY = 500; // Reduced delay for speed
 
 // Lazy initialization - create OpenAI client only when needed
 let openaiClient: OpenAI | null = null;
@@ -72,7 +72,7 @@ async function retryWithBackoff<T>(
 }
 
 /**
- * Phase 1: Initial overview and quick scoring
+ * Phase 1: Methodology and statistical analysis (runs in parallel with Phase 2)
  */
 async function analyzePhase1(
   content: ExtractedContent,
@@ -89,15 +89,15 @@ async function analyzePhase1(
       messages: [
         {
           role: 'system',
-          content: 'You are an expert scientific research analyst. Provide a comprehensive analysis focusing on methodology, evidence strength, and initial bias assessment. Return valid JSON only.',
+          content: 'Expert research analyst. Analyze methodology, statistics, reproducibility, fallacies, confounders. Return JSON only.',
         },
         {
           role: 'user',
-          content: `PHASE 1: Initial Overview\n\n${prompt}\n\nFocus on: methodology assessment, evidence hierarchy position, initial bias detection, and overall study quality indicators.`,
+          content: `METHODOLOGY ANALYSIS\n\n${prompt}\n\nAnalyze: methodology quality, statistical validity, reproducibility, evidence hierarchy, fallacies, confounders, validity threats. Extract quotes from all sections.`,
         },
       ],
       temperature: 0.3,
-      max_tokens: Math.floor(MAX_TOKENS * 0.4), // 40% of tokens for phase 1
+      max_tokens: Math.floor(MAX_TOKENS * 0.5), // 50% of tokens for methodology
       response_format: { type: 'json_object' },
     }),
     MAX_RETRIES
@@ -107,13 +107,12 @@ async function analyzePhase1(
 }
 
 /**
- * Phase 2: Deep dive into methodology and statistical validity
+ * Phase 2: Bias detection and expert context (runs in parallel with Phase 1)
  */
 async function analyzePhase2(
   content: ExtractedContent,
   metadata: StudyMetadata,
-  sourceUrl?: string,
-  phase1Results?: Partial<AnalysisResult>
+  sourceUrl?: string
 ): Promise<Partial<AnalysisResult>> {
   const prompt = createAnalysisPrompt(content, metadata, sourceUrl);
   const openai = getOpenAIClient();
@@ -125,52 +124,15 @@ async function analyzePhase2(
       messages: [
         {
           role: 'system',
-          content: 'You are an expert in research methodology and statistics. Analyze the study\'s methodology, statistical methods, reproducibility, and identify all methodological flaws. Return valid JSON only.',
+          content: 'Expert in bias detection and scientific consensus. Investigate funding, conflicts, provide context. Return JSON only.',
         },
         {
           role: 'user',
-          content: `PHASE 2: Deep Methodology Analysis\n\n${prompt}\n\nFocus on: detailed methodology assessment, statistical validity, reproducibility, fallacies, confounders, and validity threats. Extract quotes from ALL sections of the study.`,
+          content: `BIAS & CONTEXT ANALYSIS\n\n${prompt}\n\nAnalyze: bias detection (funding, author conflicts, selection bias), expert consensus, controversies, related studies, recommendations.`,
         },
       ],
       temperature: 0.3,
-      max_tokens: Math.floor(MAX_TOKENS * 0.35), // 35% of tokens for phase 2
-      response_format: { type: 'json_object' },
-    }),
-    MAX_RETRIES
-  );
-
-  return parseAnalysisResponse(response.choices[0]?.message?.content || '');
-}
-
-/**
- * Phase 3: Bias detection and expert context
- */
-async function analyzePhase3(
-  content: ExtractedContent,
-  metadata: StudyMetadata,
-  sourceUrl?: string,
-  phase1Results?: Partial<AnalysisResult>,
-  phase2Results?: Partial<AnalysisResult>
-): Promise<Partial<AnalysisResult>> {
-  const prompt = createAnalysisPrompt(content, metadata, sourceUrl);
-  const openai = getOpenAIClient();
-  const model = DEFAULT_MODEL;
-
-  const response = await retryWithBackoff(
-    () => openai.chat.completions.create({
-      model,
-      messages: [
-        {
-          role: 'system',
-          content: 'You are an expert in detecting bias, conflicts of interest, and understanding scientific consensus. Investigate funding sources, author conflicts, and provide expert context. Return valid JSON only.',
-        },
-        {
-          role: 'user',
-          content: `PHASE 3: Bias and Context Analysis\n\n${prompt}\n\nFocus on: comprehensive bias detection (funding, author conflicts, selection bias), expert consensus, controversies, related studies, and recommendations.`,
-        },
-      ],
-      temperature: 0.3,
-      max_tokens: Math.floor(MAX_TOKENS * 0.25), // 25% of tokens for phase 3
+      max_tokens: Math.floor(MAX_TOKENS * 0.5), // 50% of tokens for bias/context
       response_format: { type: 'json_object' },
     }),
     MAX_RETRIES
@@ -365,7 +327,7 @@ function parseAnalysisResponse(analysisText: string): Partial<AnalysisResult> {
 }
 
 /**
- * Main analysis function with multi-step approach
+ * Main analysis function - optimized for speed and cost (2 phases in parallel)
  */
 export async function analyzeWithAI(
   content: ExtractedContent,
@@ -373,81 +335,69 @@ export async function analyzeWithAI(
   sourceUrl?: string
 ): Promise<Partial<AnalysisResult>> {
   try {
-    console.log(`Starting multi-phase analysis with model: ${DEFAULT_MODEL}`);
+    console.log(`Starting optimized 2-phase parallel analysis with model: ${DEFAULT_MODEL}`);
     
-    // Phase 1: Initial overview
-    console.log('Phase 1: Initial overview...');
-    const phase1Results = await analyzePhase1(content, metadata, sourceUrl);
+    // Run both phases in parallel for maximum speed
+    console.log('Running Phase 1 (Methodology) and Phase 2 (Bias) in parallel...');
+    const [phase1Results, phase2Results] = await Promise.all([
+      analyzePhase1(content, metadata, sourceUrl),
+      analyzePhase2(content, metadata, sourceUrl),
+    ]);
     
-    // Phase 2: Deep methodology analysis
-    console.log('Phase 2: Deep methodology analysis...');
-    const phase2Results = await analyzePhase2(content, metadata, sourceUrl, phase1Results);
-    
-    // Phase 3: Bias and context analysis
-    console.log('Phase 3: Bias and context analysis...');
-    const phase3Results = await analyzePhase3(content, metadata, sourceUrl, phase1Results, phase2Results);
-    
-    // Merge results from all phases
+    // Merge results from both phases
     const mergedResults: Partial<AnalysisResult> = {
       ...phase1Results,
       ...phase2Results,
-      ...phase3Results,
       // Merge flaw detection arrays
       flawDetection: {
         fallacies: [
           ...(phase1Results.flawDetection?.fallacies || []),
           ...(phase2Results.flawDetection?.fallacies || []),
-          ...(phase3Results.flawDetection?.fallacies || []),
         ],
         confounders: [
           ...(phase1Results.flawDetection?.confounders || []),
           ...(phase2Results.flawDetection?.confounders || []),
-          ...(phase3Results.flawDetection?.confounders || []),
         ],
         validityThreats: [
           ...(phase1Results.flawDetection?.validityThreats || []),
           ...(phase2Results.flawDetection?.validityThreats || []),
-          ...(phase3Results.flawDetection?.validityThreats || []),
         ],
         otherConfoundingFactors: [
           ...(phase1Results.flawDetection?.otherConfoundingFactors || []),
           ...(phase2Results.flawDetection?.otherConfoundingFactors || []),
-          ...(phase3Results.flawDetection?.otherConfoundingFactors || []),
         ],
         issues: [
           ...(phase1Results.flawDetection?.issues || []),
           ...(phase2Results.flawDetection?.issues || []),
-          ...(phase3Results.flawDetection?.issues || []),
         ],
       },
       // Merge expert context
       expertContext: {
-        consensus: phase3Results.expertContext?.consensus || phase1Results.expertContext?.consensus || '',
+        consensus: phase2Results.expertContext?.consensus || phase1Results.expertContext?.consensus || '',
         controversies: [
           ...(phase1Results.expertContext?.controversies || []),
-          ...(phase3Results.expertContext?.controversies || []),
+          ...(phase2Results.expertContext?.controversies || []),
         ],
         recentUpdates: [
           ...(phase1Results.expertContext?.recentUpdates || []),
-          ...(phase3Results.expertContext?.recentUpdates || []),
+          ...(phase2Results.expertContext?.recentUpdates || []),
         ],
         relatedStudies: [
           ...(phase1Results.expertContext?.relatedStudies || []),
-          ...(phase3Results.expertContext?.relatedStudies || []),
+          ...(phase2Results.expertContext?.relatedStudies || []),
         ],
       },
-      // Use best summaries from any phase
-      simpleSummary: phase1Results.simpleSummary || phase3Results.simpleSummary || '',
-      technicalCritique: phase2Results.technicalCritique || phase1Results.technicalCritique || '',
-      biasReport: phase3Results.biasReport || phase1Results.biasReport || '',
+      // Use best summaries from either phase
+      simpleSummary: phase1Results.simpleSummary || phase2Results.simpleSummary || '',
+      technicalCritique: phase1Results.technicalCritique || phase2Results.technicalCritique || '',
+      biasReport: phase2Results.biasReport || phase1Results.biasReport || '',
       recommendations: [
         ...(phase1Results.recommendations || []),
         ...(phase2Results.recommendations || []),
-        ...(phase3Results.recommendations || []),
       ],
     };
     
-    console.log('Multi-phase analysis completed');
+    console.log('Parallel 2-phase analysis completed');
     return mergedResults;
   } catch (error: any) {
     console.error('OpenAI API Error:', error);
