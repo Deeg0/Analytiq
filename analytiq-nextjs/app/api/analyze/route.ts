@@ -160,7 +160,7 @@ export async function POST(request: NextRequest) {
 
       logger.info('OpenAI cost logged', {
         userId,
-        requestId,
+        requestId: requestId || undefined,
         cost,
         tokens: tokenUsage.totalTokens,
       })
@@ -194,7 +194,7 @@ export async function POST(request: NextRequest) {
     logger.error('Analysis error', error, {
       userId,
       endpoint: '/api/analyze',
-      requestId,
+      requestId: requestId || undefined,
     })
 
     // Log failed API request

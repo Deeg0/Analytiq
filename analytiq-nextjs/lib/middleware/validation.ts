@@ -67,7 +67,7 @@ export async function validateAnalysisRequest(
     // Validate schema
     const validationResult = AnalysisRequestSchema.safeParse(body)
     if (!validationResult.success) {
-      const errors = validationResult.error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')
+      const errors = validationResult.error.issues.map((e: z.ZodIssue) => `${e.path.join('.')}: ${e.message}`).join(', ')
       return {
         valid: false,
         error: `Validation failed: ${errors}`,
