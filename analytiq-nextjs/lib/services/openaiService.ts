@@ -122,8 +122,8 @@ async function analyzePhase2(
   metadata: StudyMetadata,
   sourceUrl?: string
 ): Promise<{ result: AIAnalysisResult; usage: TokenUsage }> {
-  const prompt = createAnalysisPrompt(content, metadata, sourceUrl);
-  const openai = getOpenAIClient();
+    const prompt = createAnalysisPrompt(content, metadata, sourceUrl);
+    const openai = getOpenAIClient();
   const model = DEFAULT_MODEL;
 
   const response = await retryWithBackoff(
@@ -160,69 +160,69 @@ async function analyzePhase2(
  * Parse and transform AI response to our structure
  */
 function parseAnalysisResponse(analysisText: string): AIAnalysisResult {
-  if (!analysisText) {
-    throw new Error('No response from OpenAI API');
-  }
-
-  // Parse JSON response
-  let analysisData: any;
-  try {
-    analysisData = JSON.parse(analysisText);
-  } catch (parseError) {
-    // Try to extract JSON if wrapped in markdown or text
-    const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
-    if (jsonMatch) {
-      analysisData = JSON.parse(jsonMatch[0]);
-    } else {
-      throw new Error('Failed to parse AI response as JSON');
+    if (!analysisText) {
+      throw new Error('No response from OpenAI API');
     }
-  }
 
-  // Transform to our expected structure
-  const methodology: CategoryScore = {
-    score: analysisData.methodology?.score || 0,
-    maxScore: analysisData.methodology?.maxScore || 25,
-    percentage: Math.round(((analysisData.methodology?.score || 0) / 25) * 100),
-    details: analysisData.methodology?.details || '',
-    issues: analysisData.methodology?.issues || [],
-    strengths: analysisData.methodology?.strengths || [],
-  };
+    // Parse JSON response
+    let analysisData: any;
+    try {
+      analysisData = JSON.parse(analysisText);
+    } catch (parseError) {
+      // Try to extract JSON if wrapped in markdown or text
+      const jsonMatch = analysisText.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        analysisData = JSON.parse(jsonMatch[0]);
+      } else {
+        throw new Error('Failed to parse AI response as JSON');
+      }
+    }
 
-  const evidenceStrength: CategoryScore = {
-    score: analysisData.evidenceStrength?.score || 0,
-    maxScore: analysisData.evidenceStrength?.maxScore || 20,
-    percentage: Math.round(((analysisData.evidenceStrength?.score || 0) / 20) * 100),
-    details: analysisData.evidenceStrength?.details || '',
-    issues: analysisData.evidenceStrength?.issues || [],
-    strengths: analysisData.evidenceStrength?.strengths || [],
-  };
+    // Transform to our expected structure
+    const methodology: CategoryScore = {
+      score: analysisData.methodology?.score || 0,
+      maxScore: analysisData.methodology?.maxScore || 25,
+      percentage: Math.round(((analysisData.methodology?.score || 0) / 25) * 100),
+      details: analysisData.methodology?.details || '',
+      issues: analysisData.methodology?.issues || [],
+      strengths: analysisData.methodology?.strengths || [],
+    };
 
-  const bias: CategoryScore = {
-    score: analysisData.bias?.score || analysisData.fundingBias?.score || 0,
-    maxScore: analysisData.bias?.maxScore || analysisData.fundingBias?.maxScore || 20,
-    percentage: Math.round(((analysisData.bias?.score || analysisData.fundingBias?.score || 0) / 20) * 100),
-    details: analysisData.bias?.details || analysisData.fundingBias?.details || '',
-    issues: analysisData.bias?.issues || analysisData.fundingBias?.issues || [],
-    strengths: analysisData.bias?.strengths || analysisData.fundingBias?.strengths || [],
-  };
+    const evidenceStrength: CategoryScore = {
+      score: analysisData.evidenceStrength?.score || 0,
+      maxScore: analysisData.evidenceStrength?.maxScore || 20,
+      percentage: Math.round(((analysisData.evidenceStrength?.score || 0) / 20) * 100),
+      details: analysisData.evidenceStrength?.details || '',
+      issues: analysisData.evidenceStrength?.issues || [],
+      strengths: analysisData.evidenceStrength?.strengths || [],
+    };
 
-  const reproducibility: CategoryScore = {
-    score: analysisData.reproducibility?.score || 0,
-    maxScore: analysisData.reproducibility?.maxScore || 15,
-    percentage: Math.round(((analysisData.reproducibility?.score || 0) / 15) * 100),
-    details: analysisData.reproducibility?.details || '',
-    issues: analysisData.reproducibility?.issues || [],
-    strengths: analysisData.reproducibility?.strengths || [],
-  };
+    const bias: CategoryScore = {
+      score: analysisData.bias?.score || analysisData.fundingBias?.score || 0,
+      maxScore: analysisData.bias?.maxScore || analysisData.fundingBias?.maxScore || 20,
+      percentage: Math.round(((analysisData.bias?.score || analysisData.fundingBias?.score || 0) / 20) * 100),
+      details: analysisData.bias?.details || analysisData.fundingBias?.details || '',
+      issues: analysisData.bias?.issues || analysisData.fundingBias?.issues || [],
+      strengths: analysisData.bias?.strengths || analysisData.fundingBias?.strengths || [],
+    };
 
-  const statisticalValidity: CategoryScore = {
-    score: analysisData.statisticalValidity?.score || 0,
-    maxScore: analysisData.statisticalValidity?.maxScore || 20,
-    percentage: Math.round(((analysisData.statisticalValidity?.score || 0) / 20) * 100),
-    details: analysisData.statisticalValidity?.details || '',
-    issues: analysisData.statisticalValidity?.issues || [],
-    strengths: analysisData.statisticalValidity?.strengths || [],
-  };
+    const reproducibility: CategoryScore = {
+      score: analysisData.reproducibility?.score || 0,
+      maxScore: analysisData.reproducibility?.maxScore || 15,
+      percentage: Math.round(((analysisData.reproducibility?.score || 0) / 15) * 100),
+      details: analysisData.reproducibility?.details || '',
+      issues: analysisData.reproducibility?.issues || [],
+      strengths: analysisData.reproducibility?.strengths || [],
+    };
+
+    const statisticalValidity: CategoryScore = {
+      score: analysisData.statisticalValidity?.score || 0,
+      maxScore: analysisData.statisticalValidity?.maxScore || 20,
+      percentage: Math.round(((analysisData.statisticalValidity?.score || 0) / 20) * 100),
+      details: analysisData.statisticalValidity?.details || '',
+      issues: analysisData.statisticalValidity?.issues || [],
+      strengths: analysisData.statisticalValidity?.strengths || [],
+    };
 
   // Merge scores from multiple phases (take maximum or average)
   const mergeScores = (existing: CategoryScore, newData: CategoryScore): CategoryScore => {
@@ -237,107 +237,107 @@ function parseAnalysisResponse(analysisText: string): AIAnalysisResult {
   };
 
   // Parse evidence hierarchy
-  const evidenceHierarchy = analysisData.evidenceHierarchy ? {
-    level: analysisData.evidenceHierarchy.level || 'expert_opinion',
-    position: analysisData.evidenceHierarchy.position || 6,
-    qualityWithinLevel: analysisData.evidenceHierarchy.qualityWithinLevel || 'medium',
-  } : undefined;
+    const evidenceHierarchy = analysisData.evidenceHierarchy ? {
+      level: analysisData.evidenceHierarchy.level || 'expert_opinion',
+      position: analysisData.evidenceHierarchy.position || 6,
+      qualityWithinLevel: analysisData.evidenceHierarchy.qualityWithinLevel || 'medium',
+    } : undefined;
 
   // Parse flaw detection (merge arrays from multiple phases)
-  const flawDetection: FlawDetection = {
-    fallacies: (analysisData.fallacies || []).map((f: any) => ({
-      type: f.type || 'Unknown',
-      description: f.description || '',
-      quote: f.quote || undefined,
-      quoteLocation: f.quoteLocation || undefined,
-      debunking: f.debunking || undefined,
-      severity: f.severity || 'medium',
-      impact: f.impact || '',
-    })),
-    confounders: (analysisData.confounders || []).map((c: any) => ({
-      factor: c.factor || 'Unknown',
-      description: c.description || '',
-      quote: c.quote || undefined,
-      quoteLocation: c.quoteLocation || undefined,
-      debunking: c.debunking || undefined,
-      impact: c.impact || '',
-    })),
-    validityThreats: (analysisData.validityThreats || []).map((t: any) => ({
-      threat: t.threat || 'Unknown',
-      description: t.description || '',
-      quote: t.quote || undefined,
-      quoteLocation: t.quoteLocation || undefined,
-      debunking: t.debunking || undefined,
-      severity: t.severity || 'medium',
-    })),
-    otherConfoundingFactors: (analysisData.otherConfoundingFactors || []).map((f: any) => ({
-      factor: f.factor || 'Unknown',
-      description: f.description || '',
-      potentialImpact: f.potentialImpact || '',
-      whyItMatters: f.whyItMatters || '',
-      severity: f.severity || 'medium',
-    })),
-    issues: (analysisData.issues || []).map((i: any) => ({
-      category: i.category || 'Unknown',
-      description: i.description || '',
-      quote: i.quote || undefined,
-      quoteLocation: i.quoteLocation || undefined,
-      debunking: i.debunking || undefined,
-    })),
-  };
-
-  const expertContext: ExpertContext = {
-    consensus: analysisData.expertContext?.consensus || '',
-    controversies: analysisData.expertContext?.controversies || [],
-    recentUpdates: analysisData.expertContext?.recentUpdates || [],
-    relatedStudies: analysisData.expertContext?.relatedStudies || [],
-  };
-
-  const causalInference = analysisData.causalInference ? {
-    canEstablishCausality: analysisData.causalInference.canEstablishCausality || false,
-    confidence: (analysisData.causalInference.confidence || 'low') as 'high' | 'medium' | 'low',
-    reasoning: analysisData.causalInference.reasoning || '',
-    studyDesignLimitations: analysisData.causalInference.studyDesignLimitations || [],
-    alternativeExplanations: analysisData.causalInference.alternativeExplanations || [],
-    requirementsForCausality: {
-      met: analysisData.causalInference.requirementsForCausality?.met || [],
-      unmet: analysisData.causalInference.requirementsForCausality?.unmet || [],
-    },
-    bradfordHillCriteria: analysisData.causalInference.bradfordHillCriteria ? {
-      impliesCausation: analysisData.causalInference.bradfordHillCriteria.impliesCausation || false,
-      criteria: (analysisData.causalInference.bradfordHillCriteria.criteria || []).map((c: any) => ({
-        criterion: c.criterion || '',
-        met: c.met || false,
-        evidence: c.evidence || '',
-        strength: (c.strength || 'none') as 'strong' | 'moderate' | 'weak' | 'none',
-        notes: c.notes || undefined,
+    const flawDetection: FlawDetection = {
+      fallacies: (analysisData.fallacies || []).map((f: any) => ({
+        type: f.type || 'Unknown',
+        description: f.description || '',
+        quote: f.quote || undefined,
+        quoteLocation: f.quoteLocation || undefined,
+        debunking: f.debunking || undefined,
+        severity: f.severity || 'medium',
+        impact: f.impact || '',
       })),
-      overallAssessment: analysisData.causalInference.bradfordHillCriteria.overallAssessment || '',
-      criteriaMet: analysisData.causalInference.bradfordHillCriteria.criteriaMet || 0,
-      criteriaTotal: analysisData.causalInference.bradfordHillCriteria.criteriaTotal || 9,
-    } : undefined,
-  } : undefined;
+      confounders: (analysisData.confounders || []).map((c: any) => ({
+        factor: c.factor || 'Unknown',
+        description: c.description || '',
+        quote: c.quote || undefined,
+        quoteLocation: c.quoteLocation || undefined,
+        debunking: c.debunking || undefined,
+        impact: c.impact || '',
+      })),
+      validityThreats: (analysisData.validityThreats || []).map((t: any) => ({
+        threat: t.threat || 'Unknown',
+        description: t.description || '',
+        quote: t.quote || undefined,
+        quoteLocation: t.quoteLocation || undefined,
+        debunking: t.debunking || undefined,
+        severity: t.severity || 'medium',
+      })),
+      otherConfoundingFactors: (analysisData.otherConfoundingFactors || []).map((f: any) => ({
+        factor: f.factor || 'Unknown',
+        description: f.description || '',
+        potentialImpact: f.potentialImpact || '',
+        whyItMatters: f.whyItMatters || '',
+        severity: f.severity || 'medium',
+      })),
+      issues: (analysisData.issues || []).map((i: any) => ({
+        category: i.category || 'Unknown',
+        description: i.description || '',
+        quote: i.quote || undefined,
+        quoteLocation: i.quoteLocation || undefined,
+        debunking: i.debunking || undefined,
+      })),
+    };
 
-  return {
-    evidenceHierarchy,
-    trustScore: {
-      overall: 0, // Will be calculated by scorer
-      rating: 'Moderately Reliable' as const,
-      breakdown: {
-        methodology,
-        evidenceStrength,
-        bias,
-        reproducibility,
-        statisticalValidity,
+    const expertContext: ExpertContext = {
+      consensus: analysisData.expertContext?.consensus || '',
+      controversies: analysisData.expertContext?.controversies || [],
+      recentUpdates: analysisData.expertContext?.recentUpdates || [],
+      relatedStudies: analysisData.expertContext?.relatedStudies || [],
+    };
+
+    const causalInference = analysisData.causalInference ? {
+      canEstablishCausality: analysisData.causalInference.canEstablishCausality || false,
+      confidence: (analysisData.causalInference.confidence || 'low') as 'high' | 'medium' | 'low',
+      reasoning: analysisData.causalInference.reasoning || '',
+      studyDesignLimitations: analysisData.causalInference.studyDesignLimitations || [],
+      alternativeExplanations: analysisData.causalInference.alternativeExplanations || [],
+      requirementsForCausality: {
+        met: analysisData.causalInference.requirementsForCausality?.met || [],
+        unmet: analysisData.causalInference.requirementsForCausality?.unmet || [],
       },
-    },
-    flawDetection,
-    expertContext,
-    causalInference,
-    simpleSummary: analysisData.simpleSummary || '',
-    technicalCritique: analysisData.technicalCritique || '',
-    biasReport: analysisData.biasReport || '',
-    recommendations: analysisData.recommendations || [],
+      bradfordHillCriteria: analysisData.causalInference.bradfordHillCriteria ? {
+        impliesCausation: analysisData.causalInference.bradfordHillCriteria.impliesCausation || false,
+        criteria: (analysisData.causalInference.bradfordHillCriteria.criteria || []).map((c: any) => ({
+          criterion: c.criterion || '',
+          met: c.met || false,
+          evidence: c.evidence || '',
+          strength: (c.strength || 'none') as 'strong' | 'moderate' | 'weak' | 'none',
+          notes: c.notes || undefined,
+        })),
+        overallAssessment: analysisData.causalInference.bradfordHillCriteria.overallAssessment || '',
+        criteriaMet: analysisData.causalInference.bradfordHillCriteria.criteriaMet || 0,
+        criteriaTotal: analysisData.causalInference.bradfordHillCriteria.criteriaTotal || 9,
+      } : undefined,
+    } : undefined;
+
+    return {
+      evidenceHierarchy,
+      trustScore: {
+        overall: 0, // Will be calculated by scorer
+        rating: 'Moderately Reliable' as const,
+        breakdown: {
+          methodology,
+          evidenceStrength,
+          bias,
+          reproducibility,
+          statisticalValidity,
+        },
+      },
+      flawDetection,
+      expertContext,
+      causalInference,
+      simpleSummary: analysisData.simpleSummary || '',
+      technicalCritique: analysisData.technicalCritique || '',
+      biasReport: analysisData.biasReport || '',
+      recommendations: analysisData.recommendations || [],
     keyTakeaways: (analysisData.keyTakeaways || []).map((kt: any) => ({
       point: kt.point || '',
       importance: (kt.importance || 'medium') as 'high' | 'medium' | 'low',

@@ -166,14 +166,14 @@ export async function analyzeStudy(
         
         // Cache the result
         setCachedAnalysis(cacheKey, aiAnalysis);
-      } catch (error: any) {
-        if (error.message?.includes('API key') || error.message?.includes('authentication')) {
-          throw new Error('OpenAI API authentication failed. Please check your API key.');
-        }
-        if (error.message?.includes('timeout') || error.message?.includes('rate limit')) {
-          throw new Error('AI analysis service is temporarily unavailable. Please try again in a moment.');
-        }
-        throw new Error(`AI analysis failed: ${error.message || 'Unknown error occurred'}`);
+    } catch (error: any) {
+      if (error.message?.includes('API key') || error.message?.includes('authentication')) {
+        throw new Error('OpenAI API authentication failed. Please check your API key.');
+      }
+      if (error.message?.includes('timeout') || error.message?.includes('rate limit')) {
+        throw new Error('AI analysis service is temporarily unavailable. Please try again in a moment.');
+      }
+      throw new Error(`AI analysis failed: ${error.message || 'Unknown error occurred'}`);
       }
     } else {
       logger.debug('Using cached analysis result - no token usage available');
