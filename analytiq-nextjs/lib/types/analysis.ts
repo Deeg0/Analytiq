@@ -148,6 +148,7 @@ export interface ExtractedContent {
     results?: string;
     discussion?: string;
     conclusions?: string;
+    references?: string;
   };
 }
 

@@ -62,10 +62,11 @@ export async function verifyCitations(
     const issues: string[] = [];
     let verified = true;
     
-    // Check if citation appears in references section
-    const hasReference = content.sections?.references?.toLowerCase().includes(citation.toLowerCase()) || false;
+    // Check if citation appears in references section (if references section exists)
+    const referencesSection = content.sections?.references?.toLowerCase() || '';
+    const hasReference = referencesSection ? referencesSection.includes(citation.toLowerCase()) : true; // If no references section, don't penalize
     
-    if (!hasReference) {
+    if (referencesSection && !hasReference) {
       issues.push('Citation not found in references section');
       verified = false;
     }
