@@ -22,17 +22,22 @@
     "@radix-ui/react-tabs": "^1.1.13",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.87.0",
+    "@types/dompurify": "^3.2.0",
+    "@types/validator": "^13.15.10",
     "axios": "^1.13.2",
     "cheerio": "^1.1.2",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
+    "dompurify": "^3.3.1",
     "lucide-react": "^0.556.0",
     "next": "^16.0.10",
     "openai": "^6.10.0",
     "pdf-parse": "^2.4.5",
     "react": "19.2.1",
     "react-dom": "19.2.1",
-    "tailwind-merge": "^3.4.0"
+    "tailwind-merge": "^3.4.0",
+    "validator": "^13.15.23",
+    "zod": "^4.2.1"
   },
   "devDependencies": {
     "@types/node": "^20",

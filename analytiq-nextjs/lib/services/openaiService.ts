@@ -1,6 +1,7 @@
 import OpenAI from 'openai';
 import { ExtractedContent, StudyMetadata, AnalysisResult, CategoryScore, FlawDetection, ExpertContext, EvidenceHierarchy, KeyTakeaway, StudyLimitation, ReplicationInfo } from '@/lib/types/analysis';
 import { createAnalysisPrompt } from '@/lib/utils/prompts';
+import { logger } from './logger';
 
 // Configuration - Optimized for cost (~2 cents per analysis) and speed
 const DEFAULT_MODEL = process.env.OPENAI_MODEL || 'gpt-4o-mini'; // Use mini for cost efficiency
@@ -78,7 +79,7 @@ async function analyzePhase1(
   content: ExtractedContent,
   metadata: StudyMetadata,
   sourceUrl?: string
-): Promise<Partial<AnalysisResult>> {
+): Promise<{ result: Partial<AnalysisResult>; usage: TokenUsage }> {
   const prompt = createAnalysisPrompt(content, metadata, sourceUrl);
   const openai = getOpenAIClient();
   const model = DEFAULT_MODEL;
@@ -103,7 +104,14 @@ async function analyzePhase1(
     MAX_RETRIES
   );
 
-  return parseAnalysisResponse(response.choices[0]?.message?.content || '');
+  const result = parseAnalysisResponse(response.choices[0]?.message?.content || '');
+  const usage = {
+    inputTokens: response.usage?.prompt_tokens || 0,
+    outputTokens: response.usage?.completion_tokens || 0,
+    totalTokens: response.usage?.total_tokens || 0,
+  };
+
+  return { result, usage };
 }
 
 /**
@@ -113,7 +121,7 @@ async function analyzePhase2(
   content: ExtractedContent,
   metadata: StudyMetadata,
   sourceUrl?: string
-): Promise<AIAnalysisResult> {
+): Promise<{ result: AIAnalysisResult; usage: TokenUsage }> {
   const prompt = createAnalysisPrompt(content, metadata, sourceUrl);
   const openai = getOpenAIClient();
   const model = DEFAULT_MODEL;
@@ -138,7 +146,14 @@ async function analyzePhase2(
     MAX_RETRIES
   );
 
-  return parseAnalysisResponse(response.choices[0]?.message?.content || '');
+  const result = parseAnalysisResponse(response.choices[0]?.message?.content || '');
+  const usage = {
+    inputTokens: response.usage?.prompt_tokens || 0,
+    outputTokens: response.usage?.completion_tokens || 0,
+    totalTokens: response.usage?.total_tokens || 0,
+  };
+
+  return { result, usage };
 }
 
 /**
@@ -372,20 +387,36 @@ export interface AIAnalysisResult extends Partial<AnalysisResult> {
   journalCredibility?: StudyMetadata['journalCredibility'];
 }
 
+export interface TokenUsage {
+  inputTokens: number;
+  outputTokens: number;
+  totalTokens: number;
+}
+
 export async function analyzeWithAI(
   content: ExtractedContent,
   metadata: StudyMetadata,
   sourceUrl?: string
-): Promise<AIAnalysisResult> {
+): Promise<{ result: AIAnalysisResult; usage: TokenUsage }> {
   try {
-    console.log(`Starting optimized 2-phase parallel analysis with model: ${DEFAULT_MODEL}`);
+    logger.info(`Starting optimized 2-phase parallel analysis with model: ${DEFAULT_MODEL}`);
     
     // Run both phases in parallel for maximum speed
-    console.log('Running Phase 1 (Methodology) and Phase 2 (Bias) in parallel...');
-    const [phase1Results, phase2Results] = await Promise.all([
+    logger.debug('Running Phase 1 (Methodology) and Phase 2 (Bias) in parallel...');
+    const [phase1Data, phase2Data] = await Promise.all([
       analyzePhase1(content, metadata, sourceUrl),
       analyzePhase2(content, metadata, sourceUrl),
     ]);
+    
+    const phase1Results = phase1Data.result;
+    const phase2Results = phase2Data.result;
+    
+    // Aggregate token usage
+    const totalUsage: TokenUsage = {
+      inputTokens: phase1Data.usage.inputTokens + phase2Data.usage.inputTokens,
+      outputTokens: phase1Data.usage.outputTokens + phase2Data.usage.outputTokens,
+      totalTokens: phase1Data.usage.totalTokens + phase2Data.usage.totalTokens,
+    };
     
     // Merge results from both phases
     const mergedResults: AIAnalysisResult = {
@@ -453,10 +484,15 @@ export async function analyzeWithAI(
       journalCredibility: (phase2Results as AIAnalysisResult).journalCredibility || (phase1Results as AIAnalysisResult).journalCredibility,
     };
     
-    console.log('Parallel 2-phase analysis completed');
-    return mergedResults;
+    console.log('Parallel 2-phase analysis completed', {
+      tokens: totalUsage.totalTokens,
+      inputTokens: totalUsage.inputTokens,
+      outputTokens: totalUsage.outputTokens,
+    });
+    
+    return { result: mergedResults, usage: totalUsage };
   } catch (error: any) {
-    console.error('OpenAI API Error:', error);
+    logger.error('OpenAI API Error', error);
     
     // Handle specific OpenAI API errors
     if (error.response?.status === 401) {

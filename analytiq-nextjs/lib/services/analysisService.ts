@@ -8,8 +8,11 @@ import { calculateTrustScore } from './scorer';
 import { summarizeJournal, summarizeMetadataField } from './summarizer';
 import { generateCacheKey, getCachedAnalysis, setCachedAnalysis } from './cacheService';
 import { extractCitations, verifyCitations, analyzeCitationQuality } from './citationVerifier';
+import { logger } from './logger';
 
-export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisResult> {
+export async function analyzeStudy(
+  request: AnalysisRequest
+): Promise<{ result: AnalysisResult; tokenUsage: { inputTokens: number; outputTokens: number; totalTokens: number } | null }> {
   try {
     let extractedContent: ExtractedContent;
     let sourceUrl: string | undefined;
@@ -142,10 +145,14 @@ export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisRe
     const cacheKey = generateCacheKey(request.inputType, request.content, metadata);
     let aiAnalysis = getCachedAnalysis<Partial<AnalysisResult>>(cacheKey);
     
+    let tokenUsage: { inputTokens: number; outputTokens: number; totalTokens: number } | null = null;
+    
     if (!aiAnalysis) {
       // Step 4.1: Perform AI analysis with timeout protection
       try {
-        aiAnalysis = await analyzeWithAI(extractedContent, metadata, sourceUrl);
+        const aiResult = await analyzeWithAI(extractedContent, metadata, sourceUrl);
+        aiAnalysis = aiResult.result;
+        tokenUsage = aiResult.usage;
         
         // Add citation verification results to analysis
         if (aiAnalysis.trustScore?.breakdown) {
@@ -169,7 +176,7 @@ export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisRe
         throw new Error(`AI analysis failed: ${error.message || 'Unknown error occurred'}`);
       }
     } else {
-      console.log('Using cached analysis result');
+      logger.debug('Using cached analysis result - no token usage available');
     }
 
     // Step 5: Calculate trust score
@@ -218,7 +225,10 @@ export async function analyzeStudy(request: AnalysisRequest): Promise<AnalysisRe
       replicationInfo: aiAnalysis.replicationInfo,
     };
 
-    return result;
+    return {
+      result,
+      tokenUsage,
+    };
   } catch (error: any) {
     // Re-throw with more context if needed
     if (error.message) {
