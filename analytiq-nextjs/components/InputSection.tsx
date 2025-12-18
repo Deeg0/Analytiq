@@ -31,7 +31,7 @@ export default function InputSection() {
               <Input
                 id="url-input"
                 type="url"
-                placeholder="https://example.com/study or https://example.com/study.pdf"
+                placeholder="https://example.com/study"
                 value={url}
                 onChange={(e) => setUrl(e.target.value)}
               />
