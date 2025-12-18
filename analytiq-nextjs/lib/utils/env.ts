@@ -13,6 +13,7 @@ const optionalEnvVars = {
   OPENAI_MODEL: process.env.OPENAI_MODEL || 'gpt-4o-mini',
   OPENAI_MAX_TOKENS: process.env.OPENAI_MAX_TOKENS || '8000',
   NODE_ENV: process.env.NODE_ENV || 'development',
+  NEXT_PUBLIC_SITE_URL: process.env.NEXT_PUBLIC_SITE_URL, // Used for OAuth redirects
 } as const
 
 export function validateEnv() {

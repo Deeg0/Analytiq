@@ -128,10 +128,14 @@ export default function AuthModal({ open, onOpenChange, defaultTab = 'signin', i
       // Check if this is signup (signup tab) or signin
       const isSignUp = activeTab === 'signup'
       
+      // Always use window.location.origin in the browser - it will be correct for both www and non-www
+      // This ensures the redirect URL matches exactly where the user is accessing from
+      const redirectUrl = `${window.location.origin}/auth/callback`
+      
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
           queryParams: {
             // Store signup intent in redirect URL
             ...(isSignUp && { signup: 'true' }),
