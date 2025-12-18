@@ -62,7 +62,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
   const progress = {
     welcome: 0,
-    input-guide: 20,
+    'input-guide': 20,
     'waiting-analysis': 40,
     'results-overview': 60,
     'results-details': 80,
