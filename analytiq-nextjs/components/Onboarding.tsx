@@ -1,209 +1,85 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
+import { Progress } from '@/components/ui/progress'
 import { 
+  FileText, 
+  Search, 
+  TrendingUp, 
+  BookOpen, 
   Sparkles, 
   ArrowRight, 
+  ArrowLeft,
   CheckCircle2,
-  FileText,
-  Eye,
-  Lightbulb,
-  Loader2
+  Globe,
+  FileUp,
+  Hash
 } from 'lucide-react'
-import { useAnalysis } from '@/lib/contexts/AnalysisContext'
+
+interface OnboardingStep {
+  title: string
+  description: string
+  icon: React.ReactNode
+  image?: string
+  highlight?: string
+}
+
+const steps: OnboardingStep[] = [
+  {
+    title: 'Welcome to AnalytIQ',
+    description: 'Your AI-powered scientific study analyzer. Get credibility scores, bias detection, and comprehensive analysis of research papers.',
+    icon: <Sparkles className="h-12 w-12 text-primary" />,
+    highlight: 'AI-Powered Analysis'
+  },
+  {
+    title: 'Multiple Input Methods',
+    description: 'Analyze studies by pasting a URL or entering text/abstracts directly. Choose the method that works best for your research.',
+    icon: <FileText className="h-12 w-12 text-primary" />,
+    highlight: 'URL • Text/Abstract'
+  },
+  {
+    title: 'Comprehensive Scoring',
+    description: 'Get detailed scores across 5 key categories: Methodology Quality, Evidence Strength, Bias Detection, Reproducibility, and Statistical Validity. Each category is thoroughly analyzed.',
+    icon: <TrendingUp className="h-12 w-12 text-primary" />,
+    highlight: '5 Scoring Categories'
+  },
+  {
+    title: 'Save & Organize',
+    description: 'Save your analyses for later reference. Search, filter by score or date, and organize your saved studies. Access your research history anytime.',
+    icon: <BookOpen className="h-12 w-12 text-primary" />,
+    highlight: 'Save Your Analyses'
+  },
+  {
+    title: 'Expert Insights',
+    description: 'Get detailed technical critiques, bias reports, and expert context. Understand study limitations, strengths, and how findings compare to field consensus.',
+    icon: <Search className="h-12 w-12 text-primary" />,
+    highlight: 'Deep Analysis'
+  }
+]
 
 interface OnboardingProps {
   onComplete: () => void
 }
 
-type OnboardingStep = 
-  | 'welcome'
-  | 'input-guide'
-  | 'waiting-analysis'
-  | 'results-overview'
-  | 'complete'
-
-const EXAMPLE_STUDY_URL = 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10577092/'
-
 export default function Onboarding({ onComplete }: OnboardingProps) {
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>('welcome')
-  const { loading, results, analyzeUrl } = useAnalysis()
-  const [isVisible, setIsVisible] = useState(true)
-  const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
-  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number; placement: 'top' | 'bottom' | 'left' | 'right' } | null>(null)
-  const updateIntervalRef = useRef<NodeJS.Timeout | null>(null)
-  const tooltipRef = useRef<HTMLDivElement>(null)
+  const [currentStep, setCurrentStep] = useState(0)
+  const [isOpen, setIsOpen] = useState(true)
 
-  // Monitor analysis progress
-  useEffect(() => {
-    if (currentStep === 'input-guide' && loading) {
-      setCurrentStep('waiting-analysis')
-    }
-  }, [loading, currentStep])
-
-  // When analysis completes, move to results overview
-  useEffect(() => {
-    if (currentStep === 'waiting-analysis' && results && !loading) {
-      setTimeout(() => {
-        const resultsElement = document.getElementById('analysis-results')
-        if (resultsElement) {
-          resultsElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        }
-        setTimeout(() => {
-          setCurrentStep('results-overview')
-        }, 1000)
-      }, 500)
-    }
-  }, [results, loading, currentStep])
-
-  // Calculate optimal tooltip position
-  const calculateTooltipPosition = (rect: DOMRect) => {
-    const tooltipWidth = 400
-    const tooltipHeight = tooltipRef.current?.offsetHeight || 300
-    const padding = 20
-    const viewportWidth = window.innerWidth
-    const viewportHeight = window.innerHeight
-    const isMobile = viewportWidth < 640
-
-    let top = 0
-    let left = 0
-    let placement: 'top' | 'bottom' | 'left' | 'right' = 'bottom'
-
-    if (isMobile) {
-      // Mobile: center horizontally, position above or below
-      left = Math.max(padding, Math.min(rect.left, viewportWidth - tooltipWidth - padding))
-      
-      // Try bottom first
-      if (rect.bottom + tooltipHeight + padding < viewportHeight) {
-        top = rect.bottom + padding
-        placement = 'bottom'
-      } 
-      // Try top if bottom doesn't fit
-      else if (rect.top - tooltipHeight - padding > 0) {
-        top = rect.top - tooltipHeight - padding
-        placement = 'top'
-      }
-      // Center vertically if neither fits
-      else {
-        top = Math.max(padding, (viewportHeight - tooltipHeight) / 2)
-        placement = 'bottom'
-      }
-    } else {
-      // Desktop: try right side first
-      if (rect.right + tooltipWidth + padding < viewportWidth) {
-        left = rect.right + padding
-        top = rect.top
-        placement = 'right'
-      }
-      // Try left side
-      else if (rect.left - tooltipWidth - padding > 0) {
-        left = rect.left - tooltipWidth - padding
-        top = rect.top
-        placement = 'left'
-      }
-      // Try bottom
-      else if (rect.bottom + tooltipHeight + padding < viewportHeight) {
-        left = Math.max(padding, Math.min(rect.left, viewportWidth - tooltipWidth - padding))
-        top = rect.bottom + padding
-        placement = 'bottom'
-      }
-      // Try top
-      else if (rect.top - tooltipHeight - padding > 0) {
-        left = Math.max(padding, Math.min(rect.left, viewportWidth - tooltipWidth - padding))
-        top = rect.top - tooltipHeight - padding
-        placement = 'top'
-      }
-      // Fallback: center
-      else {
-        left = Math.max(padding, (viewportWidth - tooltipWidth) / 2)
-        top = Math.max(padding, (viewportHeight - tooltipHeight) / 2)
-        placement = 'bottom'
-      }
-    }
-
-    return { top, left, placement }
-  }
-
-  // Update target rect and tooltip position
-  useEffect(() => {
-    const updateTargetRect = () => {
-      let target: HTMLElement | null = null
-      
-      if (currentStep === 'input-guide') {
-        target = document.querySelector('[data-onboarding-target="input"]') as HTMLElement
-      } else if (currentStep === 'results-overview') {
-        target = document.getElementById('analysis-results')
-      }
-
-      if (target) {
-        const rect = target.getBoundingClientRect()
-        setTargetRect(rect)
-        
-        // Calculate tooltip position after a brief delay to ensure tooltip is rendered
-        setTimeout(() => {
-          const position = calculateTooltipPosition(rect)
-          setTooltipPosition(position)
-        }, 50)
-      } else {
-        setTargetRect(null)
-        setTooltipPosition(null)
-      }
-    }
-
-    updateTargetRect()
-    
-    if (currentStep === 'input-guide' || currentStep === 'results-overview') {
-      updateIntervalRef.current = setInterval(updateTargetRect, 100)
-      window.addEventListener('scroll', updateTargetRect, { passive: true })
-      window.addEventListener('resize', updateTargetRect)
-    }
-
-    return () => {
-      if (updateIntervalRef.current) {
-        clearInterval(updateIntervalRef.current)
-      }
-      window.removeEventListener('scroll', updateTargetRect)
-      window.removeEventListener('resize', updateTargetRect)
-    }
-  }, [currentStep])
-
-  // Highlight target element
-  useEffect(() => {
-    const inputTarget = document.querySelector('[data-onboarding-target="input"]') as HTMLElement
-    if (currentStep === 'input-guide' && inputTarget) {
-      inputTarget.style.transition = 'all 0.3s ease'
-      inputTarget.style.transform = 'scale(1.01)'
-      inputTarget.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.4), 0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-      inputTarget.style.zIndex = '40'
-      inputTarget.style.position = 'relative'
-    } else if (inputTarget) {
-      inputTarget.style.transform = ''
-      inputTarget.style.boxShadow = ''
-      inputTarget.style.zIndex = ''
-      inputTarget.style.position = ''
-    }
-  }, [currentStep])
+  const progress = ((currentStep + 1) / steps.length) * 100
 
   const handleNext = () => {
-    switch (currentStep) {
-      case 'welcome':
-        setCurrentStep('input-guide')
-        setTimeout(() => {
-          const inputSection = document.querySelector('[data-onboarding-target="input"]')
-          inputSection?.scrollIntoView({ behavior: 'smooth', block: 'center' })
-        }, 100)
-        break
-      case 'input-guide':
-        // User needs to enter URL - wait for them
-        break
-      case 'waiting-analysis':
-        // Wait for analysis
-        break
-      case 'results-overview':
-        handleComplete()
-        break
+    if (currentStep < steps.length - 1) {
+      setCurrentStep(currentStep + 1)
+    } else {
+      handleComplete()
+    }
+  }
+
+  const handlePrevious = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1)
     }
   }
 
@@ -212,191 +88,119 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   }
 
   const handleComplete = () => {
-    setIsVisible(false)
+    setIsOpen(false)
+    // onComplete callback will handle setting the completion flag
     onComplete()
   }
 
-  const handleUseExample = () => {
-    analyzeUrl(EXAMPLE_STUDY_URL)
-  }
-
-  if (!isVisible) return null
-
-  // Render welcome modal
-  if (currentStep === 'welcome') {
-    return (
-      <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-        <Card className="max-w-lg w-full relative">
-          <CardContent className="p-6">
-            <div className="text-center space-y-4">
-              <div className="flex justify-center mb-4">
-                <div className="p-4 rounded-full bg-primary/10">
-                  <Sparkles className="h-8 w-8 text-primary" />
-                </div>
-              </div>
-              <h2 className="text-2xl font-bold">Welcome to AnalytIQ!</h2>
-              <p className="text-muted-foreground">
-                Let's analyze your first study together. We'll guide you through each step right on the page.
-              </p>
-              <div className="flex gap-3 justify-center pt-4">
-                <Button variant="outline" onClick={handleSkip}>
-                  Skip
-                </Button>
-                <Button onClick={handleNext} className="gap-2">
-                  Get Started
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
-  // Render spotlight overlay for other steps
-  if (!targetRect || !tooltipPosition) return null
-
-  const spotlightX = targetRect.left + targetRect.width / 2
-  const spotlightY = targetRect.top + targetRect.height / 2
-  const spotlightRadius = Math.max(targetRect.width, targetRect.height) / 2 + 20
+  const currentStepData = steps[currentStep]
 
   return (
-    <>
-      {/* Dark overlay with spotlight cutout */}
-      <div 
-        className="fixed inset-0 z-40 pointer-events-auto"
-        style={{
-          background: `radial-gradient(ellipse ${spotlightRadius * 2}px ${spotlightRadius * 2}px at ${spotlightX}px ${spotlightY}px, transparent 0%, transparent 45%, rgba(0,0,0,0.75) 45%)`,
-        }}
-      />
-      
-      {/* Tooltip card */}
-      <div
-        ref={tooltipRef}
-        className="fixed z-50 pointer-events-auto animate-in fade-in-0 zoom-in-95 duration-200"
-        style={{
-          top: `${tooltipPosition.top}px`,
-          left: `${tooltipPosition.left}px`,
-          maxWidth: 'min(400px, calc(100vw - 2rem))',
-          width: 'min(400px, calc(100vw - 2rem))',
-        }}
-      >
-        <Card className="shadow-2xl border-2 border-primary bg-background">
-          <CardContent className="p-4 sm:p-5">
-            {currentStep === 'input-guide' && (
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 flex-shrink-0">
-                    <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold mb-1.5 sm:mb-2 text-base sm:text-lg">Step 1: Enter a Study URL</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 leading-relaxed">
-                      Paste a study URL in the field above. We'll use this example study about red meat consumption and cancer risk:
-                    </p>
-                    <div className="bg-muted rounded-md p-2 mb-2 sm:mb-3 border overflow-x-auto">
-                      <code className="text-[10px] sm:text-xs break-all text-foreground whitespace-nowrap">{EXAMPLE_STUDY_URL}</code>
-                    </div>
-                    <div className="flex flex-col sm:flex-row gap-2">
-                      <Button 
-                        size="sm" 
-                        onClick={handleUseExample}
-                        disabled={loading}
-                        className="flex-1 text-xs sm:text-sm"
-                      >
-                        {loading ? (
-                          <>
-                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
-                            Analyzing...
-                          </>
-                        ) : (
-                          'Use Example Study'
-                        )}
-                      </Button>
-                      <Button 
-                        size="sm"
-                        variant="outline"
-                        onClick={handleSkip}
-                        className="text-xs sm:text-sm"
-                      >
-                        Skip
-                      </Button>
-                    </div>
-                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-2">
-                      Or paste your own study URL in the input field above.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            )}
+    <Dialog open={isOpen} onOpenChange={() => {}}>
+      <DialogContent className="max-w-2xl p-0 overflow-hidden" showCloseButton={false}>
+        {/* Progress Bar */}
+        <div className="px-6 pt-6 pb-4 border-b bg-gradient-to-r from-primary/5 to-transparent">
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-sm font-medium text-muted-foreground">
+              Step {currentStep + 1} of {steps.length}
+            </span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleSkip}
+              className="h-8 px-3 text-muted-foreground hover:text-foreground"
+            >
+              Skip Tour
+            </Button>
+          </div>
+          <Progress value={progress} className="h-2" />
+        </div>
 
-            {currentStep === 'waiting-analysis' && (
-              <div className="space-y-3">
-                <div className="flex items-center gap-3">
-                  <div className="relative w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
-                    <div className="absolute top-0 left-0 w-full h-full border-2 border-primary/20 rounded-full"></div>
-                    <div className="absolute top-0 left-0 w-full h-full border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold text-sm sm:text-base">Analyzing Study...</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      Our AI is analyzing the study. This may take a moment. We'll show you the results next!
-                    </p>
-                  </div>
-                </div>
+        {/* Content */}
+        <div className="px-6 py-8 pb-6">
+          {/* Icon and Highlight */}
+          <div className="flex flex-col items-center mb-8 animate-in fade-in-0 duration-500">
+            <div className="mb-5 p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 shadow-lg">
+              <div className="animate-in zoom-in-95 duration-500">
+                {currentStepData.icon}
+              </div>
+            </div>
+            {currentStepData.highlight && (
+              <div className="px-5 py-2 rounded-full bg-primary/10 border border-primary/20 animate-in slide-in-from-bottom-2 duration-500">
+                <span className="text-sm font-semibold text-primary">
+                  {currentStepData.highlight}
+                </span>
               </div>
             )}
+          </div>
 
-            {currentStep === 'results-overview' && (
-              <div className="space-y-3 sm:space-y-4">
-                <div className="flex items-start gap-2 sm:gap-3">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/10 flex-shrink-0">
-                    <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-semibold mb-1.5 sm:mb-2 text-base sm:text-lg">Analysis Complete! 🎉</h3>
-                    <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 leading-relaxed">
-                      Here's what you're seeing in the results:
-                    </p>
-                    <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm mb-3 sm:mb-4">
-                      <div className="flex items-start gap-2">
-                        <span className="text-primary font-bold mt-0.5 flex-shrink-0">•</span>
-                        <span><strong>Trust Score:</strong> Overall reliability rating (0-100)</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="text-primary font-bold mt-0.5 flex-shrink-0">•</span>
-                        <span><strong>Category Breakdown:</strong> Scores for 5 key areas</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="text-primary font-bold mt-0.5 flex-shrink-0">•</span>
-                        <span><strong>Key Takeaways:</strong> Main findings and insights</span>
-                      </div>
-                      <div className="flex items-start gap-2">
-                        <span className="text-primary font-bold mt-0.5 flex-shrink-0">•</span>
-                        <span><strong>Detailed Analysis:</strong> Technical critique and bias report</span>
-                      </div>
-                    </div>
-                    <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md p-2 sm:p-3 mb-3 sm:mb-4">
-                      <div className="flex items-start gap-2">
-                        <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                        <p className="text-[10px] sm:text-xs text-blue-900 dark:text-blue-100 leading-relaxed">
-                          <strong>Tip:</strong> Click category cards for details. Switch tabs to explore different views.
-                        </p>
-                      </div>
-                    </div>
-                    <Button onClick={handleComplete} className="w-full gap-2 text-xs sm:text-sm">
-                      Got it! Let me explore
-                      <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-    </>
+          {/* Title and Description */}
+          <div className="text-center mb-10 animate-in fade-in-0 slide-in-from-bottom-4 duration-700">
+            <h2 className="text-3xl sm:text-4xl font-bold mb-4 bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent">
+              {currentStepData.title}
+            </h2>
+            <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto">
+              {currentStepData.description}
+            </p>
+          </div>
+
+          {/* Step Indicators */}
+          <div className="flex justify-center gap-2 mb-8">
+            {steps.map((_, index) => (
+              <button
+                key={index}
+                onClick={() => setCurrentStep(index)}
+                className={`h-2 rounded-full transition-all duration-300 ${
+                  index === currentStep
+                    ? 'w-8 bg-primary'
+                    : index < currentStep
+                    ? 'w-2 bg-primary/50 hover:bg-primary/70'
+                    : 'w-2 bg-muted hover:bg-muted-foreground/50'
+                }`}
+                aria-label={`Go to step ${index + 1}`}
+              />
+            ))}
+          </div>
+
+          {/* Navigation Buttons */}
+          <div className="flex items-center justify-between gap-4">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentStep === 0}
+              className="gap-2 min-w-[100px]"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Previous
+            </Button>
+
+            <Button
+              onClick={handleNext}
+              className="gap-2 flex-1 max-w-xs"
+              size="lg"
+            >
+              {currentStep === steps.length - 1 ? (
+                <>
+                  Get Started
+                  <CheckCircle2 className="h-4 w-4" />
+                </>
+              ) : (
+                <>
+                  Next
+                  <ArrowRight className="h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
+
+        {/* Decorative Background */}
+        <div className="absolute inset-0 -z-10 opacity-[0.03] pointer-events-none">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-primary rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary rounded-full blur-3xl animate-pulse delay-1000"></div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 
@@ -433,6 +237,7 @@ export function useOnboarding(user: any, forceShow?: boolean) {
     if (completed) {
       setShowOnboarding(false)
       setIsLoading(false)
+      // Clear any signup flags since onboarding is already done
       sessionStorage.removeItem('analytiq-just-signed-up')
       return
     }
@@ -441,23 +246,35 @@ export function useOnboarding(user: any, forceShow?: boolean) {
     const justSignedUp = sessionStorage.getItem('analytiq-just-signed-up') === 'true'
     
     // Also check if user was created very recently (within last 5 minutes) as a fallback
+    // This helps catch cases where the flag might not be set, including email confirmations
     const userCreatedAt = user.created_at ? new Date(user.created_at).getTime() : 0
     const userUpdatedAt = user.updated_at ? new Date(user.updated_at).getTime() : userCreatedAt
+    // Check if user was created recently OR if created_at and updated_at are very close (new account)
     const isVeryNewUser = userCreatedAt > 0 && (
-      (Date.now() - userCreatedAt < 300000) || 
-      (Math.abs(userCreatedAt - userUpdatedAt) < 10000)
+      (Date.now() - userCreatedAt < 300000) || // Created within last 5 minutes
+      (Math.abs(userCreatedAt - userUpdatedAt) < 10000) // Created and updated within 10 seconds (new account)
     )
 
+    // Show onboarding if user just signed up (flag set) OR if they're a very new user
+    // This ensures first-time signups and email confirmations always see onboarding
     const shouldShow = (justSignedUp || isVeryNewUser) && !completed
     
     setShowOnboarding(shouldShow)
     setIsLoading(false)
+
+    // Clear the signup flag after checking (but only if we're showing onboarding)
+    // This prevents it from showing again on page refresh
+    if (justSignedUp && shouldShow) {
+      // Don't remove immediately - wait until onboarding is completed
+      // This allows the flag to persist if user refreshes during onboarding
+    }
   }, [user, forceShow])
 
   const completeOnboarding = () => {
     if (user?.id) {
       const completedKey = `analytiq-onboarding-completed-${user.id}`
       localStorage.setItem(completedKey, 'true')
+      // Clear the signup flag once onboarding is completed
       sessionStorage.removeItem('analytiq-just-signed-up')
     } else {
       localStorage.setItem('analytiq-onboarding-completed', 'true')
