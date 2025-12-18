@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { 
   Sparkles, 
-  ArrowRight,
+  ArrowRight, 
   CheckCircle2,
   FileText,
   Eye,
@@ -32,7 +32,9 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   const { loading, results, analyzeUrl } = useAnalysis()
   const [isVisible, setIsVisible] = useState(true)
   const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
+  const [tooltipPosition, setTooltipPosition] = useState<{ top: number; left: number; placement: 'top' | 'bottom' | 'left' | 'right' } | null>(null)
   const updateIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  const tooltipRef = useRef<HTMLDivElement>(null)
 
   // Monitor analysis progress
   useEffect(() => {
@@ -56,7 +58,75 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     }
   }, [results, loading, currentStep])
 
-  // Update target rect for spotlight positioning
+  // Calculate optimal tooltip position
+  const calculateTooltipPosition = (rect: DOMRect) => {
+    const tooltipWidth = 400
+    const tooltipHeight = tooltipRef.current?.offsetHeight || 300
+    const padding = 20
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const isMobile = viewportWidth < 640
+
+    let top = 0
+    let left = 0
+    let placement: 'top' | 'bottom' | 'left' | 'right' = 'bottom'
+
+    if (isMobile) {
+      // Mobile: center horizontally, position above or below
+      left = Math.max(padding, Math.min(rect.left, viewportWidth - tooltipWidth - padding))
+      
+      // Try bottom first
+      if (rect.bottom + tooltipHeight + padding < viewportHeight) {
+        top = rect.bottom + padding
+        placement = 'bottom'
+      } 
+      // Try top if bottom doesn't fit
+      else if (rect.top - tooltipHeight - padding > 0) {
+        top = rect.top - tooltipHeight - padding
+        placement = 'top'
+      }
+      // Center vertically if neither fits
+      else {
+        top = Math.max(padding, (viewportHeight - tooltipHeight) / 2)
+        placement = 'bottom'
+      }
+    } else {
+      // Desktop: try right side first
+      if (rect.right + tooltipWidth + padding < viewportWidth) {
+        left = rect.right + padding
+        top = rect.top
+        placement = 'right'
+      }
+      // Try left side
+      else if (rect.left - tooltipWidth - padding > 0) {
+        left = rect.left - tooltipWidth - padding
+        top = rect.top
+        placement = 'left'
+      }
+      // Try bottom
+      else if (rect.bottom + tooltipHeight + padding < viewportHeight) {
+        left = Math.max(padding, Math.min(rect.left, viewportWidth - tooltipWidth - padding))
+        top = rect.bottom + padding
+        placement = 'bottom'
+      }
+      // Try top
+      else if (rect.top - tooltipHeight - padding > 0) {
+        left = Math.max(padding, Math.min(rect.left, viewportWidth - tooltipWidth - padding))
+        top = rect.top - tooltipHeight - padding
+        placement = 'top'
+      }
+      // Fallback: center
+      else {
+        left = Math.max(padding, (viewportWidth - tooltipWidth) / 2)
+        top = Math.max(padding, (viewportHeight - tooltipHeight) / 2)
+        placement = 'bottom'
+      }
+    }
+
+    return { top, left, placement }
+  }
+
+  // Update target rect and tooltip position
   useEffect(() => {
     const updateTargetRect = () => {
       let target: HTMLElement | null = null
@@ -70,8 +140,15 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
       if (target) {
         const rect = target.getBoundingClientRect()
         setTargetRect(rect)
+        
+        // Calculate tooltip position after a brief delay to ensure tooltip is rendered
+        setTimeout(() => {
+          const position = calculateTooltipPosition(rect)
+          setTooltipPosition(position)
+        }, 50)
       } else {
         setTargetRect(null)
+        setTooltipPosition(null)
       }
     }
 
@@ -79,7 +156,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     
     if (currentStep === 'input-guide' || currentStep === 'results-overview') {
       updateIntervalRef.current = setInterval(updateTargetRect, 100)
-      window.addEventListener('scroll', updateTargetRect)
+      window.addEventListener('scroll', updateTargetRect, { passive: true })
       window.addEventListener('resize', updateTargetRect)
     }
 
@@ -178,7 +255,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   }
 
   // Render spotlight overlay for other steps
-  if (!targetRect) return null
+  if (!targetRect || !tooltipPosition) return null
 
   const spotlightX = targetRect.left + targetRect.width / 2
   const spotlightY = targetRect.top + targetRect.height / 2
@@ -192,48 +269,41 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         style={{
           background: `radial-gradient(ellipse ${spotlightRadius * 2}px ${spotlightRadius * 2}px at ${spotlightX}px ${spotlightY}px, transparent 0%, transparent 45%, rgba(0,0,0,0.75) 45%)`,
         }}
-        onClick={(e) => {
-          // Allow clicks through to the highlighted element
-          if (currentStep === 'input-guide') {
-            const inputTarget = document.querySelector('[data-onboarding-target="input"]')
-            if (inputTarget && inputTarget.contains(e.target as Node)) {
-              return
-            }
-          }
-        }}
       />
       
       {/* Tooltip card */}
       <div
-        className="fixed z-50 pointer-events-auto"
+        ref={tooltipRef}
+        className="fixed z-50 pointer-events-auto animate-in fade-in-0 zoom-in-95 duration-200"
         style={{
-          top: `${targetRect.bottom + 20}px`,
-          left: `${Math.min(targetRect.left, window.innerWidth - 420)}px`,
-          maxWidth: '400px',
+          top: `${tooltipPosition.top}px`,
+          left: `${tooltipPosition.left}px`,
+          maxWidth: 'min(400px, calc(100vw - 2rem))',
+          width: 'min(400px, calc(100vw - 2rem))',
         }}
       >
         <Card className="shadow-2xl border-2 border-primary bg-background">
-          <CardContent className="p-5">
+          <CardContent className="p-4 sm:p-5">
             {currentStep === 'input-guide' && (
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <FileText className="h-5 w-5 text-primary" />
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 rounded-lg bg-primary/10 flex-shrink-0">
+                    <FileText className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-2">Step 1: Enter a Study URL</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold mb-1.5 sm:mb-2 text-base sm:text-lg">Step 1: Enter a Study URL</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 leading-relaxed">
                       Paste a study URL in the field above. We'll use this example study about red meat consumption and cancer risk:
                     </p>
-                    <div className="bg-muted rounded-md p-2 mb-3 border">
-                      <code className="text-xs break-all text-foreground">{EXAMPLE_STUDY_URL}</code>
+                    <div className="bg-muted rounded-md p-2 mb-2 sm:mb-3 border overflow-x-auto">
+                      <code className="text-[10px] sm:text-xs break-all text-foreground whitespace-nowrap">{EXAMPLE_STUDY_URL}</code>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-col sm:flex-row gap-2">
                       <Button 
                         size="sm" 
                         onClick={handleUseExample}
                         disabled={loading}
-                        className="flex-1"
+                        className="flex-1 text-xs sm:text-sm"
                       >
                         {loading ? (
                           <>
@@ -245,14 +315,15 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
                         )}
                       </Button>
                       <Button 
-                        size="sm" 
+                        size="sm"
                         variant="outline"
                         onClick={handleSkip}
+                        className="text-xs sm:text-sm"
                       >
                         Skip
                       </Button>
                     </div>
-                    <p className="text-xs text-muted-foreground mt-2">
+                    <p className="text-[10px] sm:text-xs text-muted-foreground mt-2">
                       Or paste your own study URL in the input field above.
                     </p>
                   </div>
@@ -263,13 +334,13 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             {currentStep === 'waiting-analysis' && (
               <div className="space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="relative w-8 h-8">
+                  <div className="relative w-6 h-6 sm:w-8 sm:h-8 flex-shrink-0">
                     <div className="absolute top-0 left-0 w-full h-full border-2 border-primary/20 rounded-full"></div>
                     <div className="absolute top-0 left-0 w-full h-full border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold">Analyzing Study...</h3>
-                    <p className="text-sm text-muted-foreground">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-sm sm:text-base">Analyzing Study...</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground">
                       Our AI is analyzing the study. This may take a moment. We'll show you the results next!
                     </p>
                   </div>
@@ -278,45 +349,45 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             )}
 
             {currentStep === 'results-overview' && (
-              <div className="space-y-4">
-                <div className="flex items-start gap-3">
-                  <div className="p-2 rounded-lg bg-green-500/10">
-                    <Eye className="h-5 w-5 text-green-600 dark:text-green-400" />
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex items-start gap-2 sm:gap-3">
+                  <div className="p-1.5 sm:p-2 rounded-lg bg-green-500/10 flex-shrink-0">
+                    <Eye className="h-4 w-4 sm:h-5 sm:w-5 text-green-600 dark:text-green-400" />
                   </div>
-                  <div className="flex-1">
-                    <h3 className="font-semibold mb-2">Analysis Complete! 🎉</h3>
-                    <p className="text-sm text-muted-foreground mb-3">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold mb-1.5 sm:mb-2 text-base sm:text-lg">Analysis Complete! 🎉</h3>
+                    <p className="text-xs sm:text-sm text-muted-foreground mb-2 sm:mb-3 leading-relaxed">
                       Here's what you're seeing in the results:
                     </p>
-                    <div className="space-y-2 text-sm mb-4">
+                    <div className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm mb-3 sm:mb-4">
                       <div className="flex items-start gap-2">
-                        <span className="text-primary font-bold mt-0.5">•</span>
-                        <span><strong>Trust Score:</strong> Overall reliability rating (0-100) - higher is better</span>
+                        <span className="text-primary font-bold mt-0.5 flex-shrink-0">•</span>
+                        <span><strong>Trust Score:</strong> Overall reliability rating (0-100)</span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <span className="text-primary font-bold mt-0.5">•</span>
-                        <span><strong>Category Breakdown:</strong> Scores for Methodology, Evidence Strength, Bias Detection, Reproducibility, and Statistical Validity</span>
+                        <span className="text-primary font-bold mt-0.5 flex-shrink-0">•</span>
+                        <span><strong>Category Breakdown:</strong> Scores for 5 key areas</span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <span className="text-primary font-bold mt-0.5">•</span>
-                        <span><strong>Key Takeaways:</strong> Main findings and insights from the study</span>
+                        <span className="text-primary font-bold mt-0.5 flex-shrink-0">•</span>
+                        <span><strong>Key Takeaways:</strong> Main findings and insights</span>
                       </div>
                       <div className="flex items-start gap-2">
-                        <span className="text-primary font-bold mt-0.5">•</span>
-                        <span><strong>Detailed Analysis:</strong> Technical critique, bias report, and expert context</span>
+                        <span className="text-primary font-bold mt-0.5 flex-shrink-0">•</span>
+                        <span><strong>Detailed Analysis:</strong> Technical critique and bias report</span>
                       </div>
                     </div>
-                    <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md p-3 mb-4">
+                    <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md p-2 sm:p-3 mb-3 sm:mb-4">
                       <div className="flex items-start gap-2">
-                        <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
-                        <p className="text-xs text-blue-900 dark:text-blue-100">
-                          <strong>Tip:</strong> Click on any category card to see detailed breakdowns. Switch between "Simple Summary", "Technical Critique", and "Bias Report" tabs to explore different views.
+                        <Lightbulb className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-[10px] sm:text-xs text-blue-900 dark:text-blue-100 leading-relaxed">
+                          <strong>Tip:</strong> Click category cards for details. Switch tabs to explore different views.
                         </p>
                       </div>
                     </div>
-                    <Button onClick={handleComplete} className="w-full gap-2">
+                    <Button onClick={handleComplete} className="w-full gap-2 text-xs sm:text-sm">
                       Got it! Let me explore
-                      <CheckCircle2 className="h-4 w-4" />
+                      <CheckCircle2 className="h-3 w-3 sm:h-4 sm:w-4" />
                     </Button>
                   </div>
                 </div>
