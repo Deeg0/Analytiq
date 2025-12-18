@@ -59,12 +59,45 @@ export default function SettingsPage() {
     setSigningOut(true)
     try {
       const supabase = createClient()
-      const { error } = await supabase.auth.signOut({ scope: 'global' })
+      
+      // Try sign out without scope first (local sign out)
+      let { error } = await supabase.auth.signOut()
+      
+      // If that fails, try with global scope
+      if (error) {
+        console.warn('Local sign out failed, trying global:', error)
+        const result = await supabase.auth.signOut({ scope: 'global' })
+        error = result.error
+      }
       
       if (error) {
-        console.error('Sign out error:', error)
-        alert('Failed to sign out. Please try again.')
-        setSigningOut(false)
+        console.error('Sign out error details:', {
+          message: error.message,
+          status: error.status,
+          name: error.name
+        })
+        
+        // Even if there's an error, try to clear local state and redirect
+        // Sometimes the sign out partially succeeds
+        if (typeof window !== 'undefined') {
+          sessionStorage.clear()
+          localStorage.removeItem('analytiq-just-signed-up')
+          // Clear all Supabase-related localStorage items
+          Object.keys(localStorage).forEach(key => {
+            if (key.includes('supabase') || key.includes('sb-')) {
+              localStorage.removeItem(key)
+            }
+          })
+        }
+        
+        // Force redirect even on error - the session might still be cleared
+        router.push('/')
+        router.refresh()
+        
+        // Show error but still redirect
+        setTimeout(() => {
+          alert('Sign out completed, but there may have been an issue. Please refresh the page if you still see your account.')
+        }, 500)
         return
       }
 
@@ -72,14 +105,39 @@ export default function SettingsPage() {
       if (typeof window !== 'undefined') {
         sessionStorage.clear()
         localStorage.removeItem('analytiq-just-signed-up')
+        // Clear all Supabase-related localStorage items
+        Object.keys(localStorage).forEach(key => {
+          if (key.includes('supabase') || key.includes('sb-')) {
+            localStorage.removeItem(key)
+          }
+        })
       }
+
+      // Wait a moment for the sign out to complete
+      await new Promise(resolve => setTimeout(resolve, 100))
 
       // Redirect to home page
       router.push('/')
       router.refresh() // Force refresh to clear any cached state
-    } catch (err) {
+    } catch (err: any) {
       console.error('Unexpected error during sign out:', err)
-      alert('An unexpected error occurred. Please try again.')
+      
+      // Even on error, try to clear local state
+      if (typeof window !== 'undefined') {
+        sessionStorage.clear()
+        localStorage.removeItem('analytiq-just-signed-up')
+        Object.keys(localStorage).forEach(key => {
+          if (key.includes('supabase') || key.includes('sb-')) {
+            localStorage.removeItem(key)
+          }
+        })
+      }
+      
+      // Try to redirect anyway
+      router.push('/')
+      router.refresh()
+      
+      alert('An error occurred during sign out. You may need to refresh the page.')
       setSigningOut(false)
     }
   }
