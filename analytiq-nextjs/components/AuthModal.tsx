@@ -128,9 +128,25 @@ export default function AuthModal({ open, onOpenChange, defaultTab = 'signin', i
       // Check if this is signup (signup tab) or signin
       const isSignUp = activeTab === 'signup'
       
-      // Always use window.location.origin in the browser - it will be correct for both www and non-www
-      // This ensures the redirect URL matches exactly where the user is accessing from
-      const redirectUrl = `${window.location.origin}/auth/callback`
+      // Determine the correct redirect URL
+      // Priority: 1) NEXT_PUBLIC_SITE_URL env var, 2) Normalize localhost to http://localhost:3000, 3) Use window.location.origin
+      let redirectUrl: string
+      
+      if (process.env.NEXT_PUBLIC_SITE_URL) {
+        // Use explicit site URL from env (for production)
+        redirectUrl = `${process.env.NEXT_PUBLIC_SITE_URL}/auth/callback`
+      } else if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        // For localhost, normalize to http://localhost:3000 (or detect port)
+        // This ensures consistency with Supabase configuration
+        const port = window.location.port || '3000'
+        redirectUrl = `http://localhost:${port}/auth/callback`
+      } else {
+        // Use window.location.origin for other cases (staging, etc.)
+        redirectUrl = `${window.location.origin}/auth/callback`
+      }
+      
+      // Log redirect URL for debugging (remove in production if needed)
+      console.log('OAuth redirect URL:', redirectUrl)
       
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
