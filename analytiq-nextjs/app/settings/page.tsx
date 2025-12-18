@@ -14,6 +14,7 @@ import Link from 'next/link'
 export default function SettingsPage() {
   const [user, setUser] = useState<any>(null)
   const [loading, setLoading] = useState(true)
+  const [signingOut, setSigningOut] = useState(false)
   const router = useRouter()
 
   useEffect(() => {
@@ -51,10 +52,35 @@ export default function SettingsPage() {
   }
 
   const handleSignOut = async () => {
-    if (confirm('Are you sure you want to sign out?')) {
+    if (!confirm('Are you sure you want to sign out?')) {
+      return
+    }
+
+    setSigningOut(true)
+    try {
       const supabase = createClient()
-      await supabase.auth.signOut()
+      const { error } = await supabase.auth.signOut({ scope: 'global' })
+      
+      if (error) {
+        console.error('Sign out error:', error)
+        alert('Failed to sign out. Please try again.')
+        setSigningOut(false)
+        return
+      }
+
+      // Clear any local storage/session storage
+      if (typeof window !== 'undefined') {
+        sessionStorage.clear()
+        localStorage.removeItem('analytiq-just-signed-up')
+      }
+
+      // Redirect to home page
       router.push('/')
+      router.refresh() // Force refresh to clear any cached state
+    } catch (err) {
+      console.error('Unexpected error during sign out:', err)
+      alert('An unexpected error occurred. Please try again.')
+      setSigningOut(false)
     }
   }
 
@@ -139,9 +165,19 @@ export default function SettingsPage() {
                 onClick={handleSignOut} 
                 variant="destructive" 
                 className="w-full gap-2"
+                disabled={signingOut}
               >
-                <LogOut className="h-4 w-4" />
-                Sign Out
+                {signingOut ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Signing Out...
+                  </>
+                ) : (
+                  <>
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>
