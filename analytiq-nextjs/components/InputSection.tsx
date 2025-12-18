@@ -15,7 +15,7 @@ export default function InputSection() {
   const { analyzeUrl, analyzeText, loading } = useAnalysis()
 
   return (
-    <Card className="mb-6 sm:mb-8">
+    <Card className="mb-6 sm:mb-8" data-onboarding-target="input">
       <CardHeader>
         <h3 className="text-lg font-semibold">Analyze a Study</h3>
       </CardHeader>

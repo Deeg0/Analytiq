@@ -1,18 +1,16 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { useState, useEffect, useRef } from 'react'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
+import { Card, CardContent } from '@/components/ui/card'
 import { 
   Sparkles, 
   ArrowRight,
   CheckCircle2,
   FileText,
-  Search,
-  TrendingUp,
   Eye,
-  BookOpen
+  Lightbulb,
+  Loader2
 } from 'lucide-react'
 import { useAnalysis } from '@/lib/contexts/AnalysisContext'
 
@@ -25,18 +23,18 @@ type OnboardingStep =
   | 'input-guide'
   | 'waiting-analysis'
   | 'results-overview'
-  | 'results-details'
   | 'complete'
+
+const EXAMPLE_STUDY_URL = 'https://pmc.ncbi.nlm.nih.gov/articles/PMC10577092/'
 
 export default function Onboarding({ onComplete }: OnboardingProps) {
   const [currentStep, setCurrentStep] = useState<OnboardingStep>('welcome')
-  const [isOpen, setIsOpen] = useState(true)
-  const { loading, results, analyzeUrl, analyzeText } = useAnalysis()
-  
-  // Sample study URL for demo
-  const sampleUrl = 'https://www.nature.com/articles/s41586-023-06221-2'
+  const { loading, results, analyzeUrl } = useAnalysis()
+  const [isVisible, setIsVisible] = useState(true)
+  const [targetRect, setTargetRect] = useState<DOMRect | null>(null)
+  const updateIntervalRef = useRef<NodeJS.Timeout | null>(null)
 
-  // Monitor analysis progress - move to waiting when analysis starts
+  // Monitor analysis progress
   useEffect(() => {
     if (currentStep === 'input-guide' && loading) {
       setCurrentStep('waiting-analysis')
@@ -46,48 +44,89 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   // When analysis completes, move to results overview
   useEffect(() => {
     if (currentStep === 'waiting-analysis' && results && !loading) {
-      // Scroll to results section
       setTimeout(() => {
         const resultsElement = document.getElementById('analysis-results')
         if (resultsElement) {
           resultsElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
         }
-        // Move to next step after scrolling
         setTimeout(() => {
           setCurrentStep('results-overview')
-        }, 800)
+        }, 1000)
       }, 500)
     }
   }, [results, loading, currentStep])
 
-  const progress = {
-    welcome: 0,
-    'input-guide': 20,
-    'waiting-analysis': 40,
-    'results-overview': 60,
-    'results-details': 80,
-    complete: 100
-  }[currentStep]
+  // Update target rect for spotlight positioning
+  useEffect(() => {
+    const updateTargetRect = () => {
+      let target: HTMLElement | null = null
+      
+      if (currentStep === 'input-guide') {
+        target = document.querySelector('[data-onboarding-target="input"]') as HTMLElement
+      } else if (currentStep === 'results-overview') {
+        target = document.getElementById('analysis-results')
+      }
+
+      if (target) {
+        const rect = target.getBoundingClientRect()
+        setTargetRect(rect)
+      } else {
+        setTargetRect(null)
+      }
+    }
+
+    updateTargetRect()
+    
+    if (currentStep === 'input-guide' || currentStep === 'results-overview') {
+      updateIntervalRef.current = setInterval(updateTargetRect, 100)
+      window.addEventListener('scroll', updateTargetRect)
+      window.addEventListener('resize', updateTargetRect)
+    }
+
+    return () => {
+      if (updateIntervalRef.current) {
+        clearInterval(updateIntervalRef.current)
+      }
+      window.removeEventListener('scroll', updateTargetRect)
+      window.removeEventListener('resize', updateTargetRect)
+    }
+  }, [currentStep])
+
+  // Highlight target element
+  useEffect(() => {
+    const inputTarget = document.querySelector('[data-onboarding-target="input"]') as HTMLElement
+    if (currentStep === 'input-guide' && inputTarget) {
+      inputTarget.style.transition = 'all 0.3s ease'
+      inputTarget.style.transform = 'scale(1.01)'
+      inputTarget.style.boxShadow = '0 0 0 4px rgba(59, 130, 246, 0.4), 0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+      inputTarget.style.zIndex = '40'
+      inputTarget.style.position = 'relative'
+    } else if (inputTarget) {
+      inputTarget.style.transform = ''
+      inputTarget.style.boxShadow = ''
+      inputTarget.style.zIndex = ''
+      inputTarget.style.position = ''
+    }
+  }, [currentStep])
 
   const handleNext = () => {
     switch (currentStep) {
       case 'welcome':
         setCurrentStep('input-guide')
+        setTimeout(() => {
+          const inputSection = document.querySelector('[data-onboarding-target="input"]')
+          inputSection?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+        }, 100)
         break
       case 'input-guide':
-        // User should analyze a study - wait for them to do it
+        // User needs to enter URL - wait for them
         break
       case 'waiting-analysis':
-        // Wait for analysis to complete
+        // Wait for analysis
         break
       case 'results-overview':
-        setCurrentStep('results-details')
-        break
-      case 'results-details':
         handleComplete()
         break
-      default:
-        handleComplete()
     }
   }
 
@@ -96,281 +135,197 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   }
 
   const handleComplete = () => {
-    setIsOpen(false)
+    setIsVisible(false)
     onComplete()
   }
 
-  const handleAnalyzeSample = () => {
-    analyzeUrl(sampleUrl)
+  const handleUseExample = () => {
+    analyzeUrl(EXAMPLE_STUDY_URL)
   }
 
-  const renderStepContent = () => {
-    switch (currentStep) {
-      case 'welcome':
-        return (
-          <div className="text-center space-y-6">
-            <div className="flex justify-center mb-6">
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 shadow-lg">
-                <Sparkles className="h-12 w-12 text-primary" />
-              </div>
-            </div>
-            <div>
-              <h2 className="text-3xl sm:text-4xl font-bold mb-4 bg-gradient-to-r from-foreground via-foreground to-primary bg-clip-text text-transparent">
-                Welcome to AnalytIQ
-              </h2>
-              <p className="text-base sm:text-lg text-muted-foreground leading-relaxed max-w-xl mx-auto mb-6">
-                Let's get you started! We'll walk you through analyzing your first study and understanding the results.
-              </p>
-              <div className="bg-muted/50 rounded-lg p-4 text-sm text-muted-foreground space-y-2">
-                <p className="font-semibold text-foreground">What you'll learn:</p>
-                <ul className="list-disc list-inside space-y-1 ml-2">
-                  <li>How to analyze a scientific study</li>
-                  <li>Understanding trust scores and ratings</li>
-                  <li>Interpreting detailed analysis results</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        )
+  if (!isVisible) return null
 
-      case 'input-guide':
-        return (
-          <div className="text-center space-y-6">
-            <div className="flex justify-center mb-6">
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 shadow-lg">
-                <FileText className="h-12 w-12 text-primary" />
+  // Render welcome modal
+  if (currentStep === 'welcome') {
+    return (
+      <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
+        <Card className="max-w-lg w-full relative">
+          <CardContent className="p-6">
+            <div className="text-center space-y-4">
+              <div className="flex justify-center mb-4">
+                <div className="p-4 rounded-full bg-primary/10">
+                  <Sparkles className="h-8 w-8 text-primary" />
+                </div>
               </div>
-            </div>
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-                Step 1: Analyze a Study
-              </h2>
-              <p className="text-base text-muted-foreground leading-relaxed max-w-xl mx-auto mb-6">
-                To get started, you need to analyze a study. You can paste a URL or enter text/abstract directly.
+              <h2 className="text-2xl font-bold">Welcome to AnalytIQ!</h2>
+              <p className="text-muted-foreground">
+                Let's analyze your first study together. We'll guide you through each step right on the page.
               </p>
-              <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-6">
-                <p className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-                  💡 Quick Start
-                </p>
-                <p className="text-sm text-blue-800 dark:text-blue-200 mb-4">
-                  Click the button below to analyze a sample study, or enter your own study URL/text in the form above.
-                </p>
-                <Button onClick={handleAnalyzeSample} className="w-full sm:w-auto">
-                  Analyze Sample Study
+              <div className="flex gap-3 justify-center pt-4">
+                <Button variant="outline" onClick={handleSkip}>
+                  Skip
+                </Button>
+                <Button onClick={handleNext} className="gap-2">
+                  Get Started
+                  <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
-              <div className="bg-muted/50 rounded-lg p-4 text-left text-sm space-y-2">
-                <p className="font-semibold text-foreground">Supported formats:</p>
-                <ul className="list-disc list-inside space-y-1 ml-2 text-muted-foreground">
-                  <li>Web pages (HTML articles, journals)</li>
-                  <li>PDF files (.pdf)</li>
-                  <li>DOI links (doi.org)</li>
-                  <li>Journal sites (PubMed, arXiv, etc.)</li>
-                </ul>
-              </div>
             </div>
-          </div>
-        )
-
-      case 'waiting-analysis':
-        return (
-          <div className="text-center space-y-6">
-            <div className="flex justify-center mb-6">
-              <div className="relative w-16 h-16">
-                <div className="absolute top-0 left-0 w-full h-full border-4 border-primary/20 rounded-full"></div>
-                <div className="absolute top-0 left-0 w-full h-full border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
-              </div>
-            </div>
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-                Analyzing Study...
-              </h2>
-              <p className="text-base text-muted-foreground leading-relaxed max-w-xl mx-auto">
-                Our AI is analyzing the study. This may take a moment. We'll guide you through the results once it's complete!
-              </p>
-            </div>
-          </div>
-        )
-
-      case 'results-overview':
-        return (
-          <div className="text-center space-y-6">
-            <div className="flex justify-center mb-6">
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-green-500/10 to-green-500/5 border border-green-500/20 shadow-lg">
-                <CheckCircle2 className="h-12 w-12 text-green-600 dark:text-green-400" />
-              </div>
-            </div>
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-                Analysis Complete!
-              </h2>
-              <p className="text-base text-muted-foreground leading-relaxed max-w-xl mx-auto mb-6">
-                Great! Your study has been analyzed. Let's explore what the results mean.
-              </p>
-              {results && (
-                <div className="bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 rounded-lg p-6 mb-6">
-                  <div className="flex items-center justify-center gap-4 mb-4">
-                    <div className="text-4xl font-bold text-primary">
-                      {results.trustScore.overall}
-                    </div>
-                    <div className="text-left">
-                      <div className="text-lg font-semibold">
-                        {results.trustScore.rating}
-                      </div>
-                      <div className="text-sm text-muted-foreground">
-                        Overall Trust Score
-                      </div>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground">
-                    This score represents the overall reliability of the study across 5 key categories.
-                  </p>
-                </div>
-              )}
-              <div className="bg-muted/50 rounded-lg p-4 text-left text-sm space-y-2">
-                <p className="font-semibold text-foreground">What you'll see in the results:</p>
-                <ul className="list-disc list-inside space-y-1 ml-2 text-muted-foreground">
-                  <li><strong>Trust Score:</strong> Overall reliability rating</li>
-                  <li><strong>Category Breakdown:</strong> Scores for 5 key areas</li>
-                  <li><strong>Key Takeaways:</strong> Main findings and insights</li>
-                  <li><strong>Detailed Analysis:</strong> Technical critique and bias report</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-        )
-
-      case 'results-details':
-        return (
-          <div className="text-center space-y-6">
-            <div className="flex justify-center mb-6">
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 border border-primary/20 shadow-lg">
-                <Eye className="h-12 w-12 text-primary" />
-              </div>
-            </div>
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-                Understanding Your Results
-              </h2>
-              <p className="text-base text-muted-foreground leading-relaxed max-w-xl mx-auto mb-6">
-                Here's how to interpret the analysis results:
-              </p>
-              <div className="space-y-4 text-left">
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <TrendingUp className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold mb-1">Category Scores</p>
-                      <p className="text-sm text-muted-foreground">
-                        Each category (Methodology, Evidence Strength, Bias, etc.) is scored individually. Click on any category card to see detailed breakdowns.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <Search className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold mb-1">Detailed Analysis Tabs</p>
-                      <p className="text-sm text-muted-foreground">
-                        Switch between "Simple Summary", "Technical Critique", and "Bias Report" to explore different aspects of the analysis.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                <div className="bg-muted/50 rounded-lg p-4">
-                  <div className="flex items-start gap-3">
-                    <BookOpen className="h-5 w-5 text-primary mt-0.5 flex-shrink-0" />
-                    <div>
-                      <p className="font-semibold mb-1">Save Your Analysis</p>
-                      <p className="text-sm text-muted-foreground">
-                        You can save analyses for later reference. Access them anytime from the "Saved" page in the header.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )
-
-      default:
-        return null
-    }
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
+  // Render spotlight overlay for other steps
+  if (!targetRect) return null
+
+  const spotlightX = targetRect.left + targetRect.width / 2
+  const spotlightY = targetRect.top + targetRect.height / 2
+  const spotlightRadius = Math.max(targetRect.width, targetRect.height) / 2 + 20
+
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
-      <DialogContent className="max-w-2xl p-0 overflow-hidden" showCloseButton={false}>
-        {/* Progress Bar */}
-        <div className="px-6 pt-6 pb-4 border-b bg-gradient-to-r from-primary/5 to-transparent">
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-sm font-medium text-muted-foreground">
-              {currentStep === 'welcome' && 'Step 1 of 5'}
-              {currentStep === 'input-guide' && 'Step 2 of 5'}
-              {currentStep === 'waiting-analysis' && 'Step 3 of 5'}
-              {currentStep === 'results-overview' && 'Step 4 of 5'}
-              {currentStep === 'results-details' && 'Step 5 of 5'}
-            </span>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleSkip}
-              className="h-8 px-3 text-muted-foreground hover:text-foreground"
-            >
-              Skip Tour
-            </Button>
-          </div>
-          <Progress value={progress} className="h-2" />
-        </div>
-
-        {/* Content */}
-        <div className="px-6 py-8 pb-6 max-h-[70vh] overflow-y-auto">
-          {renderStepContent()}
-        </div>
-
-        {/* Navigation Buttons */}
-        <div className="px-6 pb-6 border-t pt-4">
-          <div className="flex items-center justify-end gap-4">
-            {(currentStep === 'welcome' || currentStep === 'results-overview' || currentStep === 'results-details') && (
-              <Button
-                onClick={handleNext}
-                className="gap-2"
-                size="lg"
-              >
-                {currentStep === 'results-details' ? (
-                  <>
-                    Get Started
-                    <CheckCircle2 className="h-4 w-4" />
-                  </>
-                ) : (
-                  <>
-                    Next
-                    <ArrowRight className="h-4 w-4" />
-                  </>
-                )}
-              </Button>
-            )}
-            {(currentStep === 'input-guide' || currentStep === 'waiting-analysis') && (
-              <div className="text-sm text-muted-foreground text-center flex-1">
-                {currentStep === 'input-guide' && (
-                  <p>Enter a study URL or text above, or use the sample button</p>
-                )}
-                {currentStep === 'waiting-analysis' && (
-                  <p>Please wait while we analyze the study...</p>
-                )}
+    <>
+      {/* Dark overlay with spotlight cutout */}
+      <div 
+        className="fixed inset-0 z-40 pointer-events-auto"
+        style={{
+          background: `radial-gradient(ellipse ${spotlightRadius * 2}px ${spotlightRadius * 2}px at ${spotlightX}px ${spotlightY}px, transparent 0%, transparent 45%, rgba(0,0,0,0.75) 45%)`,
+        }}
+        onClick={(e) => {
+          // Allow clicks through to the highlighted element
+          if (currentStep === 'input-guide') {
+            const inputTarget = document.querySelector('[data-onboarding-target="input"]')
+            if (inputTarget && inputTarget.contains(e.target as Node)) {
+              return
+            }
+          }
+        }}
+      />
+      
+      {/* Tooltip card */}
+      <div
+        className="fixed z-50 pointer-events-auto"
+        style={{
+          top: `${targetRect.bottom + 20}px`,
+          left: `${Math.min(targetRect.left, window.innerWidth - 420)}px`,
+          maxWidth: '400px',
+        }}
+      >
+        <Card className="shadow-2xl border-2 border-primary bg-background">
+          <CardContent className="p-5">
+            {currentStep === 'input-guide' && (
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-primary/10">
+                    <FileText className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold mb-2">Step 1: Enter a Study URL</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Paste a study URL in the field above. We'll use this example study about red meat consumption and cancer risk:
+                    </p>
+                    <div className="bg-muted rounded-md p-2 mb-3 border">
+                      <code className="text-xs break-all text-foreground">{EXAMPLE_STUDY_URL}</code>
+                    </div>
+                    <div className="flex gap-2">
+                      <Button 
+                        size="sm" 
+                        onClick={handleUseExample}
+                        disabled={loading}
+                        className="flex-1"
+                      >
+                        {loading ? (
+                          <>
+                            <Loader2 className="h-3 w-3 mr-2 animate-spin" />
+                            Analyzing...
+                          </>
+                        ) : (
+                          'Use Example Study'
+                        )}
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={handleSkip}
+                      >
+                        Skip
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      Or paste your own study URL in the input field above.
+                    </p>
+                  </div>
+                </div>
               </div>
             )}
-          </div>
-        </div>
 
-        {/* Decorative Background */}
-        <div className="absolute inset-0 -z-10 opacity-[0.03] pointer-events-none">
-          <div className="absolute top-0 left-0 w-96 h-96 bg-primary rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute bottom-0 right-0 w-96 h-96 bg-primary rounded-full blur-3xl animate-pulse delay-1000"></div>
-        </div>
-      </DialogContent>
-    </Dialog>
+            {currentStep === 'waiting-analysis' && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="relative w-8 h-8">
+                    <div className="absolute top-0 left-0 w-full h-full border-2 border-primary/20 rounded-full"></div>
+                    <div className="absolute top-0 left-0 w-full h-full border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold">Analyzing Study...</h3>
+                    <p className="text-sm text-muted-foreground">
+                      Our AI is analyzing the study. This may take a moment. We'll show you the results next!
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {currentStep === 'results-overview' && (
+              <div className="space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="p-2 rounded-lg bg-green-500/10">
+                    <Eye className="h-5 w-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="font-semibold mb-2">Analysis Complete! 🎉</h3>
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Here's what you're seeing in the results:
+                    </p>
+                    <div className="space-y-2 text-sm mb-4">
+                      <div className="flex items-start gap-2">
+                        <span className="text-primary font-bold mt-0.5">•</span>
+                        <span><strong>Trust Score:</strong> Overall reliability rating (0-100) - higher is better</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-primary font-bold mt-0.5">•</span>
+                        <span><strong>Category Breakdown:</strong> Scores for Methodology, Evidence Strength, Bias Detection, Reproducibility, and Statistical Validity</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-primary font-bold mt-0.5">•</span>
+                        <span><strong>Key Takeaways:</strong> Main findings and insights from the study</span>
+                      </div>
+                      <div className="flex items-start gap-2">
+                        <span className="text-primary font-bold mt-0.5">•</span>
+                        <span><strong>Detailed Analysis:</strong> Technical critique, bias report, and expert context</span>
+                      </div>
+                    </div>
+                    <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-md p-3 mb-4">
+                      <div className="flex items-start gap-2">
+                        <Lightbulb className="h-4 w-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" />
+                        <p className="text-xs text-blue-900 dark:text-blue-100">
+                          <strong>Tip:</strong> Click on any category card to see detailed breakdowns. Switch between "Simple Summary", "Technical Critique", and "Bias Report" tabs to explore different views.
+                        </p>
+                      </div>
+                    </div>
+                    <Button onClick={handleComplete} className="w-full gap-2">
+                      Got it! Let me explore
+                      <CheckCircle2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    </>
   )
 }
 
@@ -407,7 +362,6 @@ export function useOnboarding(user: any, forceShow?: boolean) {
     if (completed) {
       setShowOnboarding(false)
       setIsLoading(false)
-      // Clear any signup flags since onboarding is already done
       sessionStorage.removeItem('analytiq-just-signed-up')
       return
     }
@@ -416,35 +370,23 @@ export function useOnboarding(user: any, forceShow?: boolean) {
     const justSignedUp = sessionStorage.getItem('analytiq-just-signed-up') === 'true'
     
     // Also check if user was created very recently (within last 5 minutes) as a fallback
-    // This helps catch cases where the flag might not be set, including email confirmations
     const userCreatedAt = user.created_at ? new Date(user.created_at).getTime() : 0
     const userUpdatedAt = user.updated_at ? new Date(user.updated_at).getTime() : userCreatedAt
-    // Check if user was created recently OR if created_at and updated_at are very close (new account)
     const isVeryNewUser = userCreatedAt > 0 && (
-      (Date.now() - userCreatedAt < 300000) || // Created within last 5 minutes
-      (Math.abs(userCreatedAt - userUpdatedAt) < 10000) // Created and updated within 10 seconds (new account)
+      (Date.now() - userCreatedAt < 300000) || 
+      (Math.abs(userCreatedAt - userUpdatedAt) < 10000)
     )
 
-    // Show onboarding if user just signed up (flag set) OR if they're a very new user
-    // This ensures first-time signups and email confirmations always see onboarding
     const shouldShow = (justSignedUp || isVeryNewUser) && !completed
     
     setShowOnboarding(shouldShow)
     setIsLoading(false)
-
-    // Clear the signup flag after checking (but only if we're showing onboarding)
-    // This prevents it from showing again on page refresh
-    if (justSignedUp && shouldShow) {
-      // Don't remove immediately - wait until onboarding is completed
-      // This allows the flag to persist if user refreshes during onboarding
-    }
   }, [user, forceShow])
 
   const completeOnboarding = () => {
     if (user?.id) {
       const completedKey = `analytiq-onboarding-completed-${user.id}`
       localStorage.setItem(completedKey, 'true')
-      // Clear the signup flag once onboarding is completed
       sessionStorage.removeItem('analytiq-just-signed-up')
     } else {
       localStorage.setItem('analytiq-onboarding-completed', 'true')
