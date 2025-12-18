@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -145,10 +145,68 @@ export default function AuthModal({ open, onOpenChange, defaultTab = 'signin', i
         redirectUrl = `${window.location.origin}/auth/callback`
       }
       
-      // Log redirect URL for debugging (remove in production if needed)
-      console.log('OAuth redirect URL:', redirectUrl)
+      // Get Supabase URL to determine the redirect URI that Google will see
+      // IMPORTANT: Google redirects to Supabase's callback, NOT directly to our app
+      // The redirect URI in Google Cloud Console must be: https://[PROJECT_ID].supabase.co/auth/v1/callback
+      let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
       
-      const { error } = await supabase.auth.signInWithOAuth({
+      // Try to get URL from Supabase client if env var not available
+      if (!supabaseUrl && (supabase as any).supabaseUrl) {
+        supabaseUrl = (supabase as any).supabaseUrl
+      }
+      
+      // Always log debug info
+      console.log('🔍 OAuth Debug Info:')
+      console.log('  📍 App redirect URL (where Supabase redirects after auth):', redirectUrl)
+      console.log('')
+      console.log('📋 Troubleshooting Checklist:')
+      console.log('  1. Verify Google Client ID in Supabase matches Google Cloud Console')
+      console.log('  2. Verify Google Client Secret in Supabase matches Google Cloud Console')
+      console.log('  3. Check for trailing slashes in redirect URI (should be NO trailing slash)')
+      console.log('  4. Ensure redirect URI uses https:// (not http://)')
+      console.log('  5. Make sure you\'re editing the correct OAuth client in Google Cloud Console')
+      console.log('  6. Wait a few minutes after saving changes in Google Cloud Console')
+      console.log('')
+      
+      if (supabaseUrl) {
+        try {
+          // Extract project ID from Supabase URL (format: https://[project-id].supabase.co)
+          const urlMatch = supabaseUrl.match(/https:\/\/([^.]+)\.supabase\.co/)
+          if (urlMatch) {
+            const supabaseProjectId = urlMatch[1]
+            const googleRedirectUri = `https://${supabaseProjectId}.supabase.co/auth/v1/callback`
+            console.log('  🔑 Google redirect URI (MUST be in Google Cloud Console):', googleRedirectUri)
+            console.log('  🆔 Supabase Project ID:', supabaseProjectId)
+            console.log('')
+            console.log('⚠️  ACTION REQUIRED: Add this EXACT URL to Google Cloud Console:')
+            console.log('   1. Go to: https://console.cloud.google.com/apis/credentials')
+            console.log('   2. Click your OAuth 2.0 Client ID')
+            console.log('   3. Under "Authorized redirect URIs", add:')
+            console.log('      ', googleRedirectUri)
+            console.log('   4. Save and try again')
+          } else {
+            console.log('  ⚠️  Could not parse Supabase URL:', supabaseUrl)
+            console.log('  📝 Find your Supabase Project ID in Supabase Dashboard → Settings → API')
+            console.log('  📝 Then add this URL to Google Cloud Console:')
+            console.log('      https://[YOUR_PROJECT_ID].supabase.co/auth/v1/callback')
+          }
+        } catch (e) {
+          console.log('  ⚠️  Error extracting Supabase project ID:', e)
+          console.log('  📝 Find your Supabase Project ID in Supabase Dashboard → Settings → API')
+          console.log('  📝 Then add this URL to Google Cloud Console:')
+          console.log('      https://[YOUR_PROJECT_ID].supabase.co/auth/v1/callback')
+        }
+      } else {
+        console.log('  ⚠️  Could not find Supabase URL')
+        console.log('  📝 Find your Supabase Project ID in Supabase Dashboard → Settings → API')
+        console.log('  📝 The redirect URI format is: https://[PROJECT_ID].supabase.co/auth/v1/callback')
+        console.log('  📝 Add this URL to Google Cloud Console → OAuth 2.0 Client → Authorized redirect URIs')
+      }
+      
+      // Intercept the OAuth URL to see what's actually being sent
+      const originalWindowLocation = window.location.href
+      
+      const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
           redirectTo: redirectUrl,
@@ -159,7 +217,42 @@ export default function AuthModal({ open, onOpenChange, defaultTab = 'signin', i
         },
       })
 
-      if (error) throw error
+      if (error) {
+        console.error('❌ Supabase OAuth Error:', error)
+        throw error
+      }
+      
+      // If data.url exists, it contains the OAuth URL that Supabase generated
+      if (data?.url) {
+        try {
+          const oauthUrl = new URL(data.url)
+          const googleRedirectUri = oauthUrl.searchParams.get('redirect_uri')
+          const googleClientId = oauthUrl.searchParams.get('client_id')
+          
+          console.log('')
+          console.log('✅ OAuth Request Details:')
+          if (googleClientId) {
+            console.log('  🔑 Google Client ID:', googleClientId)
+            console.log('  ⚠️  VERIFY: This Client ID must match:')
+            console.log('     1. Supabase Dashboard → Authentication → Providers → Google')
+            console.log('     2. Google Cloud Console → OAuth 2.0 Client ID')
+          }
+          if (googleRedirectUri) {
+            console.log('  🔗 Redirect URI:', decodeURIComponent(googleRedirectUri))
+            console.log('  ⚠️  VERIFY: This EXACT URL must be in Google Cloud Console')
+            console.log('     (Check for trailing slashes, http vs https, exact match)')
+          }
+          console.log('')
+          console.log('📋 If still getting errors, check:')
+          console.log('   1. Google Client ID in Supabase matches Google Cloud Console')
+          console.log('   2. Google Client Secret in Supabase matches Google Cloud Console')
+          console.log('   3. Redirect URI is added to the CORRECT OAuth client (matching Client ID)')
+          console.log('   4. No extra spaces or characters in the redirect URI')
+          console.log('   5. Wait 2-3 minutes after saving changes')
+        } catch (e) {
+          console.log('Could not parse OAuth URL:', e)
+        }
+      }
       
       // For signup, mark that user is signing up
       if (isSignUp) {
@@ -176,6 +269,9 @@ export default function AuthModal({ open, onOpenChange, defaultTab = 'signin', i
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Authentication</DialogTitle>
+          <DialogDescription>
+            Sign in to your account or create a new one to get started.
+          </DialogDescription>
         </DialogHeader>
         <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'signin' | 'signup')}>
           <TabsList className="grid w-full grid-cols-2">
