@@ -19,7 +19,7 @@ export function SiteHeader() {
           height={40}
           className="h-10 w-10"
         />
-        <h1 className="text-base font-medium">Home</h1>
+                <h1 className="text-base font-medium">Home</h1>
       </div>
     </header>
   )

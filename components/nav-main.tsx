@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import { IconHome2, type Icon } from "@tabler/icons-react"
 import {
   SidebarGroup,
@@ -20,6 +21,9 @@ export function NavMain({
     icon?: Icon
   }[]
 }) {
+  const pathname = usePathname()
+  const isHomeActive = pathname === "/dashboard"
+
   return (
     <SidebarGroup>
       <SidebarGroupContent className="flex flex-col gap-2">
@@ -28,7 +32,7 @@ export function NavMain({
             <SidebarMenuButton
               asChild
               tooltip="Home"
-              className="bg-background text-foreground border border-border hover:bg-accent hover:text-accent-foreground active:bg-accent active:text-accent-foreground min-w-8 duration-200 ease-linear"
+              isActive={isHomeActive}
             >
               <Link href="/dashboard">
                 <IconHome2 />
@@ -39,14 +43,19 @@ export function NavMain({
         </SidebarMenu>
         <SidebarGroupLabel>Tools</SidebarGroupLabel>
         <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {item.icon && <item.icon />}
-                <span>{item.title}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {items.map((item) => {
+            const isActive = pathname === item.url
+            return (
+              <SidebarMenuItem key={item.title}>
+                <SidebarMenuButton tooltip={item.title} asChild isActive={isActive}>
+                  <Link href={item.url}>
+                    {item.icon && <item.icon />}
+                    <span>{item.title}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
         </SidebarMenu>
       </SidebarGroupContent>
     </SidebarGroup>

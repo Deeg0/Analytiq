@@ -1,19 +1,22 @@
 "use client"
 
 import * as React from "react"
+import { useEffect, useState } from "react"
 import Image from "next/image"
 import Link from "next/link"
+import { createSupabaseClient } from "@/lib/supabase/client"
 import {
   IconChartBar,
   IconDatabase,
   IconFileText,
   IconFileWord,
-  IconFlask,
+  IconChartLine,
   IconHelp,
   IconReport,
   IconSearch,
   IconSettings,
   IconSparkles,
+  IconBook,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -30,41 +33,31 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar"
 
-const data = {
-  user: {
-    name: "shadcn",
-    email: "m@example.com",
-    avatar: "/avatars/shadcn.jpg",
-  },
+const defaultData = {
   navMain: [
     {
-      title: "Data Analysis",
-      url: "#",
-      icon: IconFlask,
+      title: "Study Analysis",
+      url: "/study-analysis",
+      icon: IconChartLine,
     },
     {
       title: "Visualization",
-      url: "#",
+      url: "/visualization",
       icon: IconChartBar,
     },
     {
-      title: "Data Management",
-      url: "#",
-      icon: IconDatabase,
-    },
-    {
       title: "Documentation",
-      url: "#",
+      url: "/documentation",
       icon: IconFileText,
     },
     {
       title: "Literature Search",
-      url: "#",
-      icon: IconSearch,
+      url: "/literature-search",
+      icon: IconBook,
     },
     {
       title: "AI Insights",
-      url: "#",
+      url: "/ai-insights",
       icon: IconSparkles,
     },
   ],
@@ -87,8 +80,8 @@ const data = {
   ],
   documents: [
     {
-      name: "Data Library",
-      url: "#",
+      name: "Saved Studies",
+      url: "/saved-studies",
       icon: IconDatabase,
     },
     {
@@ -105,6 +98,41 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const [user, setUser] = useState<{
+    name: string
+    email: string
+    avatar?: string
+  } | null>(null)
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const supabase = createSupabaseClient()
+        const { data: { user: authUser } } = await supabase.auth.getUser()
+        
+        if (authUser) {
+          const fullName = (authUser.user_metadata?.full_name as string) || authUser.email || "User"
+          setUser({
+            name: fullName,
+            email: authUser.email || "",
+          })
+        }
+      } catch (err) {
+        console.error('Error fetching user:', err)
+      }
+    }
+
+    fetchUser()
+  }, [])
+
+  const data = {
+    ...defaultData,
+    user: user || {
+      name: "User",
+      email: "",
+    },
+  }
+
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader>
@@ -134,7 +162,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        {user && <NavUser user={user} />}
       </SidebarFooter>
     </Sidebar>
   )
