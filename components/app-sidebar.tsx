@@ -6,7 +6,6 @@ import Image from "next/image"
 import Link from "next/link"
 import { createSupabaseClient } from "@/lib/supabase/client"
 import {
-  IconChartBar,
   IconDatabase,
   IconFileText,
   IconFileWord,
@@ -15,8 +14,7 @@ import {
   IconReport,
   IconSearch,
   IconSettings,
-  IconSparkles,
-  IconBook,
+  IconTableExport,
 } from "@tabler/icons-react"
 
 import { NavDocuments } from "@/components/nav-documents"
@@ -41,30 +39,20 @@ const defaultData = {
       icon: IconChartLine,
     },
     {
-      title: "Visualization",
-      url: "/visualization",
-      icon: IconChartBar,
+      title: "Data Extraction",
+      url: "/data-extraction",
+      icon: IconTableExport,
     },
     {
-      title: "Documentation",
+      title: "Find Studies",
       url: "/documentation",
-      icon: IconFileText,
-    },
-    {
-      title: "Literature Search",
-      url: "/literature-search",
-      icon: IconBook,
-    },
-    {
-      title: "AI Insights",
-      url: "/ai-insights",
-      icon: IconSparkles,
+      icon: IconSearch,
     },
   ],
   navSecondary: [
     {
       title: "Settings",
-      url: "#",
+      url: "/settings",
       icon: IconSettings,
     },
     {
@@ -162,7 +150,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavSecondary items={data.navSecondary} className="mt-auto" />
       </SidebarContent>
       <SidebarFooter>
-        {user && <NavUser user={user} />}
+        <NavUser user={user || { name: "User", email: "" }} />
       </SidebarFooter>
     </Sidebar>
   )

@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
+import { Suspense } from "react"
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
 import {
@@ -23,6 +24,16 @@ import { Spinner } from "@/components/ui/spinner"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
+import {
   IconChartLine,
   IconUpload,
   IconFileText,
@@ -34,21 +45,97 @@ import {
   IconInfoCircle,
   IconBookmark,
   IconBookmarkFilled,
+  IconLink,
 } from "@tabler/icons-react"
 import { createSupabaseClient } from "@/lib/supabase/client"
+import { useAuth } from "@/hooks/useAuth"
+import { useSearchParams } from "next/navigation"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001"
 
-export default function StudyAnalysisPage() {
+function StudyAnalysisContent() {
+  const { isAuthenticated, isLoading } = useAuth()
+  const searchParams = useSearchParams()
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [analysisResult, setAnalysisResult] = useState<string | null>(null)
   const [showHowItWorks, setShowHowItWorks] = useState(true)
+  const [showHideDialog, setShowHideDialog] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [isSaved, setIsSaved] = useState(false)
+  const [studyMetadata, setStudyMetadata] = useState<any>(null)
+  const [urlInput, setUrlInput] = useState("")
+  const [useUrl, setUseUrl] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const resultsRef = useRef<HTMLDivElement>(null)
+
+  // Check localStorage on mount to see if "How It Works" should be hidden
+  useEffect(() => {
+    const hidePermanently = localStorage.getItem("hideHowItWorks-study-analysis")
+    if (hidePermanently === "true") {
+      setShowHowItWorks(false)
+    }
+  }, [])
+
+  // Scroll to results when analysis is complete
+  useEffect(() => {
+    if (analysisResult && resultsRef.current) {
+      // Small delay to ensure DOM is updated
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, 100)
+    }
+  }, [analysisResult])
+
+  // Check for pending URL from search page
+  useEffect(() => {
+    const fromSearch = searchParams?.get("fromSearch")
+    if (fromSearch === "true") {
+      const pendingUrl = sessionStorage.getItem("pendingStudyUrl")
+      const pendingMetadata = sessionStorage.getItem("pendingStudyMetadata")
+      
+      if (pendingUrl) {
+        // Set URL and switch to URL mode
+        setUrlInput(pendingUrl)
+        setUseUrl(true)
+        setShowHowItWorks(false)
+        
+        if (pendingMetadata) {
+          try {
+            const metadata = JSON.parse(pendingMetadata)
+            setStudyMetadata(metadata)
+          } catch (err) {
+            console.error("Error parsing metadata:", err)
+          }
+        }
+        
+        // Clear sessionStorage
+        sessionStorage.removeItem("pendingStudyUrl")
+        sessionStorage.removeItem("pendingStudyMetadata")
+      } else {
+        // Check for old format (pending analysis)
+        const pendingData = sessionStorage.getItem("pendingStudyAnalysis")
+        if (pendingData) {
+          try {
+            const data = JSON.parse(pendingData)
+            if (data.analysis) {
+              // Set the analysis result
+              setAnalysisResult(data.analysis)
+              setStudyMetadata(data.studyMetadata)
+              setShowHowItWorks(false)
+              setIsSaved(false)
+              // Clear sessionStorage
+              sessionStorage.removeItem("pendingStudyAnalysis")
+            }
+          } catch (err) {
+            console.error("Error loading pending analysis:", err)
+          }
+        }
+      }
+    }
+  }, [searchParams])
 
   const handleFileSelect = (file: File) => {
     // Validate file type by extension (more reliable than MIME type)
@@ -106,8 +193,50 @@ export default function StudyAnalysisPage() {
   }
 
   const handleAnalyze = async () => {
+    if (useUrl && urlInput.trim()) {
+      // Analyze from URL
+      setIsAnalyzing(true)
+      setError(null)
+      setAnalysisResult(null)
+
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/analyze-from-url`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            url: urlInput.trim(),
+            title: studyMetadata?.title || null,
+          }),
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`)
+        }
+
+        const data = await response.json()
+
+        if (data.success && data.analysis) {
+          setAnalysisResult(data.analysis)
+          setStudyMetadata(data.source || {})
+          setIsSaved(false)
+          setShowHowItWorks(false)
+        } else {
+          throw new Error("No analysis received from server")
+        }
+      } catch (err) {
+        console.error("Error analyzing study from URL:", err)
+        setError(err instanceof Error ? err.message : "Failed to analyze study from URL. Please try again.")
+      } finally {
+        setIsAnalyzing(false)
+      }
+      return
+    }
+
     if (!selectedFile) {
-      setError("Please select a file to analyze.")
+      setError("Please select a file or enter a URL to analyze.")
       return
     }
 
@@ -119,22 +248,33 @@ export default function StudyAnalysisPage() {
       const formData = new FormData()
       formData.append("file", selectedFile)
 
+      console.log(`Sending request to: ${API_BASE_URL}/api/analyze-study`)
       const response = await fetch(`${API_BASE_URL}/api/analyze-study`, {
         method: "POST",
         body: formData,
       })
 
+      console.log(`Response status: ${response.status} ${response.statusText}`)
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
+        console.error("Error response:", errorData)
         throw new Error(errorData.message || errorData.error || `HTTP error! status: ${response.status}`)
       }
 
       const data = await response.json()
+      console.log("Response data:", { 
+        success: data.success, 
+        hasAnalysis: !!data.analysis,
+        analysisLength: data.analysis?.length || 0 
+      })
 
       if (data.success && data.analysis) {
+        console.log("Setting analysis result, length:", data.analysis.length)
         setAnalysisResult(data.analysis)
         setIsSaved(false) // Reset saved state when new analysis is done
       } else {
+        console.error("Invalid response structure:", data)
         throw new Error("No analysis received from server")
       }
     } catch (err) {
@@ -175,6 +315,7 @@ export default function StudyAnalysisPage() {
           file_name: selectedFile.name,
           file_size: selectedFile.size,
           analysis_result: cleanedAnalysis,
+          study_type: 'analysis',
         })
 
       if (insertError) {
@@ -228,38 +369,57 @@ export default function StudyAnalysisPage() {
     // Find where table starts and ends (collect consecutive lines with |)
     while (i < lines.length) {
       const line = lines[i]?.trim()
-      if (!line || !line.includes('|')) break
-      tableLines.push(line)
+      // Stop if we hit a non-table line (but allow empty lines within table)
+      if (line && !line.includes('|')) break
+      if (line) tableLines.push(line)
       i++
     }
     
-    if (tableLines.length < 3) return null // Need at least header, separator, and one row
+    if (tableLines.length < 2) return null
     
-    // Parse table - split by | and clean cells
-    const rows = tableLines
-      .map(line => {
-        const cells = line.split('|').map(cell => cell.trim()).filter(cell => cell)
-        return cells.length > 0 ? cells : null
+    // Parse table rows, filtering out separator rows (dash-only rows)
+    const rows: string[][] = []
+    for (const line of tableLines) {
+      // Split by | and clean up cells (remove empty cells at start/end from markdown format)
+      const rawCells = line.split('|').map(cell => cell.trim())
+      // Remove empty cells at the start and end (markdown tables have these)
+      const cells = rawCells.filter((cell, idx) => {
+        if (idx === 0 || idx === rawCells.length - 1) {
+          return cell.length > 0 // Keep first/last only if they have content
+        }
+        return true
       })
-      .filter((row): row is string[] => row !== null)
+      
+      // Skip separator rows (rows that are mostly dashes, colons, or empty)
+      const isSeparatorRow = cells.every(cell => 
+        cell.match(/^[\s-:]+$/) || cell.length === 0
+      )
+      
+      if (!isSeparatorRow && cells.length > 0) {
+        rows.push(cells)
+      }
+    }
     
-    if (rows.length < 2 || rows[0].length === 0) return null
+    if (rows.length < 1) return null
     
-    // Find separator row (usually contains dashes)
-    const separatorIndex = rows.findIndex(row => 
-      row.some(cell => cell.match(/^[\s-]+$/))
-    )
-    
+    // First row is headers
     const headers = rows[0]
-    const dataRows = separatorIndex > 0 
-      ? rows.slice(separatorIndex + 1)
-      : rows.slice(1)
+    const dataRows = rows.slice(1)
+    
+    // Ensure all rows have the same number of columns as headers
+    const normalizedRows = dataRows.map(row => {
+      const normalized = [...row]
+      while (normalized.length < headers.length) {
+        normalized.push('')
+      }
+      return normalized.slice(0, headers.length)
+    })
     
     return (
-      <div key={startIndex} className="overflow-x-auto my-4 rounded-lg border border-border">
+      <div key={startIndex} className="overflow-x-auto my-6 rounded-lg border border-border bg-card shadow-sm">
         <table className="min-w-full border-collapse">
           <thead>
-            <tr className="bg-muted border-b border-border">
+            <tr className="bg-muted/50 border-b border-border">
               {headers.map((header, idx) => (
                 <th key={idx} className="px-4 py-3 text-left font-semibold text-sm text-foreground">
                   {renderBoldText(header)}
@@ -268,34 +428,47 @@ export default function StudyAnalysisPage() {
             </tr>
           </thead>
           <tbody>
-            {dataRows.map((row, rowIdx) => (
-              <tr key={rowIdx} className="border-b border-border last:border-b-0 hover:bg-muted/30 transition-colors">
+            {normalizedRows.map((row, rowIdx) => (
+              <tr key={rowIdx} className="border-b border-border/50 last:border-b-0 hover:bg-muted/20 transition-colors">
                 {headers.map((_, cellIdx) => {
                   const cell = row[cellIdx] || ''
                   
                   // Check if cell contains risk level keywords
-                  const riskKeywords = ['High', 'Low', 'Moderate', 'Some concerns', 'Unclear', 'Not applicable']
+                  const riskKeywords = ['High', 'Low', 'Moderate', 'Some concerns', 'Unclear', 'Not applicable', 'Very Low']
                   const matchingKeyword = riskKeywords.find(keyword => 
                     cell.toLowerCase().includes(keyword.toLowerCase())
                   )
                   
                   let cellContent: React.ReactNode = renderBoldText(cell)
                   
-                  // Style risk levels with badges (only if it's a short cell that's primarily the risk level)
-                  if (matchingKeyword && cell.length < 60 && cell.split(' ').length < 10) {
-                    const variant = 
-                      matchingKeyword.toLowerCase().includes('high') || matchingKeyword.toLowerCase().includes('concerns')
-                        ? 'destructive'
-                        : matchingKeyword.toLowerCase().includes('moderate') || matchingKeyword.toLowerCase().includes('unclear')
-                        ? 'outline'
-                        : matchingKeyword.toLowerCase().includes('not applicable')
-                        ? 'secondary'
-                        : 'secondary'
-                    cellContent = <Badge variant={variant} className="text-xs">{cell}</Badge>
+                  // Style risk levels with badges (only if it's primarily the risk level)
+                  if (matchingKeyword) {
+                    // Check if the cell is mostly just the risk level (short or starts with it)
+                    const cellLower = cell.toLowerCase()
+                    const keywordLower = matchingKeyword.toLowerCase()
+                    const isPrimarilyRiskLevel = 
+                      cellLower === keywordLower ||
+                      (cellLower.startsWith(keywordLower) && cell.length < 80) ||
+                      (cell.length < 30 && cellLower.includes(keywordLower))
+                    
+                    if (isPrimarilyRiskLevel) {
+                      const variant = 
+                        matchingKeyword.toLowerCase().includes('high') || 
+                        matchingKeyword.toLowerCase().includes('concerns') ||
+                        matchingKeyword.toLowerCase().includes('very low')
+                          ? 'destructive'
+                          : matchingKeyword.toLowerCase().includes('moderate') || 
+                            matchingKeyword.toLowerCase().includes('unclear')
+                          ? 'outline'
+                          : matchingKeyword.toLowerCase().includes('not applicable')
+                          ? 'secondary'
+                          : 'secondary'
+                      cellContent = <Badge variant={variant} className="text-xs font-medium">{cell}</Badge>
+                    }
                   }
                   
                   return (
-                    <td key={cellIdx} className="px-4 py-3 text-sm text-muted-foreground align-top">
+                    <td key={cellIdx} className="px-4 py-3 text-sm text-foreground align-top">
                       {cellContent}
                     </td>
                   )
@@ -381,22 +554,28 @@ export default function StudyAnalysisPage() {
   const cleanAnalysisText = (text: string): string => {
     let cleaned = text.trim()
     
-    // Remove "Analysis of the Study:" and similar prefixes
+    // Remove "Analysis of the Study:" and similar prefixes (but keep everything after)
     cleaned = cleaned
       .replace(/^Analysis of the Study[:\s]*["']?[^"']*["']?\s*/i, '')
       .replace(/^Analysis:\s*/i, '')
       .trim()
     
-    // Find the first ## section header (main section, not subsection)
-    // Look for patterns like "## 1. " or "## 2. " etc.
-    const firstMainSectionMatch = cleaned.match(/^(.*?)(^## \d+\.\s+.+$)/m)
-    if (firstMainSectionMatch) {
-      cleaned = firstMainSectionMatch[2].trim()
+    // Find the position of the first ## section header and keep everything from there onwards
+    const firstSectionMatch = cleaned.match(/^## \d+\.\s+/m)
+    if (firstSectionMatch) {
+      const firstSectionIndex = cleaned.indexOf(firstSectionMatch[0])
+      if (firstSectionIndex > 0) {
+        // Remove any text before the first section header
+        cleaned = cleaned.substring(firstSectionIndex).trim()
+      }
     } else {
-      // Fallback: find first ## section header
-      const firstSectionMatch = cleaned.match(/^(.*?)(^## .+$)/m)
-      if (firstSectionMatch && firstSectionMatch[1].length > 0) {
-        cleaned = firstSectionMatch[2].trim()
+      // Fallback: find first ## section header (any format)
+      const firstAnySectionMatch = cleaned.match(/^## /m)
+      if (firstAnySectionMatch) {
+        const firstSectionIndex = cleaned.indexOf(firstAnySectionMatch[0])
+        if (firstSectionIndex > 0) {
+          cleaned = cleaned.substring(firstSectionIndex).trim()
+        }
       }
     }
     
@@ -405,8 +584,16 @@ export default function StudyAnalysisPage() {
 
   // Component to render formatted analysis
   const renderAnalysis = (text: string) => {
+    console.log("renderAnalysis called with text length:", text.length)
     const cleanedText = cleanAnalysisText(text)
+    console.log("After cleanAnalysisText, length:", cleanedText.length)
     const sections = cleanedText.split(/(?=^## )/m).filter(Boolean)
+    console.log("Number of sections found:", sections.length)
+    
+    if (sections.length === 0) {
+      console.error("No sections found after cleaning!")
+      console.log("Cleaned text:", cleanedText.substring(0, 500))
+    }
     
     return (
       <div className="space-y-6">
@@ -580,7 +767,7 @@ export default function StudyAnalysisPage() {
                   <CardHeader>
                     <CardTitle>Upload Your Study</CardTitle>
                     <CardDescription>
-                      Upload your research study file for analysis. Supported formats: PDF, TXT
+                      Upload your research study file or paste a URL for analysis. Supported formats: PDF, TXT. Note: Only URLs are supported (not DOI or PDF links).
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-6">
@@ -590,7 +777,59 @@ export default function StudyAnalysisPage() {
                       </Alert>
                     )}
 
+                    {/* URL Input Option */}
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        {!useUrl ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setUseUrl(true)
+                              setSelectedFile(null)
+                              if (fileInputRef.current) fileInputRef.current.value = ""
+                            }}
+                            className="gap-2"
+                          >
+                            <IconLink className="h-4 w-4" />
+                            Use URL Instead
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setUseUrl(false)
+                              setUrlInput("")
+                            }}
+                          >
+                            Use File Instead
+                          </Button>
+                        )}
+                      </div>
+                      {useUrl && (
+                        <div className="space-y-2">
+                          <Label htmlFor="url-input">Enter Study URL</Label>
+                          <Input
+                            id="url-input"
+                            type="text"
+                            placeholder="https://pubmed.ncbi.nlm.nih.gov/12345678 or https://example.com/study"
+                            value={urlInput}
+                            onChange={(e) => setUrlInput(e.target.value)}
+                            disabled={isAnalyzing}
+                            className="font-mono text-sm"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Only URLs are supported (not DOI or PDF links). Paste the study page URL (e.g., PubMed page URL).
+                          </p>
+                        </div>
+                      )}
+                    </div>
+
                     {/* Upload Area */}
+                    {!useUrl && (
                     <div
                       className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
                         isDragging
@@ -641,12 +880,12 @@ export default function StudyAnalysisPage() {
                             </p>
                           </div>
                         ) : (
-                          <div className="space-y-2">
+                        <div className="space-y-2">
                             <h3 className="font-medium">Drag and drop your file here</h3>
-                            <p className="text-sm text-muted-foreground">
-                              or click to browse
-                            </p>
-                          </div>
+                          <p className="text-sm text-muted-foreground">
+                            or click to browse
+                          </p>
+                        </div>
                         )}
                         {!selectedFile && (
                           <Button
@@ -660,19 +899,20 @@ export default function StudyAnalysisPage() {
                             }}
                           >
                             Select File
-                          </Button>
+                        </Button>
                         )}
                         <p className="text-xs text-muted-foreground mt-2">
                           Maximum file size: 50MB
                         </p>
                       </div>
                     </div>
+                    )}
 
                     <Button
                       size="lg"
                       className="w-full"
                       onClick={handleAnalyze}
-                      disabled={!selectedFile || isAnalyzing}
+                      disabled={(useUrl ? !urlInput.trim() : !selectedFile) || isAnalyzing}
                     >
                       {isAnalyzing ? (
                         <>
@@ -681,7 +921,7 @@ export default function StudyAnalysisPage() {
                         </>
                       ) : (
                         <>
-                          <IconBrain className="h-4 w-4 mr-2" />
+                      <IconBrain className="h-4 w-4 mr-2" />
                           Analyze Study
                         </>
                       )}
@@ -691,61 +931,64 @@ export default function StudyAnalysisPage() {
 
                 {/* Info Card */}
                 {showHowItWorks && (
-                  <Card>
+                <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
-                      <CardTitle>How It Works</CardTitle>
+                    <CardTitle>How It Works</CardTitle>
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => setShowHowItWorks(false)}
+                        onClick={() => setShowHideDialog(true)}
                         className="h-8 w-8 p-0"
                       >
                         <IconX className="h-4 w-4" />
                       </Button>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="flex gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 shrink-0">
-                          <IconUpload className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="space-y-1">
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 shrink-0">
+                        <IconUpload className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="space-y-1">
                           <h4 className="font-medium text-sm">Upload Study</h4>
-                          <p className="text-xs text-muted-foreground">
+                        <p className="text-xs text-muted-foreground">
                             Upload your scientific study in PDF or TXT format.
-                          </p>
-                        </div>
+                        </p>
                       </div>
-                      <div className="flex gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 shrink-0">
-                          <IconBrain className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="space-y-1">
-                          <h4 className="font-medium text-sm">AI Analysis</h4>
-                          <p className="text-xs text-muted-foreground">
-                            Our AI analyzes your study with evidence-based methodology.
-                          </p>
-                        </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 shrink-0">
+                        <IconBrain className="h-4 w-4 text-primary" />
                       </div>
-                      <div className="flex gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 shrink-0">
-                          <IconChartBar className="h-4 w-4 text-primary" />
-                        </div>
-                        <div className="space-y-1">
-                          <h4 className="font-medium text-sm">View Results</h4>
-                          <p className="text-xs text-muted-foreground">
+                      <div className="space-y-1">
+                        <h4 className="font-medium text-sm">AI Analysis</h4>
+                        <p className="text-xs text-muted-foreground">
+                            Our AI analyzes your study using Cochrane Handbook, RoB 2, ROBINS-I/ROBINS-E, Newcastle-Ottawa Scale, GRADE, and PICO/PECO frameworks.
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex gap-3">
+                      <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary/10 shrink-0">
+                        <IconChartBar className="h-4 w-4 text-primary" />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="font-medium text-sm">View Results</h4>
+                        <p className="text-xs text-muted-foreground">
                             Review comprehensive analysis reports and assessments.
-                          </p>
-                        </div>
+                        </p>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </CardContent>
+                </Card>
                 )}
                 {!showHowItWorks && (
                   <div className="flex justify-end">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => setShowHowItWorks(true)}
+                      onClick={() => {
+                        setShowHowItWorks(true)
+                        localStorage.removeItem("hideHowItWorks-study-analysis")
+                      }}
                       className="gap-2"
                     >
                       <IconInfoCircle className="h-4 w-4" />
@@ -755,9 +998,33 @@ export default function StudyAnalysisPage() {
                 )}
               </div>
 
+              {/* Hide Permanently Dialog */}
+              <AlertDialog open={showHideDialog} onOpenChange={setShowHideDialog}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Hide "How It Works"?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Would you like to hide this section permanently? You can always show it again using the "Show How It Works" button.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => {
+                        setShowHowItWorks(false)
+                        localStorage.setItem("hideHowItWorks-study-analysis", "true")
+                        setShowHideDialog(false)
+                      }}
+                    >
+                      Hide Permanently
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+
               {/* Analysis Results */}
               {analysisResult && (
-                <div className="mt-6">
+                <div ref={resultsRef} className="mt-6">
                   <div className="mb-6 flex items-center justify-between">
                     <div>
                       <h2 className="text-2xl font-semibold tracking-tight mb-2">Analysis Results</h2>
@@ -792,35 +1059,22 @@ export default function StudyAnalysisPage() {
                   {renderAnalysis(analysisResult)}
                 </div>
               )}
-
-              {/* Recent Studies Section */}
-              {!analysisResult && (
-                <div className="mt-8">
-                  <div className="flex items-center justify-between mb-4">
-                    <h2 className="text-xl font-semibold tracking-tight">Recent Studies</h2>
-                    <Button variant="outline" size="sm" disabled>
-                      View All
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3">
-                    <Card>
-                      <CardHeader className="gap-3">
-                        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-secondary">
-                          <IconFileText className="h-5 w-5 text-secondary-foreground" />
-                        </div>
-                        <CardTitle className="text-base">No studies yet</CardTitle>
-                        <CardDescription className="text-sm">
-                          Upload your first study to get started with analysis.
-                        </CardDescription>
-                      </CardHeader>
-                    </Card>
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>
       </SidebarInset>
     </SidebarProvider>
+  )
+}
+
+export default function StudyAnalysisPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner className="h-8 w-8" />
+      </div>
+    }>
+      <StudyAnalysisContent />
+    </Suspense>
   )
 }

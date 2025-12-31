@@ -19,7 +19,9 @@ import {
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Spinner } from "@/components/ui/spinner"
 import { IconArrowLeft } from "@tabler/icons-react"
+import { useAuth } from "@/hooks/useAuth"
 
 // Component to render formatted analysis (same as study-analysis page)
 const renderBoldText = (text: string, key?: string) => {
@@ -85,22 +87,28 @@ const renderListItem = (item: string, index: number) => {
 const cleanAnalysisText = (text: string): string => {
   let cleaned = text.trim()
   
-  // Remove "Analysis of the Study:" and similar prefixes
+  // Remove "Analysis of the Study:" and similar prefixes (but keep everything after)
   cleaned = cleaned
     .replace(/^Analysis of the Study[:\s]*["']?[^"']*["']?\s*/i, '')
     .replace(/^Analysis:\s*/i, '')
     .trim()
   
-  // Find the first ## section header (main section, not subsection)
-  // Look for patterns like "## 1. " or "## 2. " etc.
-  const firstMainSectionMatch = cleaned.match(/^(.*?)(^## \d+\.\s+.+$)/m)
-  if (firstMainSectionMatch) {
-    cleaned = firstMainSectionMatch[2].trim()
+  // Find the position of the first ## section header and keep everything from there onwards
+  const firstSectionMatch = cleaned.match(/^## \d+\.\s+/m)
+  if (firstSectionMatch) {
+    const firstSectionIndex = cleaned.indexOf(firstSectionMatch[0])
+    if (firstSectionIndex > 0) {
+      // Remove any text before the first section header
+      cleaned = cleaned.substring(firstSectionIndex).trim()
+    }
   } else {
-    // Fallback: find first ## section header
-    const firstSectionMatch = cleaned.match(/^(.*?)(^## .+$)/m)
-    if (firstSectionMatch && firstSectionMatch[1].length > 0) {
-      cleaned = firstSectionMatch[2].trim()
+    // Fallback: find first ## section header (any format)
+    const firstAnySectionMatch = cleaned.match(/^## /m)
+    if (firstAnySectionMatch) {
+      const firstSectionIndex = cleaned.indexOf(firstAnySectionMatch[0])
+      if (firstSectionIndex > 0) {
+        cleaned = cleaned.substring(firstSectionIndex).trim()
+      }
     }
   }
   
@@ -186,25 +194,58 @@ const renderAnalysis = (text: string) => {
 
 export default function ViewSavedStudyPage() {
   const [fileName, setFileName] = useState<string>("")
-  const [analysisResult, setAnalysisResult] = useState<string>("")
+  const [studyContent, setStudyContent] = useState<string>("")
+  const [studyType, setStudyType] = useState<"analysis" | "extraction">("analysis")
   const router = useRouter()
+  const { isAuthenticated, isLoading: isAuthLoading } = useAuth()
 
   useEffect(() => {
-    // Get analysis from sessionStorage
-    const stored = sessionStorage.getItem('viewingAnalysis')
-    if (stored) {
-      try {
-        const data = JSON.parse(stored)
-        setFileName(data.fileName || "Study")
-        setAnalysisResult(data.analysis || "")
-      } catch (err) {
-        console.error("Error parsing stored analysis:", err)
-        router.push('/saved-studies')
+    if (isAuthenticated) {
+      // Get study from sessionStorage (new format)
+      const stored = sessionStorage.getItem('viewingStudy')
+      if (stored) {
+        try {
+          const data = JSON.parse(stored)
+          setFileName(data.fileName || "Study")
+          setStudyContent(data.content || "")
+          setStudyType(data.studyType || "analysis")
+        } catch (err) {
+          console.error("Error parsing stored study:", err)
+          router.push('/saved-studies')
+        }
+      } else {
+        // Fallback to old format for backward compatibility
+        const oldStored = sessionStorage.getItem('viewingAnalysis')
+        if (oldStored) {
+          try {
+            const data = JSON.parse(oldStored)
+            setFileName(data.fileName || "Study")
+            setStudyContent(data.analysis || "")
+            setStudyType("analysis")
+          } catch (err) {
+            console.error("Error parsing stored analysis:", err)
+            router.push('/saved-studies')
+          }
+        } else {
+          router.push('/saved-studies')
+        }
       }
-    } else {
-      router.push('/saved-studies')
     }
-  }, [router])
+  }, [router, isAuthenticated])
+
+  // Show loading spinner while checking authentication
+  if (isAuthLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner className="h-8 w-8" />
+      </div>
+    )
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
     <SidebarProvider
@@ -237,15 +278,25 @@ export default function ViewSavedStudyPage() {
                     {fileName}
                   </h1>
                   <p className="text-muted-foreground max-w-2xl">
-                    Analysis results for this study
+                    {studyType === "analysis" 
+                      ? "Analysis results for this study" 
+                      : "Extracted data for this study"}
                   </p>
                 </div>
               </div>
             </div>
 
-            {/* Analysis Results */}
+            {/* Study Results */}
             <div className="px-4 pb-8 md:px-6">
-              {analysisResult && renderAnalysis(analysisResult)}
+              {studyType === "analysis" && studyContent && renderAnalysis(studyContent)}
+              {studyType === "extraction" && studyContent && (
+                <div className="text-muted-foreground">
+                  <p className="mb-4">This is extracted data. To view the full extraction results, please use the Data Extraction page.</p>
+                  <pre className="bg-muted p-4 rounded-lg overflow-auto text-sm">
+                    {JSON.stringify(JSON.parse(studyContent), null, 2)}
+                  </pre>
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -5,6 +5,8 @@ import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useTheme } from "next-themes"
 import { createSupabaseClient } from "@/lib/supabase/client"
+import { useAuth } from "@/hooks/useAuth"
+import { Spinner } from "@/components/ui/spinner"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { SiteHeader } from "@/components/site-header"
@@ -21,18 +23,20 @@ import {
 import { Button } from "@/components/ui/button"
 import {
   IconChartLine,
-  IconChartBar,
   IconFileText,
-  IconSparkles,
-  IconBook,
+  IconTableExport,
   IconMoon,
   IconSun,
+  IconDatabase,
+  IconReport,
+  IconFileWord,
 } from "@tabler/icons-react"
 
 export default function Page() {
   const { theme, setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [firstName, setFirstName] = useState<string | null>(null)
+  const { isAuthenticated, isLoading } = useAuth()
 
   useEffect(() => {
     setMounted(true)
@@ -57,8 +61,24 @@ export default function Page() {
       }
     }
 
+    if (isAuthenticated) {
     getUserName()
-  }, [])
+    }
+  }, [isAuthenticated])
+
+  // Show loading spinner while checking authentication
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <Spinner className="h-8 w-8" />
+      </div>
+    )
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null
+  }
 
   return (
     <SidebarProvider
@@ -109,7 +129,7 @@ export default function Page() {
 
             {/* Features Section */}
             <div className="px-4 pb-8 md:px-6">
-              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-5">
+              <div className="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
                 <Link href="/study-analysis" className="flex flex-col items-center gap-2">
                   <Card className="bg-muted transition-all hover:shadow-md hover:border-primary/20 cursor-pointer w-full aspect-square">
                     <CardHeader className="p-4 h-full flex items-center justify-center">
@@ -118,37 +138,45 @@ export default function Page() {
                   </Card>
                   <CardTitle className="text-sm text-center">Study Analysis</CardTitle>
                 </Link>
-                <Link href="/visualization" className="flex flex-col items-center gap-2">
-                  <Card className="bg-muted transition-all hover:shadow-md hover:border-primary/20 cursor-pointer w-full aspect-square">
-                    <CardHeader className="p-4 h-full flex items-center justify-center">
-                      <IconChartBar className="h-8 w-8 text-primary" />
-                    </CardHeader>
-                  </Card>
-                  <CardTitle className="text-sm text-center">Visualization</CardTitle>
-                </Link>
                 <Link href="/documentation" className="flex flex-col items-center gap-2">
                   <Card className="bg-muted transition-all hover:shadow-md hover:border-primary/20 cursor-pointer w-full aspect-square">
                     <CardHeader className="p-4 h-full flex items-center justify-center">
                       <IconFileText className="h-8 w-8 text-primary" />
                     </CardHeader>
                   </Card>
-                  <CardTitle className="text-sm text-center">Documentation</CardTitle>
+                  <CardTitle className="text-sm text-center">Find Studies</CardTitle>
                 </Link>
-                <Link href="/literature-search" className="flex flex-col items-center gap-2">
+                <Link href="/data-extraction" className="flex flex-col items-center gap-2">
                   <Card className="bg-muted transition-all hover:shadow-md hover:border-primary/20 cursor-pointer w-full aspect-square">
                     <CardHeader className="p-4 h-full flex items-center justify-center">
-                      <IconBook className="h-8 w-8 text-primary" />
+                      <IconTableExport className="h-8 w-8 text-primary" />
                     </CardHeader>
                   </Card>
-                  <CardTitle className="text-sm text-center">Literature Search</CardTitle>
+                  <CardTitle className="text-sm text-center">Data Extraction</CardTitle>
                 </Link>
-                <Link href="/ai-insights" className="flex flex-col items-center gap-2">
+                <Link href="/saved-studies" className="flex flex-col items-center gap-2">
                   <Card className="bg-muted transition-all hover:shadow-md hover:border-primary/20 cursor-pointer w-full aspect-square">
                     <CardHeader className="p-4 h-full flex items-center justify-center">
-                      <IconSparkles className="h-8 w-8 text-primary" />
+                      <IconDatabase className="h-8 w-8 text-primary" />
                     </CardHeader>
                   </Card>
-                  <CardTitle className="text-sm text-center">AI Insights</CardTitle>
+                  <CardTitle className="text-sm text-center">Saved Studies</CardTitle>
+                </Link>
+                <Link href="#" className="flex flex-col items-center gap-2">
+                  <Card className="bg-muted transition-all hover:shadow-md hover:border-primary/20 cursor-pointer w-full aspect-square">
+                    <CardHeader className="p-4 h-full flex items-center justify-center">
+                      <IconReport className="h-8 w-8 text-primary" />
+                    </CardHeader>
+                  </Card>
+                  <CardTitle className="text-sm text-center">Reports</CardTitle>
+                </Link>
+                <Link href="#" className="flex flex-col items-center gap-2">
+                  <Card className="bg-muted transition-all hover:shadow-md hover:border-primary/20 cursor-pointer w-full aspect-square">
+                    <CardHeader className="p-4 h-full flex items-center justify-center">
+                      <IconFileWord className="h-8 w-8 text-primary" />
+                    </CardHeader>
+                  </Card>
+                  <CardTitle className="text-sm text-center">Word Assistant</CardTitle>
                 </Link>
               </div>
             </div>

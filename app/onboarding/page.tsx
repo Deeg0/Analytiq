@@ -17,14 +17,21 @@ import {
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { createSupabaseClient } from "@/lib/supabase/client"
 import {
   IconChartLine,
-  IconChartBar,
-  IconDatabase,
   IconFileText,
-  IconSparkles,
-  IconBook,
+  IconTableExport,
   IconArrowRight,
   IconCheck,
   IconBrandGoogle,
@@ -39,6 +46,8 @@ function OnboardingContent() {
   const [isSignIn, setIsSignIn] = useState(false)
   const [emailConfirmationPending, setEmailConfirmationPending] = useState(false)
   const [pendingEmail, setPendingEmail] = useState<string | null>(null)
+  const [cameFromOAuth, setCameFromOAuth] = useState(false)
+  const [showLogoutDialog, setShowLogoutDialog] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -47,7 +56,7 @@ function OnboardingContent() {
     researchField: "",
   })
 
-  // Check if user is already authenticated (e.g., coming from email confirmation page)
+  // Check if user is already authenticated (e.g., coming from email confirmation or OAuth)
   useEffect(() => {
     const checkSession = async () => {
       try {
@@ -56,18 +65,35 @@ function OnboardingContent() {
         
         // If user has a session and is on step 1, move to step 2
         if (session && step === 1) {
-          // Check if user has already completed profile (has full_name)
-          const fullName = session.user.user_metadata?.full_name
-          if (fullName) {
+          // Check if user has already completed onboarding
+          // We use onboarding_completed flag to distinguish from Google-provided data
+          const onboardingCompleted = session.user.user_metadata?.onboarding_completed === true
+          if (onboardingCompleted) {
             // User has completed onboarding, redirect to dashboard
             router.push('/dashboard')
           } else {
             // User is authenticated but hasn't completed profile, move to step 2
             setStep(2)
             setEmailConfirmationPending(false)
+            // Check if user came from OAuth (has provider metadata)
+            const provider = session.user.app_metadata?.provider
+            if (provider === 'google' || provider === 'oauth') {
+              setCameFromOAuth(true)
+            }
             // Pre-fill email from session
             if (session.user.email) {
               setFormData(prev => ({ ...prev, email: session.user.email || "" }))
+            }
+            // Pre-fill name from Google if available (user_metadata.name or user_metadata.full_name from Google)
+            const googleName = session.user.user_metadata?.name || session.user.user_metadata?.full_name
+            if (googleName) {
+              setFormData(prev => {
+                // Only set if not already set
+                if (!prev.name) {
+                  return { ...prev, name: googleName }
+                }
+                return prev
+              })
             }
           }
         }
@@ -77,6 +103,39 @@ function OnboardingContent() {
     }
 
     checkSession()
+    // Also listen for auth state changes (for OAuth redirects)
+    const supabase = createSupabaseClient()
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN' && session && step === 1) {
+        // Check if user has completed onboarding using our dedicated flag
+        const onboardingCompleted = session.user.user_metadata?.onboarding_completed === true
+        if (!onboardingCompleted) {
+          // New user from OAuth, move to step 2
+          setStep(2)
+          setEmailConfirmationPending(false)
+          setCameFromOAuth(true)
+          if (session.user.email) {
+            setFormData(prev => ({ ...prev, email: session.user.email || "" }))
+          }
+          const googleName = session.user.user_metadata?.name || session.user.user_metadata?.full_name
+          if (googleName) {
+            setFormData(prev => {
+              if (!prev.name) {
+                return { ...prev, name: googleName }
+              }
+              return prev
+            })
+          }
+        } else {
+          // Existing user, redirect to dashboard
+          router.push('/dashboard')
+        }
+      }
+    })
+
+    return () => {
+      subscription.unsubscribe()
+    }
   }, [step, router])
 
 
@@ -103,12 +162,43 @@ function OnboardingContent() {
   }
 
   const handleBack = () => {
-    if (step > 1) {
-      setStep(step - 1)
+    if (step === 2) {
+      // Going back from step 2 to step 1 - show confirmation dialog
+      setShowLogoutDialog(true)
+    } else if (step === 3) {
+      // Going back from step 3 to step 2 - just go back
+      setStep(2)
       setError(null)
-      // Clear email confirmation pending state when going back
+    }
+  }
+
+  const handleConfirmLogout = async () => {
+    try {
+      const supabase = createSupabaseClient()
+      await supabase.auth.signOut()
+      // Reset form and state
+      setFormData({
+        name: "",
+        email: "",
+        password: "",
+        organization: "",
+        researchField: "",
+      })
+      setStep(1)
+      setError(null)
       setEmailConfirmationPending(false)
       setPendingEmail(null)
+      setCameFromOAuth(false)
+      setShowLogoutDialog(false)
+    } catch (err) {
+      console.error('Error signing out:', err)
+      // Still go back even if sign out fails
+      setStep(1)
+      setError(null)
+      setEmailConfirmationPending(false)
+      setPendingEmail(null)
+      setCameFromOAuth(false)
+      setShowLogoutDialog(false)
     }
   }
 
@@ -185,8 +275,18 @@ function OnboardingContent() {
       }
 
       if (data.user) {
-        // Redirect to dashboard on successful sign in
+        // Check if user has completed onboarding
+        const onboardingCompleted = data.user.user_metadata?.onboarding_completed === true
+        if (onboardingCompleted) {
+          // User has completed onboarding, redirect to dashboard
         router.push("/dashboard")
+        } else {
+          // User hasn't completed onboarding, move to step 2
+          setStep(2)
+          if (data.user.email) {
+            setFormData(prev => ({ ...prev, email: data.user.email || "" }))
+          }
+        }
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to sign in")
@@ -221,6 +321,7 @@ function OnboardingContent() {
           full_name: formData.name,
           organization: formData.organization || null,
           research_field: formData.researchField || null,
+          onboarding_completed: true, // Flag to indicate onboarding is complete
         },
       })
 
@@ -240,6 +341,7 @@ function OnboardingContent() {
               full_name: formData.name,
               organization: formData.organization || null,
               research_field: formData.researchField || null,
+              onboarding_completed: true, // Flag to indicate onboarding is complete
             },
           })
           
@@ -272,7 +374,7 @@ function OnboardingContent() {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/dashboard`,
+          redirectTo: `${window.location.origin}/onboarding`,
         },
       })
 
@@ -291,29 +393,14 @@ function OnboardingContent() {
       description: "Statistical analysis and data processing tools.",
     },
     {
-      icon: IconChartBar,
-      title: "Visualization",
-      description: "Create charts and visualizations for your findings.",
-    },
-    {
-      icon: IconDatabase,
-      title: "Data Management",
-      description: "Organize and manage research data securely.",
-    },
-    {
       icon: IconFileText,
       title: "Documentation",
       description: "Create, organize, and share research papers and reports.",
     },
     {
-      icon: IconBook,
-      title: "Literature Search",
-      description: "Find and review academic papers and publications.",
-    },
-    {
-      icon: IconSparkles,
-      title: "AI Insights",
-      description: "AI-powered tools to discover patterns and generate hypotheses.",
+      icon: IconTableExport,
+      title: "Data Extraction",
+      description: "Extract structured data and tables from research documents.",
     },
   ]
 
@@ -332,13 +419,7 @@ function OnboardingContent() {
             />
             <span className="text-lg font-semibold">AnalytIQ</span>
           </div>
-          {step > 1 && (
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm">
-                Skip
-              </Button>
-            </Link>
-          )}
+          {/* No skip button - step 2 is required for new users */}
         </div>
       </header>
 
@@ -449,7 +530,7 @@ function OnboardingContent() {
                   </div>
                   <div className="relative flex justify-center text-xs uppercase">
                     <span className="bg-card px-2 text-muted-foreground">
-                      Or continue with
+                      Or
                     </span>
                   </div>
                 </div>
@@ -667,6 +748,24 @@ function OnboardingContent() {
           </div>
         )}
       </main>
+
+      {/* Logout Confirmation Dialog */}
+      <AlertDialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Going back will log you out and you'll need to sign in again to continue.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleConfirmLogout}>
+              Log Out
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
